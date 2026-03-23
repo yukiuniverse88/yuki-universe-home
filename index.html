@@ -208,6 +208,8 @@
 
     /* floating */
     .fab{
+      display:none;
+      pointer-events:none;
       position:fixed;
       right:max(18px, calc((100vw - min(540px, 100vw))/2 + 18px));
       bottom:var(--fab-bottom);
@@ -298,7 +300,8 @@
       .card{border-radius:24px;}
     }
 
-  </style>
+      .fab.show{display:grid;pointer-events:auto;}
+</style>
 </head>
 <body>
   <div class="app">
@@ -438,7 +441,7 @@
       </div>
     </section>
 
-    <button id="fab" class="fab" aria-label="新規メモ">✎</button>
+    <button id="fab" class="fab" aria-label="新規メモ" hidden>✎</button>
   </div>
 
   <div id="moveOverlay" class="overlay" aria-hidden="true">
@@ -553,7 +556,9 @@
     function showView(name){
       currentView = name;
       Object.entries(views).forEach(([k,el]) => el.classList.toggle('active', k===name));
-      fab.style.display = name === 'notes' ? 'grid' : 'none';
+      const fabVisible = name === 'notes';
+      fab.hidden = !fabVisible;
+      fab.classList.toggle('show', fabVisible);
       closeOpenSwipe();
       closeMenu();
       if(name !== 'home') closeSheet();
