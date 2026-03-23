@@ -28,19 +28,19 @@
       --fab-bottom:calc(36px + env(safe-area-inset-bottom));
     }
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-    html,body{margin:0;height:100%;width:100%;max-width:100%;overflow-x:hidden;background:#060405;overscroll-behavior-x:none;touch-action:pan-y;}
+    html,body{margin:0;height:100%;width:100%;max-width:100%;overflow-x:clip;background:#060405;overscroll-behavior:none;touch-action:pan-y;position:relative;}
     body{
       font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
       color:var(--text);
       background:
-        radial-gradient(140% 52% at 50% -8%, rgba(110,34,18,.14) 0%, rgba(110,34,18,.10) 18%, rgba(110,34,18,0) 58%),
-        radial-gradient(34% 22% at 82% 26%, rgba(106,70,198,.12) 0%, rgba(106,70,198,0) 70%),
-        linear-gradient(180deg,#090707 0%, #060405 72%, #050404 100%);
+        radial-gradient(90% 36% at 50% -8%, rgba(88,32,24,.10) 0%, rgba(88,32,24,.04) 28%, rgba(88,32,24,0) 60%),
+        radial-gradient(28% 18% at 82% 26%, rgba(106,70,198,.12) 0%, rgba(106,70,198,0) 72%),
+        linear-gradient(180deg,#080607 0%, #060405 68%, #050404 100%);
       overscroll-behavior-y:none;
       -webkit-text-size-adjust:100%;
     }
     body::before{
-      content:"";position:fixed;inset:0 0 auto 0;height:max(18px, env(safe-area-inset-top));background:#060405;pointer-events:none;z-index:0;
+      content:"";position:fixed;inset:0 0 auto 0;height:max(48px, env(safe-area-inset-top) + 14px);background:#060405;pointer-events:none;z-index:0;
     }
     .app{
       width:min(540px,100%);
@@ -50,9 +50,9 @@
       padding:0 18px calc(24px + env(safe-area-inset-bottom));
       position:relative;
       z-index:1;
-      overflow-x:hidden; overscroll-behavior-x:none;
+      overflow-x:clip; overscroll-behavior:none;
     }
-    .view{display:none;min-height:100dvh;}
+    .view{display:none;min-height:100dvh;width:100%;max-width:100%;overflow-x:clip;}
     .view.active{display:block;}
     .nav{
       position:sticky; top:0; z-index:40;
@@ -209,7 +209,6 @@
     /* floating */
     .fab{
       display:none;
-      pointer-events:none;
       position:fixed;
       right:max(18px, calc((100vw - min(540px, 100vw))/2 + 18px));
       bottom:var(--fab-bottom);
@@ -231,6 +230,12 @@
     .menu-item.delete{background:rgba(241,100,100,.13);color:#ffb1b1;}
 
     .spacer{height:4px;}
+
+
+    .home-view,.home-wrap,.today-stack,.main-grid,.duo-grid,.hero,.card{max-width:100%;min-width:0;}
+    .brand{max-width:100%;}
+    .brand-title{max-width:100%;overflow:hidden;text-overflow:clip;}
+    .mood-line,.mood-symbols{min-width:0;max-width:100%;}
 
     @media (max-width:390px){
       :root{--row-h:84px; --action-w:78px;}
@@ -275,7 +280,7 @@
     .pill{width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.032);color:var(--text);font-size:22px;cursor:pointer;font-family:inherit;flex:0 0 auto;}
     .pill.active{border-color:rgba(232,163,178,.55);box-shadow:0 0 0 1px rgba(232,163,178,.18) inset;color:#ffd1dc;}
     .history-button,.sub-button{height:46px;border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);font-size:16px;font-weight:650;cursor:pointer;font-family:inherit;padding:0 16px;white-space:nowrap;}
-    .history-button{flex:0 0 auto;min-width:106px;}
+    .history-button{flex:0 0 auto;min-width:96px;max-width:42%;padding:0 14px;}
     .duo-grid{display:grid;gap:14px;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;}
     .bottom-card{min-height:186px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;}
     .diary-card{cursor:pointer;}
@@ -291,6 +296,12 @@
     .simple-sheet textarea,.simple-sheet input{width:100%;border:none;outline:none;color:var(--text);background:rgba(255,255,255,.04);border-radius:18px;padding:14px 14px;font:inherit;margin-top:12px;}
     .simple-sheet .row{display:flex;gap:10px;margin-top:14px;}
     .simple-sheet .row .sub-button{flex:1;}
+
+    .home-view,.home-wrap,.today-stack,.main-grid,.duo-grid,.hero,.card{max-width:100%;min-width:0;}
+    .brand{max-width:100%;}
+    .brand-title{max-width:100%;overflow:hidden;text-overflow:clip;}
+    .mood-line,.mood-symbols{min-width:0;max-width:100%;}
+
     @media (max-width:390px){
       .welcome{font-size:28px;}
       .pill{width:42px;height:42px;font-size:20px;}
@@ -300,8 +311,7 @@
       .card{border-radius:24px;}
     }
 
-      .fab.show{display:grid;pointer-events:auto;}
-</style>
+  </style>
 </head>
 <body>
   <div class="app">
@@ -441,7 +451,7 @@
       </div>
     </section>
 
-    <button id="fab" class="fab" aria-label="新規メモ" hidden>✎</button>
+    <button id="fab" class="fab" aria-label="新規メモ">✎</button>
   </div>
 
   <div id="moveOverlay" class="overlay" aria-hidden="true">
@@ -556,9 +566,7 @@
     function showView(name){
       currentView = name;
       Object.entries(views).forEach(([k,el]) => el.classList.toggle('active', k===name));
-      const fabVisible = name === 'notes';
-      fab.hidden = !fabVisible;
-      fab.classList.toggle('show', fabVisible);
+      fab.style.display = name === 'notes' ? 'grid' : 'none';
       closeOpenSwipe();
       closeMenu();
       if(name !== 'home') closeSheet();
@@ -698,14 +706,13 @@
     function openDiaryList(){
       const diaries = getDiaryList();
       const rows = diaries.length
-        ? diaries.slice(0,60).map(d => `${d.day.replaceAll('-', '.')}  ${d.mood || '—'}
-${(d.text || '').replace(/
-+/g,' ').trim()}`).join('
-
-')
+        ? diaries.slice(0,60)
+            .map(d => `${d.day.replaceAll('-', '.')}  ${d.mood || '—'}\n${(d.text || '').replace(/\n+/g,' ').trim()}`)
+            .join('\n\n')
         : 'まだ日記がないよ。';
       openSimpleSheet('Diary List', rows);
     }
+    
     function openHealthSheet(){
       const health = getHealthData();
       simpleSheetContent.innerHTML = `
@@ -1146,6 +1153,8 @@ ${(d.text || '').replace(/
     renderFolders();
     renderNotes();
     showView('home');
+    window.scrollTo(0,0);
+    window.addEventListener('pageshow', ()=>window.scrollTo(0,0));
   </script>
 </body>
 </html>
