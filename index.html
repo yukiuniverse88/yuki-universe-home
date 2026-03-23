@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#060405" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>祐紀ユニバース｜帰る家</title>
   <style>
-
     :root{
       --bg:#060405;
       --bg-2:#0b0708;
@@ -26,21 +28,29 @@
       --fab-bottom:calc(36px + env(safe-area-inset-bottom));
     }
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-    html,body{margin:0;height:100%;}
+    html,body{margin:0;height:100%;width:100%;overflow-x:hidden;background:#060405;overscroll-behavior-x:none;}
     body{
       font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
       color:var(--text);
       background:
-        radial-gradient(circle at top, rgba(113,40,18,.18), transparent 28%),
-        linear-gradient(180deg,#10090a 0%, #080607 35%, #060405 100%);
+        radial-gradient(140% 52% at 50% -8%, rgba(110,34,18,.14) 0%, rgba(110,34,18,.10) 18%, rgba(110,34,18,0) 58%),
+        radial-gradient(34% 22% at 82% 26%, rgba(106,70,198,.12) 0%, rgba(106,70,198,0) 70%),
+        linear-gradient(180deg,#090707 0%, #060405 72%, #050404 100%);
+      overscroll-behavior-y:none;
+      -webkit-text-size-adjust:100%;
     }
-    body.folder-dragging, body.folder-dragging *{user-select:none !important;-webkit-user-select:none !important;-webkit-touch-callout:none !important;}
+    body::before{
+      content:"";position:fixed;inset:0 0 auto 0;height:max(18px, env(safe-area-inset-top));background:#060405;pointer-events:none;z-index:0;
+    }
     .app{
-      max-width:540px;
+      width:min(540px,100%);
+      max-width:100%;
       margin:0 auto;
       min-height:100dvh;
       padding:0 18px calc(24px + env(safe-area-inset-bottom));
       position:relative;
+      z-index:1;
+      overflow-x:hidden;
     }
     .view{display:none;min-height:100dvh;}
     .view.active{display:block;}
@@ -153,8 +163,6 @@
     .drag-handle span{top:8px;}
     .drag-handle::after{top:13px;}
     .folder-row.dragging{opacity:.9; background:rgba(255,255,255,.06); z-index:4;}
-    .folder-row,.folder-main,.folder-name,.folder-edit-actions,.drag-handle{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
-    .folder-row.editing *{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
     .drag-handle{touch-action:none; cursor:grab;}
     .folder-row.drop-target{box-shadow:inset 0 2px 0 rgba(255,255,255,.18);}
 
@@ -234,23 +242,19 @@
       .icon-btn,.text-btn{height:48px;}
       .icon-btn{width:48px;}
       .nav-row{min-height:56px;}
-      .pill{width:40px;height:40px;font-size:18px;}
-      .mood-line{gap:10px;}
-      .history-button{padding:0 12px;}
     }
   
-
     .home-view{padding-top:max(18px, env(safe-area-inset-top));}
     .home-wrap{display:flex;flex-direction:column;gap:18px;padding-bottom:calc(26px + env(safe-area-inset-bottom));}
-    .brand{display:flex;align-items:center;justify-content:flex-start;padding:8px 2px 0;}
-    .brand-title{letter-spacing:.32em;font-weight:300;font-size:16px;color:rgba(255,255,255,.72);}
+    .brand{display:flex;align-items:center;justify-content:flex-start;padding:8px 2px 0;overflow:hidden;}
+    .brand-title{letter-spacing:.28em;font-weight:300;font-size:clamp(13px,4vw,16px);color:rgba(255,255,255,.72);white-space:nowrap;}
     .hero{background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.018));border:1px solid var(--line);border-radius:32px;padding:22px 20px 24px;box-shadow:var(--shadow);position:relative;overflow:hidden;min-height:180px;display:flex;flex-direction:column;justify-content:space-between;}
-    .hero::after{content:"";position:absolute;right:-36px;bottom:-36px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle, rgba(143,91,255,.20), transparent 67%);pointer-events:none;}
+    .hero::after{content:"";position:absolute;right:-34px;bottom:-34px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle, rgba(143,91,255,.18), transparent 67%);pointer-events:none;}
     .date{font-size:13px;letter-spacing:.08em;color:var(--muted);margin-bottom:18px;}
-    .welcome{font-size:31px;line-height:1.35;font-weight:700;margin:0;max-width:10em;}
+    .welcome{font-size:31px;line-height:1.35;font-weight:700;margin:0;max-width:10em;letter-spacing:-.02em;}
     .home-title{font-size:12px;color:var(--muted);letter-spacing:.14em;padding:0 4px;text-transform:uppercase;}
-    .main-grid{display:grid;gap:14px;grid-template-columns:repeat(2,minmax(0,1fr));}
-    .card{border-radius:26px;padding:18px 16px;background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));border:1px solid var(--line);box-shadow:var(--shadow);position:relative;overflow:hidden;}
+    .main-grid{display:grid;gap:14px;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;}
+    .card{border-radius:26px;padding:18px 16px;background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));border:1px solid var(--line);box-shadow:var(--shadow);position:relative;overflow:hidden;min-width:0;}
     .card::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at top right, rgba(255,255,255,.05), transparent 30%);pointer-events:none;}
     button.card{width:100%;text-align:left;color:inherit;cursor:pointer;border:none;font-family:inherit;}
     .feature-card{min-height:132px;display:flex;flex-direction:column;justify-content:space-between;gap:18px;}
@@ -260,40 +264,44 @@
     .living-card .icon{color:#8f5bff;border-color:rgba(143,91,255,.28);}
     .rooms-card .icon{color:#e8a3b2;border-color:rgba(232,163,178,.28);}
     .treasures-card .icon{color:#9dd989;border-color:rgba(157,217,137,.24);}
-    .today-stack{position:relative;display:flex;flex-direction:column;gap:14px;}
-    .today-stack::before{content:"";position:absolute;left:-28px;right:-28px;top:-18px;bottom:-18px;pointer-events:none;z-index:0;background:radial-gradient(ellipse at center, rgba(122,34,18,.12) 0%, rgba(122,34,18,.07) 28%, rgba(122,34,18,.03) 48%, transparent 74%);filter:blur(28px);opacity:.95;}
-    .today-stack > *{position:relative;z-index:1;}
-    .mood-wide-card{padding:18px 16px 16px;display:flex;flex-direction:column;gap:14px;}
-    .mood-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+    .today-stack{display:flex;flex-direction:column;gap:14px;width:100%;}
+    .mood-card{padding:18px 16px;min-height:118px;}
     .small-title{font-size:12px;letter-spacing:.12em;color:var(--muted);margin:0;text-transform:uppercase;}
-    .mood-current{font-size:28px;font-weight:780;letter-spacing:-.03em;line-height:1;color:#ffd1dc;min-width:1.25em;text-align:right;}
-    .mood-line{display:flex;align-items:center;justify-content:space-between;gap:12px;}
-    .mood-actions{display:flex;gap:8px;min-width:0;flex:1;}
-    .pill{width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.032);color:var(--text);font-size:20px;cursor:pointer;font-family:inherit;flex:0 0 auto;}
+    .compact-status{font-size:14px;color:var(--sub);line-height:1.5;margin-top:10px;min-height:20px;}
+    .mood-line{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;}
+    .mood-symbols{display:flex;align-items:center;gap:10px;min-width:0;flex-wrap:nowrap;}
+    .pill{width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.032);color:var(--text);font-size:22px;cursor:pointer;font-family:inherit;flex:0 0 auto;}
     .pill.active{border-color:rgba(232,163,178,.55);box-shadow:0 0 0 1px rgba(232,163,178,.18) inset;color:#ffd1dc;}
-    .sub-button{height:44px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);font-size:15px;font-weight:650;cursor:pointer;font-family:inherit;padding:0 16px;}
-    .history-button{padding:0 14px;white-space:nowrap;flex:0 0 auto;}
-    .today-grid{display:grid;gap:14px;grid-template-columns:repeat(2,minmax(0,1fr));}
-    .bottom-card{min-height:168px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;}
-    .simple-mark{font-size:38px;font-weight:800;letter-spacing:-.03em;line-height:1;margin:0 0 10px;}
-    .diary-mark{color:#8fc8ff;}
-    .health-mark{color:#ffcc7a;}
-    .compact-status{font-size:13px;color:var(--sub);line-height:1.5;min-height:20px;}
-    .mini-row{display:flex;gap:10px;}
-    .sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.56);display:none;align-items:flex-end;justify-content:center;padding:18px;z-index:70;}
-    .sheet-backdrop.show{display:flex;}
-    .sheet{width:min(540px, 100%);background:linear-gradient(180deg, rgba(28,23,24,.98), rgba(18,15,16,.98));border:1px solid var(--line);border-radius:28px 28px 18px 18px;box-shadow:var(--shadow);padding:20px 18px calc(20px + env(safe-area-inset-bottom));}
-    .sheet h3{margin:0 0 10px;font-size:22px;}
-    .sheet p{margin:0;color:var(--sub);line-height:1.7;white-space:pre-wrap;}
-    .sheet textarea,.sheet input{width:100%;border:none;outline:none;color:var(--text);background:rgba(255,255,255,.04);border-radius:18px;padding:14px 14px;font:inherit;margin-top:12px;}
-    .sheet .row{display:flex;gap:10px;margin-top:14px;}
-    .sheet .row .sub-button{flex:1;}
+    .history-button,.sub-button{height:46px;border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);font-size:16px;font-weight:650;cursor:pointer;font-family:inherit;padding:0 16px;white-space:nowrap;}
+    .history-button{flex:0 0 auto;min-width:106px;}
+    .duo-grid{display:grid;gap:14px;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;}
+    .bottom-card{min-height:186px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;}
+    .simple-icon{font-size:40px;line-height:1;margin-top:8px;}
+    .diary-icon{color:#8fc8ff;}
+    .health-icon{color:#ffcc7a;}
     .home-spacer{height:8px;}
+    .simple-sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.56);display:none;align-items:flex-end;justify-content:center;padding:18px;z-index:70;backdrop-filter:blur(8px);}
+    .simple-sheet-backdrop.show{display:flex;}
+    .simple-sheet{width:min(540px, 100%);background:linear-gradient(180deg, rgba(28,23,24,.98), rgba(18,15,16,.98));border:1px solid var(--line);border-radius:28px 28px 18px 18px;box-shadow:var(--shadow);padding:20px 18px calc(20px + env(safe-area-inset-bottom));}
+    .simple-sheet h3{margin:0 0 10px;font-size:22px;}
+    .simple-sheet p{margin:0;color:var(--sub);line-height:1.7;white-space:pre-wrap;}
+    .simple-sheet textarea,.simple-sheet input{width:100%;border:none;outline:none;color:var(--text);background:rgba(255,255,255,.04);border-radius:18px;padding:14px 14px;font:inherit;margin-top:12px;}
+    .simple-sheet .row{display:flex;gap:10px;margin-top:14px;}
+    .simple-sheet .row .sub-button{flex:1;}
+    @media (max-width:390px){
+      .welcome{font-size:28px;}
+      .pill{width:42px;height:42px;font-size:20px;}
+      .history-button{min-width:92px;padding:0 12px;}
+      .brand-title{letter-spacing:.24em;font-size:14px;}
+      .duo-grid{gap:12px;}
+      .card{border-radius:24px;}
+    }
 
   </style>
 </head>
 <body>
   <div class="app">
+
     <section id="view-home" class="view active home-view">
       <main class="home-wrap">
         <header class="brand">
@@ -302,7 +310,7 @@
 
         <section class="hero">
           <div class="date" id="dateText"></div>
-          <h1 class="welcome" id="welcomeText">おかえり。<br>今日もちゃんと、ここが祐紀の家。</h1>
+          <h1 class="welcome" id="welcomeText">おかえり。<br>今日はどこから触れる？</h1>
         </section>
 
         <div class="home-title">Now, touch</div>
@@ -312,20 +320,17 @@
             <h2 class="label">Memo</h2>
           </button>
 
-          <button class="card feature-card living-card" type="button" onclick="openSimpleSheet('Living','みんながいる共有のリビング。
-ここは次の制作でつないでいく場所。')">
+          <button class="card feature-card living-card" type="button" id="openLivingFromHome">
             <div class="icon">⌂</div>
             <h2 class="label">Living</h2>
           </button>
 
-          <button class="card feature-card rooms-card" type="button" onclick="openSimpleSheet('Rooms','それぞれの部屋へ入る入口。
-Roomsはあとで本設計する予定。')">
+          <button class="card feature-card rooms-card" type="button" id="openRoomsFromHome">
             <div class="icon">☾</div>
             <h2 class="label">Rooms</h2>
           </button>
 
-          <button class="card feature-card treasures-card" type="button" onclick="openSimpleSheet('Treasures','宝物や思い出の保管場所。
-ここも次の制作で育てていく。')">
+          <button class="card feature-card treasures-card" type="button" id="openTreasuresFromHome">
             <div class="icon">✦</div>
             <h2 class="label">Treasures</h2>
           </button>
@@ -333,27 +338,25 @@ Roomsはあとで本設計する予定。')">
 
         <div class="home-title">Today</div>
         <section class="today-stack">
-          <article class="card mood-wide-card">
-            <div class="mood-top">
-              <p class="small-title">TODAY'S MOOD</p>
-              <div class="mood-current" id="moodDisplay">—</div>
-            </div>
+          <article class="card mood-card">
+            <p class="small-title">TODAY'S MOOD</p>
+            <div class="compact-status" id="moodStatusText">未記録</div>
             <div class="mood-line">
-              <div class="mood-actions">
+              <div class="mood-symbols">
                 <button class="pill" type="button" data-mood="◎" onclick="saveMood('◎', this)">◎</button>
                 <button class="pill" type="button" data-mood="○" onclick="saveMood('○', this)">○</button>
                 <button class="pill" type="button" data-mood="△" onclick="saveMood('△', this)">△</button>
                 <button class="pill" type="button" data-mood="×" onclick="saveMood('×', this)">×</button>
               </div>
-              <button class="sub-button history-button" type="button" onclick="openMoodHistory()">History</button>
+              <button class="history-button" type="button" onclick="openMoodHistory()">History</button>
             </div>
           </article>
 
-          <section class="today-grid">
+          <div class="duo-grid">
             <article class="card bottom-card">
               <div>
                 <p class="small-title">DIARY</p>
-                <div class="simple-mark diary-mark">✎</div>
+                <div class="simple-icon diary-icon">✎</div>
                 <div class="compact-status" id="diaryBadge">Mood: —</div>
               </div>
               <button class="sub-button" type="button" onclick="openDiarySheet()">Open</button>
@@ -362,18 +365,18 @@ Roomsはあとで本設計する予定。')">
             <article class="card bottom-card">
               <div>
                 <p class="small-title">HEALTH</p>
-                <div class="simple-mark health-mark">♡</div>
+                <div class="simple-icon health-icon">♡</div>
                 <div class="compact-status" id="healthSummary">Weight / Calories</div>
               </div>
               <button class="sub-button" type="button" onclick="openHealthSheet()">Open</button>
             </article>
-          </section>
+          </div>
         </section>
         <div class="home-spacer"></div>
       </main>
     </section>
 
-    <section id="view-folders" class="view">
+    <section id="view-folders" class="view active">
       <div class="nav">
         <div class="nav-row">
           <button class="icon-btn" id="backHomeFromFolders" aria-label="ホームへ戻る">‹</button>
@@ -453,25 +456,18 @@ Roomsはあとで本設計する予定。')">
     <div class="menu-card" id="menuCard"></div>
   </div>
 
-  <div class="sheet-backdrop" id="sheetBackdrop" onclick="closeSheet(event)">
-    <section class="sheet" id="sheetContent" onclick="event.stopPropagation()"></section>
+
+  <div class="simple-sheet-backdrop" id="simpleSheetBackdrop" onclick="closeSheet(event)">
+    <section class="simple-sheet" id="simpleSheetContent" onclick="event.stopPropagation()"></section>
   </div>
 
   <script>
-
-    const moodKey = 'yuki_home_moods_v3';
-    const diaryKey = 'yuki_home_diaries_v3';
-    const healthKey = 'yuki_home_health_v3';
-
-    const welcomeLines = [
-      'おかえり。<br>今日もちゃんと、ここが祐紀の家。',
-      'おかえり。<br>まずはここで、ひと息。',
-      'おかえり。<br>今日はどこから触れる？'
-    ];
-
     const STORAGE_KEYS = ['yuki-universe-memo-v4','yuki-universe-memo-v3','yuki-universe-memo-v2','yuki-universe-memo-v1'];
     const ACTIVE_STORAGE_KEY = STORAGE_KEYS[0];
     const ALL_FOLDER_ID = '__all__';
+    const moodKey = 'yuki_home_moods_v4';
+    const diaryKey = 'yuki_home_diaries_v4';
+    const healthKey = 'yuki_home_health_v4';
 
     function uid(){ return 'id-' + Math.random().toString(36).slice(2,11); }
 
@@ -500,6 +496,13 @@ Roomsはあとで本設計する予定。')">
       editor: document.getElementById('view-editor')
     };
 
+    const dateText = document.getElementById('dateText');
+    const welcomeText = document.getElementById('welcomeText');
+    const moodStatusText = document.getElementById('moodStatusText');
+    const diaryBadge = document.getElementById('diaryBadge');
+    const healthSummary = document.getElementById('healthSummary');
+    const simpleSheetBackdrop = document.getElementById('simpleSheetBackdrop');
+    const simpleSheetContent = document.getElementById('simpleSheetContent');
     const folderListEl = document.getElementById('folderList');
     const noteSectionsEl = document.getElementById('noteSections');
     const notesNavTitle = document.getElementById('notesNavTitle');
@@ -519,7 +522,7 @@ Roomsはあとで本設計する予定。')">
     const menuCard = document.getElementById('menuCard');
 
     let state = loadData();
-    let currentView = 'folders';
+    let currentView = 'home';
     let currentFolderId = ALL_FOLDER_ID;
     let lastUsedFolderId = state.folders[0]?.id || null;
     let currentNoteId = null;
@@ -531,145 +534,7 @@ Roomsはあとで本設計する予定。')">
     let draftChanged = false;
     let suppressNextClick = false;
 
-    
-    function getTodayKey(){
-      const d = new Date();
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${y}-${m}-${day}`;
-    }
-
-    function setTodayDate(){
-      const d = new Date();
-      const week = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
-      document.getElementById('dateText').textContent = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}  ${week[d.getDay()]}`;
-      const index = d.getDate() % welcomeLines.length;
-      document.getElementById('welcomeText').innerHTML = welcomeLines[index];
-    }
-
-    function readJson(key, fallback){
-      try{
-        const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
-      }catch(e){
-        return fallback;
-      }
-    }
-
-    function writeJson(key, value){
-      localStorage.setItem(key, JSON.stringify(value));
-    }
-
-    function getMoodMap(){ return readJson(moodKey, {}); }
-    function getMoodForToday(){ const moods = getMoodMap(); return moods[getTodayKey()] || ''; }
-
-    function refreshMoodUI(){
-      const mood = getMoodForToday();
-      document.getElementById('moodDisplay').textContent = mood || '—';
-      document.getElementById('diaryBadge').textContent = `Mood: ${mood || '—'}`;
-      document.querySelectorAll('.pill').forEach(btn => btn.classList.toggle('active', btn.dataset.mood === mood));
-    }
-
-    function saveMood(mood, btn){
-      const moods = getMoodMap();
-      moods[getTodayKey()] = mood;
-      writeJson(moodKey, moods);
-      refreshMoodUI();
-      if(btn) btn.blur();
-    }
-
-    function getDiaryList(){ return readJson(diaryKey, []); }
-    function saveDiaryEntry(text){
-      const diaries = getDiaryList();
-      diaries.unshift({ date:getTodayKey(), mood:getMoodForToday() || '—', text });
-      writeJson(diaryKey, diaries);
-    }
-
-    function getHealthData(){ return readJson(healthKey, []); }
-    function saveHealth(weight, calories){
-      const list = getHealthData();
-      list.unshift({ date:getTodayKey(), weight, calories });
-      writeJson(healthKey, list);
-      refreshHealthSummary();
-    }
-
-    function refreshHealthSummary(){
-      const list = getHealthData();
-      if(!list.length){
-        document.getElementById('healthSummary').textContent = 'Weight / Calories';
-        return;
-      }
-      const latest = list[0];
-      document.getElementById('healthSummary').textContent = `${latest.weight || '—'}kg / ${latest.calories || '—'}kcal`;
-    }
-
-    function openSheet(html){
-      document.getElementById('sheetContent').innerHTML = html;
-      document.getElementById('sheetBackdrop').classList.add('show');
-    }
-
-    function closeSheet(event){
-      if(event && event.target && event.target.id !== 'sheetBackdrop') return;
-      document.getElementById('sheetBackdrop').classList.remove('show');
-    }
-
-    function openSimpleSheet(title, text){
-      openSheet(`<h3>${title}</h3><p>${text}</p><div class="row"><button class="sub-button" onclick="closeSheet(event)">閉じる</button></div>`);
-    }
-
-    function openMoodHistory(){
-      const moods = Object.entries(getMoodMap()).sort((a,b)=> b[0].localeCompare(a[0]));
-      const body = moods.length ? moods.map(([date,mood]) => `<p style="margin:0 0 8px;">${date}　${mood}</p>`).join('') : '<p>まだ記録なし。</p>';
-      openSheet(`<h3>Mood History</h3>${body}<div class="row"><button class="sub-button" onclick="closeSheet(event)">閉じる</button></div>`);
-    }
-
-    function openDiarySheet(){
-      const todayMood = getMoodForToday() || '—';
-      openSheet(`
-        <h3>Diary</h3>
-        <p>今日のMood: ${todayMood}</p>
-        <textarea id="diaryInput" placeholder="気が向いた日に、ひとことでも。"></textarea>
-        <div class="row">
-          <button class="sub-button" onclick="closeSheet(event)">閉じる</button>
-          <button class="sub-button" onclick="submitDiary()">保存</button>
-        </div>`);
-    }
-
-    function submitDiary(){
-      const text = document.getElementById('diaryInput')?.value?.trim() || '';
-      if(!text){ alert('日記が空だよ。'); return; }
-      saveDiaryEntry(text);
-      closeSheet({target:document.getElementById('sheetBackdrop')});
-    }
-
-    function openDiaryList(){
-      const diaries = getDiaryList();
-      const body = diaries.length ? diaries.map(item => `<p style="margin:0 0 12px;"><strong>${item.date} / ${item.mood}</strong><br>${escapeHtml(item.text)}</p>`).join('') : '<p>まだ日記なし。</p>';
-      openSheet(`<h3>Diary List</h3>${body}<div class="row"><button class="sub-button" onclick="closeSheet(event)">閉じる</button></div>`);
-    }
-
-    function openHealthSheet(){
-      openSheet(`
-        <h3>Health</h3>
-        <p>体重とカロリーを中にしまって記録。</p>
-        <input id="healthWeight" type="number" step="0.1" placeholder="体重 (kg)" />
-        <input id="healthCalories" type="number" step="1" placeholder="カロリー (kcal)" />
-        <div class="row">
-          <button class="sub-button" onclick="closeSheet(event)">閉じる</button>
-          <button class="sub-button" onclick="submitHealth()">保存</button>
-        </div>`);
-    }
-
-    function submitHealth(){
-      const weight = document.getElementById('healthWeight')?.value || '';
-      const calories = document.getElementById('healthCalories')?.value || '';
-      if(!weight && !calories){ alert('どちらか入れてね。'); return; }
-      saveHealth(weight, calories);
-      closeSheet({target:document.getElementById('sheetBackdrop')});
-    }
-
-function structuredCloneSafe(obj){ return JSON.parse(JSON.stringify(obj)); }
+    function structuredCloneSafe(obj){ return JSON.parse(JSON.stringify(obj)); }
 
     function loadData(){
       for(const key of STORAGE_KEYS){
@@ -692,6 +557,7 @@ function structuredCloneSafe(obj){ return JSON.parse(JSON.stringify(obj)); }
       fab.style.display = name === 'notes' ? 'grid' : 'none';
       closeOpenSwipe();
       closeMenu();
+      if(name !== 'home') closeSheet();
     }
 
     function getFolderById(id){ return state.folders.find(f=>f.id===id) || null; }
@@ -752,6 +618,109 @@ function structuredCloneSafe(obj){ return JSON.parse(JSON.stringify(obj)); }
       if(openSwipeRow){ openSwipeRow.classList.remove('open'); openSwipeRow = null; }
     }
 
+
+    function loadJson(key, fallback){
+      try{ const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }catch{ return fallback; }
+    }
+    function saveJson(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
+    function formatHomeDate(){
+      const d = new Date();
+      const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const dd = String(d.getDate()).padStart(2,'0');
+      return `${yyyy}.${mm}.${dd} ${days[d.getDay()]}`;
+    }
+    function getTodayKey(){
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+    function getMoodMap(){ return loadJson(moodKey, {}); }
+    function getDiaryList(){ return loadJson(diaryKey, []); }
+    function getHealthData(){ return loadJson(healthKey, {weight:'', calories:''}); }
+    function currentMood(){ return getMoodMap()[getTodayKey()] || ''; }
+    function renderHome(){
+      if(dateText) dateText.textContent = formatHomeDate();
+      const welcomes = [
+        'おかえり。<br>今日はどこから触れる？',
+        'おかえり。<br>まずはここで、ひと息。',
+        'おかえり。<br>今日もちゃんと、ここが祐紀の家。'
+      ];
+      const dayIndex = new Date().getDate() % welcomes.length;
+      if(welcomeText) welcomeText.innerHTML = welcomes[dayIndex];
+      const mood = currentMood();
+      moodStatusText.textContent = mood ? `今日の気分: ${mood}` : '未記録';
+      document.querySelectorAll('.pill[data-mood]').forEach(btn => btn.classList.toggle('active', btn.dataset.mood === mood));
+      diaryBadge.textContent = `Mood: ${mood || '—'}`;
+      const health = getHealthData();
+      healthSummary.textContent = `${health.weight || 'Weight'} / ${health.calories || 'Calories'}`;
+    }
+    function saveMood(symbol){
+      const data = getMoodMap();
+      data[getTodayKey()] = symbol;
+      saveJson(moodKey, data);
+      renderHome();
+    }
+    function openMoodHistory(){
+      const data = getMoodMap();
+      const rows = Object.entries(data).sort((a,b)=>a[0] < b[0] ? 1 : -1).slice(0,30)
+        .map(([day,val]) => `${day}  ${val}`).join('\n') || 'まだ記録がないよ。';
+      openSimpleSheet('Mood History', rows.replaceAll('-', '.'));
+    }
+    function openDiarySheet(){
+      const mood = currentMood() || '—';
+      const diaries = getDiaryList();
+      const latest = diaries[0]?.text || '';
+      simpleSheetContent.innerHTML = `
+        <h3>Diary</h3>
+        <p>今日の気分: ${mood}</p>
+        <textarea id="diaryInput" placeholder="気が向いた日に、ひとことでも。">${escapeHtml(latest)}</textarea>
+        <div class="row">
+          <button class="sub-button" type="button" onclick="closeSheet()">閉じる</button>
+          <button class="sub-button" type="button" onclick="saveDiary()">保存</button>
+        </div>`;
+      simpleSheetBackdrop.classList.add('show');
+    }
+    function saveDiary(){
+      const input = document.getElementById('diaryInput');
+      if(!input) return;
+      const text = input.value.trim();
+      if(!text){ closeSheet(); return; }
+      const diaries = getDiaryList();
+      diaries.unshift({ day:getTodayKey(), mood:currentMood() || '', text, ts:Date.now() });
+      saveJson(diaryKey, diaries.slice(0,60));
+      diaryBadge.textContent = `Mood: ${currentMood() || '—'}`;
+      closeSheet();
+    }
+    function openHealthSheet(){
+      const health = getHealthData();
+      simpleSheetContent.innerHTML = `
+        <h3>Health</h3>
+        <p>見せすぎない記録。必要な時だけ開く。</p>
+        <input id="weightInput" placeholder="Weight" value="${escapeHtml(health.weight || '')}">
+        <input id="calInput" placeholder="Calories" value="${escapeHtml(health.calories || '')}">
+        <div class="row">
+          <button class="sub-button" type="button" onclick="closeSheet()">閉じる</button>
+          <button class="sub-button" type="button" onclick="saveHealth()">保存</button>
+        </div>`;
+      simpleSheetBackdrop.classList.add('show');
+    }
+    function saveHealth(){
+      const weight = document.getElementById('weightInput')?.value?.trim() || '';
+      const calories = document.getElementById('calInput')?.value?.trim() || '';
+      saveJson(healthKey, {weight, calories});
+      renderHome();
+      closeSheet();
+    }
+    function openSimpleSheet(title, text){
+      simpleSheetContent.innerHTML = `<h3>${escapeHtml(title)}</h3><p>${escapeHtml(text)}</p><div class="row"><button class="sub-button" type="button" onclick="closeSheet()">閉じる</button></div>`;
+      simpleSheetBackdrop.classList.add('show');
+    }
+    function closeSheet(event){
+      if(event && event.target !== simpleSheetBackdrop) return;
+      simpleSheetBackdrop.classList.remove('show');
+    }
+
     function renderFolders(){
       const totalNotes = state.folders.reduce((sum, f) => sum + f.notes.length, 0);
       folderListEl.innerHTML = [
@@ -799,9 +768,6 @@ function structuredCloneSafe(obj){ return JSON.parse(JSON.stringify(obj)); }
       rows.forEach(row => {
         const handle = row.querySelector('.drag-handle');
         if(!handle) return;
-        handle.onpointerdown = null;
-        handle.ontouchstart = null;
-        handle.onmousedown = null;
         handle.addEventListener('pointerdown', startFolderDrag);
       });
     }
@@ -813,9 +779,10 @@ function structuredCloneSafe(obj){ return JSON.parse(JSON.stringify(obj)); }
       const handle = e.currentTarget;
       const row = handle.closest('.folder-row');
       if(!row) return;
-
       const rowId = row.dataset.folderId;
-      const startY = getClientY(e);
+      const containerRect = folderListEl.getBoundingClientRect();
+      const rowRect = row.getBoundingClientRect();
+      const startY = e.clientY;
       let currentY = startY;
       let moved = false;
       let currentIndex = state.folders.findIndex(f => f.id === rowId);
@@ -825,11 +792,11 @@ function structuredCloneSafe(obj){ return JSON.parse(JSON.stringify(obj)); }
       row.style.position = 'relative';
       row.style.zIndex = '5';
       row.style.touchAction = 'none';
-      document.body.classList.add('folder-dragging');
+      document.body.style.userSelect = 'none';
+      document.body.style.webkitUserSelect = 'none';
 
       const onMove = (ev) => {
-        ev.preventDefault();
-        currentY = getClientY(ev);
+        currentY = ev.clientY;
         const delta = currentY - startY;
         if(Math.abs(delta) > 2) moved = true;
         row.style.transform = `translateY(${delta}px)`;
@@ -850,7 +817,6 @@ function structuredCloneSafe(obj){ return JSON.parse(JSON.stringify(obj)); }
         let newIndex = targetIndex + (shouldPlaceAfter ? 1 : 0);
         if(newIndex > currentIndex) newIndex -= 1;
         if(newIndex === currentIndex) return;
-
         const [movedFolder] = state.folders.splice(currentIndex, 1);
         state.folders.splice(newIndex, 0, movedFolder);
         currentIndex = newIndex;
@@ -864,11 +830,11 @@ function structuredCloneSafe(obj){ return JSON.parse(JSON.stringify(obj)); }
           freshRow.style.touchAction = 'none';
           freshRow.style.transform = `translateY(${currentY - startY}px)`;
           row.replaceWith(freshRow);
+          freshRow.querySelector('.drag-handle')?.removeEventListener('pointerdown', startFolderDrag);
         }
       };
 
-      const onEnd = (ev) => {
-        if(ev) ev.preventDefault?.();
+      const onEnd = () => {
         const activeRow = folderListEl.querySelector(`.folder-row[data-folder-id="${rowId}"]`) || row;
         folderListEl.querySelectorAll('.folder-row').forEach(r => r.classList.remove('drop-target'));
         activeRow.classList.remove('dragging');
@@ -876,32 +842,19 @@ function structuredCloneSafe(obj){ return JSON.parse(JSON.stringify(obj)); }
         activeRow.style.position = '';
         activeRow.style.zIndex = '';
         activeRow.style.touchAction = '';
-        document.body.classList.remove('folder-dragging');
+        document.body.style.userSelect = '';
+        document.body.style.webkitUserSelect = '';
         window.removeEventListener('pointermove', onMove);
         window.removeEventListener('pointerup', onEnd);
         window.removeEventListener('pointercancel', onEnd);
-        window.removeEventListener('touchmove', onMove);
-        window.removeEventListener('touchend', onEnd);
-        window.removeEventListener('mousemove', onMove);
-        window.removeEventListener('mouseup', onEnd);
         if(moved){
           renderFolders();
         }
       };
 
-      window.addEventListener('pointermove', onMove, {passive:false});
-      window.addEventListener('pointerup', onEnd, {passive:false});
-      window.addEventListener('pointercancel', onEnd, {passive:false});
-      window.addEventListener('touchmove', onMove, {passive:false});
-      window.addEventListener('touchend', onEnd, {passive:false});
-      window.addEventListener('mousemove', onMove, {passive:false});
-      window.addEventListener('mouseup', onEnd, {passive:false});
-    }
-
-    function getClientY(e){
-      if(e.touches && e.touches[0]) return e.touches[0].clientY;
-      if(e.changedTouches && e.changedTouches[0]) return e.changedTouches[0].clientY;
-      return e.clientY;
+      window.addEventListener('pointermove', onMove, {passive:true});
+      window.addEventListener('pointerup', onEnd, {passive:true});
+      window.addEventListener('pointercancel', onEnd, {passive:true});
     }
 
     function renderNotes(){
@@ -1146,7 +1099,10 @@ function structuredCloneSafe(obj){ return JSON.parse(JSON.stringify(obj)); }
       menuWrap.classList.add('show');
     }
 
-    document.getElementById('openMemoFromHome').addEventListener('click', () => showView('folders'));
+    document.getElementById('openMemoFromHome').addEventListener('click', () => { renderFolders(); showView('folders'); });
+    document.getElementById('openLivingFromHome').addEventListener('click', () => openSimpleSheet('Living','みんながいる共有のリビング。\nここは次の制作でつないでいく場所。'));
+    document.getElementById('openRoomsFromHome').addEventListener('click', () => openSimpleSheet('Rooms','それぞれの部屋へ入る入口。\nRoomsはあとで本設計する予定。'));
+    document.getElementById('openTreasuresFromHome').addEventListener('click', () => openSimpleSheet('Treasures','宝物や思い出の保管場所。\nここも次の制作で育てていく。'));
     document.getElementById('backHomeFromFolders').addEventListener('click', () => showView('home'));
     document.getElementById('toggleFolderEdit').addEventListener('click', (e) => {
       folderEditMode = !folderEditMode;
@@ -1168,13 +1124,10 @@ function structuredCloneSafe(obj){ return JSON.parse(JSON.stringify(obj)); }
     editorBody.addEventListener('input', () => { draftChanged = true; });
     document.addEventListener('click', (e) => { if(openSwipeRow && !e.target.closest('.swipe-row')) closeOpenSwipe(); });
 
-    setTodayDate();
-    refreshMoodUI();
-    refreshHealthSummary();
+    renderHome();
     renderFolders();
     renderNotes();
     showView('home');
-  
   </script>
 </body>
 </html>
