@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>祐紀ユニバース｜帰る家</title>
+  <style>
+
+    :root{
+      --bg:#060405;
+      --bg-2:#0b0708;
+      --surface:#191516;
+      --surface-2:#221d1f;
+      --surface-3:#2b2527;
+      --line:rgba(255,255,255,.08);
+      --text:#f7f3f1;
+      --sub:#bcaeaa;
+      --muted:#8f8480;
+      --gold:#f3c96f;
+      --move:#6c6bf0;
+      --danger:#f16464;
+      --shadow:0 14px 30px rgba(0,0,0,.24);
+      --radius:24px;
+      --row-h:88px;
+      --action-w:84px;
+      --fab-bottom:calc(36px + env(safe-area-inset-bottom));
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    html,body{margin:0;height:100%;}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top, rgba(113,40,18,.18), transparent 28%),
+        linear-gradient(180deg,#10090a 0%, #080607 35%, #060405 100%);
+    }
+    body.folder-dragging, body.folder-dragging *{user-select:none !important;-webkit-user-select:none !important;-webkit-touch-callout:none !important;}
+    .app{
+      max-width:540px;
+      margin:0 auto;
+      min-height:100dvh;
+      padding:0 18px calc(24px + env(safe-area-inset-bottom));
+      position:relative;
+    }
+    .view{display:none;min-height:100dvh;}
+    .view.active{display:block;}
+    .nav{
+      position:sticky; top:0; z-index:40;
+      padding-top:max(8px, env(safe-area-inset-top));
+      margin:0 -18px;
+      padding-left:18px; padding-right:18px;
+      background:linear-gradient(180deg, rgba(6,4,5,.94) 0%, rgba(6,4,5,.82) 70%, rgba(6,4,5,0) 100%);
+      backdrop-filter:blur(16px);
+    }
+    .nav-row{
+      min-height:58px;
+      display:grid;
+      grid-template-columns:56px 1fr auto;
+      align-items:center;
+      gap:12px;
+    }
+    .nav-title{
+      font-size:17px;
+      font-weight:700;
+      text-align:center;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .nav-sub{
+      margin-top:-2px;
+      text-align:center;
+      font-size:12px;
+      color:var(--muted);
+      padding-bottom:8px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .nav-actions{display:flex;align-items:center;gap:10px;justify-self:end;}
+    .icon-btn,.text-btn,.fab,.tool-round{
+      border:none;
+      color:var(--text);
+      background:linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.03));
+      border:1px solid var(--line);
+      box-shadow:var(--shadow);
+      font-family:inherit;
+      cursor:pointer;
+    }
+    .icon-btn{
+      width:50px;height:50px;border-radius:20px;display:grid;place-items:center;
+      font-size:26px;line-height:1;flex:0 0 auto;
+    }
+    .icon-btn.small{width:42px;height:42px;border-radius:16px;font-size:20px;box-shadow:none;background:rgba(255,255,255,.04);}
+    .text-btn{
+      height:50px;border-radius:20px;padding:0 18px;font-size:17px;font-weight:650;
+    }
+    .text-btn.quiet{padding:0 14px;background:rgba(255,255,255,.028);}
+    .screen-head{padding:8px 0 14px;}
+    .screen-title{font-size:32px;font-weight:800;letter-spacing:-.04em;line-height:1.08;margin:0;}
+    .screen-count{font-size:15px;color:var(--muted);margin-top:4px;}
+    .section-title{
+      font-size:12px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:var(--muted);
+      margin:18px 2px 10px;
+    }
+    .list-card,.editor-shell,.sheet-card,.menu-card{
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.016));
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+    .list-card::before,.editor-shell::before,.sheet-card::before,.menu-card::before{
+      content:""; position:absolute; inset:0; pointer-events:none;
+      background:radial-gradient(circle at top right, rgba(255,255,255,.04), transparent 34%);
+    }
+
+    /* folders */
+    .folder-row{
+      min-height:70px;
+      display:flex;align-items:center;gap:12px;
+      padding:0 14px;
+      border:none;width:100%;background:transparent;color:inherit;
+      text-align:left;font-family:inherit;cursor:pointer;
+      position:relative;
+    }
+    .folder-row + .folder-row{border-top:1px solid var(--line);}
+    .folder-row.editing{background:rgba(255,255,255,.025);}
+    .folder-icon{
+      width:34px;height:34px;border-radius:11px;display:grid;place-items:center;flex:0 0 auto;
+      color:var(--gold); background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08);
+      font-size:18px;
+    }
+    .folder-main{min-width:0;flex:1;display:flex;align-items:center;gap:12px;}
+    .folder-name{font-size:18px;font-weight:560;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .folder-count{font-size:15px;color:var(--muted);margin-left:auto;padding-left:12px;white-space:nowrap;}
+    .folder-chevron{font-size:20px;color:var(--muted);}
+    .folder-edit-actions{display:none;align-items:center;gap:12px;margin-left:10px;}
+    .folder-row.editing .folder-chevron,.folder-row.editing .folder-count{display:none;}
+    .folder-row.editing .folder-edit-actions{display:flex;}
+    .dots-icon{color:var(--gold);font-size:22px;line-height:1;opacity:.95;}
+    .drag-handle{
+      width:18px;height:18px;position:relative;opacity:.9;
+    }
+    .drag-handle::before,.drag-handle::after,.drag-handle span{
+      content:""; position:absolute; left:0; right:0; height:2px; background:rgba(255,255,255,.52); border-radius:999px;
+    }
+    .drag-handle::before{top:3px;}
+    .drag-handle span{top:8px;}
+    .drag-handle::after{top:13px;}
+    .folder-row.dragging{opacity:.9; background:rgba(255,255,255,.06); z-index:4;}
+    .folder-row,.folder-main,.folder-name,.folder-edit-actions,.drag-handle{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
+    .folder-row.editing *{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
+    .drag-handle{touch-action:none; cursor:grab;}
+    .folder-row.drop-target{box-shadow:inset 0 2px 0 rgba(255,255,255,.18);}
+
+    /* notes */
+    .note-section{margin-bottom:16px;}
+    .note-group{overflow:hidden;}
+    .swipe-row{position:relative;overflow:hidden;min-height:var(--row-h);}
+    .swipe-row + .swipe-row{border-top:1px solid var(--line);}
+    .swipe-actions{
+      position:absolute; top:0; right:0; bottom:0; display:flex; align-items:stretch; justify-content:flex-end;
+      width:calc(var(--action-w) * 2);
+    }
+    .swipe-action{
+      width:var(--action-w); border:none; color:#fff; font-family:inherit; font-size:14px; font-weight:700;
+      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+    }
+    .swipe-action.move{background:var(--move);}
+    .swipe-action.delete{background:var(--danger);}
+    .swipe-action .icon{font-size:24px;line-height:1;}
+    .note-front{
+      position:relative; z-index:2; width:100%; min-height:var(--row-h);
+      background:linear-gradient(180deg, rgba(29,24,26,.98), rgba(24,20,21,.98));
+      border:none; color:inherit; text-align:left; font-family:inherit; cursor:pointer;
+      transform:translateX(0); transition:transform .18s ease;
+      padding:12px 14px 12px 18px;
+      touch-action:pan-y;
+    }
+    .swipe-row.open .note-front{transform:translateX(calc(var(--action-w) * -2));}
+    .note-title{font-size:17px;font-weight:740;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .note-preview{margin-top:4px;font-size:15px;color:var(--sub);line-height:1.35;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;min-height:1.35em;}
+    .note-subline{margin-top:7px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+    .note-folder-chip{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+    .tiny-folder{font-size:15px;color:var(--gold);}
+    .empty{padding:22px 18px;color:var(--muted);text-align:center;line-height:1.7;}
+
+    /* editor */
+    .editor-shell{padding:16px 16px 22px;min-height:calc(100dvh - 150px);display:flex;flex-direction:column;gap:12px;}
+    .chip-row{display:flex;gap:8px;flex-wrap:wrap;}
+    .chip{height:34px;padding:0 12px;border-radius:999px;border:1px solid var(--line);display:inline-flex;align-items:center;font-size:13px;color:var(--sub);background:rgba(255,255,255,.04);}
+    .editor-title{border:none;outline:none;background:transparent;color:var(--text);font-family:inherit;font-size:28px;font-weight:800;line-height:1.22;padding:2px 0 0;}
+    .editor-body{border:none;outline:none;background:transparent;color:var(--text);font-family:inherit;font-size:18px;line-height:1.7;resize:none;flex:1;min-height:320px;padding:0;}
+    .editor-title::placeholder,.editor-body::placeholder{color:rgba(255,255,255,.35);}
+
+    /* floating */
+    .fab{
+      position:fixed;
+      right:max(18px, calc((100vw - min(540px, 100vw))/2 + 18px));
+      bottom:var(--fab-bottom);
+      width:58px;height:58px;border-radius:21px;display:none;place-items:center;font-size:30px;z-index:50;color:var(--text);
+    }
+    .fab.show{display:grid;}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.48);backdrop-filter:blur(10px);display:none;z-index:80;align-items:flex-end;justify-content:center;padding:18px 18px calc(18px + env(safe-area-inset-bottom));}
+    .overlay.show{display:flex;}
+    .sheet-card{width:min(540px,100%);max-height:78dvh;overflow:auto;padding:14px;}
+    .sheet-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:6px;}
+    .sheet-title{font-size:18px;font-weight:780;}
+    .picker-item{display:flex;align-items:center;gap:12px;width:100%;padding:12px 10px;border:none;background:transparent;color:inherit;text-align:left;font-family:inherit;}
+    .picker-item + .picker-item{border-top:1px solid var(--line);}
+    .picker-item[disabled]{opacity:.45;}
+    .menu-wrap{position:fixed;inset:0;display:none;z-index:90;}
+    .menu-wrap.show{display:block;}
+    .menu-backdrop{position:absolute;inset:0;}
+    .menu-card{position:absolute;top:calc(max(70px, env(safe-area-inset-top) + 56px));right:max(18px, calc((100vw - min(540px, 100vw))/2 + 18px));width:220px;padding:8px;display:flex;flex-direction:column;gap:6px;}
+    .menu-item{height:46px;border:none;border-radius:16px;background:rgba(255,255,255,.04);color:var(--text);font-family:inherit;font-size:15px;font-weight:650;text-align:left;padding:0 14px;}
+    .menu-item.delete{background:rgba(241,100,100,.13);color:#ffb1b1;}
+
+    .spacer{height:4px;}
+
+    @media (max-width:390px){
+      :root{--row-h:84px; --action-w:78px;}
+      .screen-title{font-size:28px;}
+      .folder-name{font-size:17px;}
+      .folder-count{font-size:14px;}
+      .note-title{font-size:16px;}
+      .note-preview{font-size:14px;}
+      .editor-title{font-size:24px;}
+      .editor-body{font-size:17px;}
+      .icon-btn,.text-btn{height:48px;}
+      .icon-btn{width:48px;}
+      .nav-row{min-height:56px;}
+      .pill{width:40px;height:40px;font-size:18px;}
+      .mood-line{gap:10px;}
+      .history-button{padding:0 12px;}
+    }
+  
+
+    .home-view{padding-top:max(18px, env(safe-area-inset-top));}
+    .home-wrap{display:flex;flex-direction:column;gap:18px;padding-bottom:calc(26px + env(safe-area-inset-bottom));}
+    .brand{display:flex;align-items:center;justify-content:flex-start;padding:8px 2px 0;}
+    .brand-title{letter-spacing:.32em;font-weight:300;font-size:16px;color:rgba(255,255,255,.72);}
+    .hero{background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.018));border:1px solid var(--line);border-radius:32px;padding:22px 20px 24px;box-shadow:var(--shadow);position:relative;overflow:hidden;min-height:180px;display:flex;flex-direction:column;justify-content:space-between;}
+    .hero::after{content:"";position:absolute;right:-36px;bottom:-36px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle, rgba(143,91,255,.20), transparent 67%);pointer-events:none;}
+    .date{font-size:13px;letter-spacing:.08em;color:var(--muted);margin-bottom:18px;}
+    .welcome{font-size:31px;line-height:1.35;font-weight:700;margin:0;max-width:10em;}
+    .home-title{font-size:12px;color:var(--muted);letter-spacing:.14em;padding:0 4px;text-transform:uppercase;}
+    .main-grid{display:grid;gap:14px;grid-template-columns:repeat(2,minmax(0,1fr));}
+    .card{border-radius:26px;padding:18px 16px;background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));border:1px solid var(--line);box-shadow:var(--shadow);position:relative;overflow:hidden;}
+    .card::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at top right, rgba(255,255,255,.05), transparent 30%);pointer-events:none;}
+    button.card{width:100%;text-align:left;color:inherit;cursor:pointer;border:none;font-family:inherit;}
+    .feature-card{min-height:132px;display:flex;flex-direction:column;justify-content:space-between;gap:18px;}
+    .feature-card .icon{width:44px;height:44px;border-radius:15px;display:grid;place-items:center;font-size:22px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.035);flex:0 0 auto;}
+    .label{font-size:22px;font-weight:700;margin:0;}
+    .memo-card .icon{color:#8fc8ff;border-color:rgba(143,200,255,.24);}
+    .living-card .icon{color:#8f5bff;border-color:rgba(143,91,255,.28);}
+    .rooms-card .icon{color:#e8a3b2;border-color:rgba(232,163,178,.28);}
+    .treasures-card .icon{color:#9dd989;border-color:rgba(157,217,137,.24);}
+    .today-stack{position:relative;display:flex;flex-direction:column;gap:14px;}
+    .today-stack::before{content:"";position:absolute;left:-28px;right:-28px;top:-18px;bottom:-18px;pointer-events:none;z-index:0;background:radial-gradient(ellipse at center, rgba(122,34,18,.12) 0%, rgba(122,34,18,.07) 28%, rgba(122,34,18,.03) 48%, transparent 74%);filter:blur(28px);opacity:.95;}
+    .today-stack > *{position:relative;z-index:1;}
+    .mood-wide-card{padding:18px 16px 16px;display:flex;flex-direction:column;gap:14px;}
+    .mood-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+    .small-title{font-size:12px;letter-spacing:.12em;color:var(--muted);margin:0;text-transform:uppercase;}
+    .mood-current{font-size:28px;font-weight:780;letter-spacing:-.03em;line-height:1;color:#ffd1dc;min-width:1.25em;text-align:right;}
+    .mood-line{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+    .mood-actions{display:flex;gap:8px;min-width:0;flex:1;}
+    .pill{width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.032);color:var(--text);font-size:20px;cursor:pointer;font-family:inherit;flex:0 0 auto;}
+    .pill.active{border-color:rgba(232,163,178,.55);box-shadow:0 0 0 1px rgba(232,163,178,.18) inset;color:#ffd1dc;}
+    .sub-button{height:44px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);font-size:15px;font-weight:650;cursor:pointer;font-family:inherit;padding:0 16px;}
+    .history-button{padding:0 14px;white-space:nowrap;flex:0 0 auto;}
+    .today-grid{display:grid;gap:14px;grid-template-columns:repeat(2,minmax(0,1fr));}
+    .bottom-card{min-height:168px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;}
+    .simple-mark{font-size:38px;font-weight:800;letter-spacing:-.03em;line-height:1;margin:0 0 10px;}
+    .diary-mark{color:#8fc8ff;}
+    .health-mark{color:#ffcc7a;}
+    .compact-status{font-size:13px;color:var(--sub);line-height:1.5;min-height:20px;}
+    .mini-row{display:flex;gap:10px;}
+    .sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.56);display:none;align-items:flex-end;justify-content:center;padding:18px;z-index:70;}
+    .sheet-backdrop.show{display:flex;}
+    .sheet{width:min(540px, 100%);background:linear-gradient(180deg, rgba(28,23,24,.98), rgba(18,15,16,.98));border:1px solid var(--line);border-radius:28px 28px 18px 18px;box-shadow:var(--shadow);padding:20px 18px calc(20px + env(safe-area-inset-bottom));}
+    .sheet h3{margin:0 0 10px;font-size:22px;}
+    .sheet p{margin:0;color:var(--sub);line-height:1.7;white-space:pre-wrap;}
+    .sheet textarea,.sheet input{width:100%;border:none;outline:none;color:var(--text);background:rgba(255,255,255,.04);border-radius:18px;padding:14px 14px;font:inherit;margin-top:12px;}
+    .sheet .row{display:flex;gap:10px;margin-top:14px;}
+    .sheet .row .sub-button{flex:1;}
+    .home-spacer{height:8px;}
+
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section id="view-home" class="view active home-view">
+      <main class="home-wrap">
+        <header class="brand">
+          <div class="brand-title">Y U K I&nbsp;&nbsp;U N I V E R S E</div>
+        </header>
+
+        <section class="hero">
+          <div class="date" id="dateText"></div>
+          <h1 class="welcome" id="welcomeText">おかえり。<br>今日もちゃんと、ここが祐紀の家。</h1>
+        </section>
+
+        <div class="home-title">Now, touch</div>
+        <section class="main-grid">
+          <button class="card feature-card memo-card" type="button" id="openMemoFromHome">
+            <div class="icon">✎</div>
+            <h2 class="label">Memo</h2>
+          </button>
+
+          <button class="card feature-card living-card" type="button" onclick="openSimpleSheet('Living','みんながいる共有のリビング。
+ここは次の制作でつないでいく場所。')">
+            <div class="icon">⌂</div>
+            <h2 class="label">Living</h2>
+          </button>
+
+          <button class="card feature-card rooms-card" type="button" onclick="openSimpleSheet('Rooms','それぞれの部屋へ入る入口。
+Roomsはあとで本設計する予定。')">
+            <div class="icon">☾</div>
+            <h2 class="label">Rooms</h2>
+          </button>
+
+          <button class="card feature-card treasures-card" type="button" onclick="openSimpleSheet('Treasures','宝物や思い出の保管場所。
+ここも次の制作で育てていく。')">
+            <div class="icon">✦</div>
+            <h2 class="label">Treasures</h2>
+          </button>
+        </section>
+
+        <div class="home-title">Today</div>
+        <section class="today-stack">
+          <article class="card mood-wide-card">
+            <div class="mood-top">
+              <p class="small-title">TODAY'S MOOD</p>
+              <div class="mood-current" id="moodDisplay">—</div>
+            </div>
+            <div class="mood-line">
+              <div class="mood-actions">
+                <button class="pill" type="button" data-mood="◎" onclick="saveMood('◎', this)">◎</button>
+                <button class="pill" type="button" data-mood="○" onclick="saveMood('○', this)">○</button>
+                <button class="pill" type="button" data-mood="△" onclick="saveMood('△', this)">△</button>
+                <button class="pill" type="button" data-mood="×" onclick="saveMood('×', this)">×</button>
+              </div>
+              <button class="sub-button history-button" type="button" onclick="openMoodHistory()">History</button>
+            </div>
+          </article>
+
+          <section class="today-grid">
+            <article class="card bottom-card" id="homeDiaryCard">
+              <div>
+                <p class="small-title">DIARY</p>
+                <div class="simple-mark diary-mark">✎</div>
+                <div class="compact-status" id="diaryBadge">Mood: —</div>
+              </div>
+              <button class="sub-button" type="button" onclick="openDiaryList()">List</button>
+            </article>
+
+            <article class="card bottom-card">
+              <div>
+                <p class="small-title">HEALTH</p>
+                <div class="simple-mark health-mark">♡</div>
+                <div class="compact-status" id="healthSummary">Weight / Calories</div>
+              </div>
+              <button class="sub-button" type="button" onclick="openHealthSheet()">Open</button>
+            </article>
+          </section>
+        </section>
+        <div class="home-spacer"></div>
+      </main>
+    </section>
+
+    <section id="view-folders" class="view">
+      <div class="nav">
+        <div class="nav-row">
+          <button class="icon-btn" id="backHomeFromFolders" aria-label="ホームへ戻る">‹</button>
+          <div class="nav-title">フォルダ</div>
+          <div class="nav-actions">
+            <button class="icon-btn quiet" id="addFolderTop" aria-label="新規フォルダ">🗂️</button>
+            <button class="text-btn quiet" id="toggleFolderEdit">編集</button>
+          </div>
+        </div>
+      </div>
+      <div class="screen-head">
+        <div class="section-title" style="margin-top:6px; text-transform:none; letter-spacing:0; font-size:16px; color:var(--text); font-weight:800;">iPhone</div>
+      </div>
+      <div class="list-card" id="folderList"></div>
+      <div class="spacer"></div>
+    </section>
+
+    <section id="view-notes" class="view">
+      <div class="nav">
+        <div class="nav-row">
+          <button class="icon-btn" id="backToFolders" aria-label="フォルダへ戻る">‹</button>
+          <div>
+            <div class="nav-title" id="notesNavTitle">All Memo</div>
+            <div class="nav-sub" id="notesNavSub">0件のメモ</div>
+          </div>
+          <div class="nav-actions">
+            <button class="icon-btn" id="notesMoreBtn" aria-label="メモ一覧のメニュー">…</button>
+          </div>
+        </div>
+      </div>
+      <div class="screen-head">
+        <h1 class="screen-title" id="notesScreenTitle">All Memo</h1>
+        <div class="screen-count" id="notesScreenSubtitle">0件のメモ</div>
+      </div>
+      <div id="noteSections"></div>
+    </section>
+
+    <section id="view-editor" class="view">
+      <div class="nav">
+        <div class="nav-row">
+          <button class="icon-btn" id="backToNotes" aria-label="一覧へ戻る">‹</button>
+          <div>
+            <div class="nav-title" id="editorNavTitle">Memo</div>
+            <div class="nav-sub" id="editorNavSub">編集</div>
+          </div>
+          <div class="nav-actions">
+            <button class="icon-btn" id="editorMoreBtn" aria-label="その他">…</button>
+            <button class="text-btn" id="doneBtn">完了</button>
+          </div>
+        </div>
+      </div>
+      <div class="editor-shell">
+        <div class="chip-row">
+          <span class="chip" id="editorFolderTag">Life</span>
+          <span class="chip" id="editorDateTag">just now</span>
+        </div>
+        <input id="editorTitle" class="editor-title" type="text" placeholder="タイトル" />
+        <textarea id="editorBody" class="editor-body" placeholder="ここに書く…"></textarea>
+      </div>
+    </section>
+
+    <button id="fab" class="fab" aria-label="新規メモ">✎</button>
+  </div>
+
+  <div id="moveOverlay" class="overlay" aria-hidden="true">
+    <div class="sheet-card">
+      <div class="sheet-head">
+        <div class="sheet-title">フォルダを選択</div>
+        <button class="icon-btn small" id="closeMoveOverlay">✕</button>
+      </div>
+      <div id="moveFolderList"></div>
+    </div>
+  </div>
+
+  <div id="menuWrap" class="menu-wrap" aria-hidden="true">
+    <div class="menu-backdrop" id="closeMenuBackdrop"></div>
+    <div class="menu-card" id="menuCard"></div>
+  </div>
+
+  <div class="sheet-backdrop" id="sheetBackdrop" onclick="closeSheet(event)">
+    <section class="sheet" id="sheetContent" onclick="event.stopPropagation()"></section>
+  </div>
+
+  <script>
+
+    const moodKey = 'yuki_home_moods_v3';
+    const diaryKey = 'yuki_home_diaries_v3';
+    const healthKey = 'yuki_home_health_v3';
+
+    const welcomeLines = [
+      'おかえり。<br>今日もちゃんと、ここが祐紀の家。',
+      'おかえり。<br>まずはここで、ひと息。',
+      'おかえり。<br>今日はどこから触れる？'
+    ];
+
+    const STORAGE_KEYS = ['yuki-universe-memo-v4','yuki-universe-memo-v3','yuki-universe-memo-v2','yuki-universe-memo-v1'];
+    const ACTIVE_STORAGE_KEY = STORAGE_KEYS[0];
+    const ALL_FOLDER_ID = '__all__';
+
+    function uid(){ return 'id-' + Math.random().toString(36).slice(2,11); }
+
+    const DEFAULT_DATA = {
+      folders: [
+        { id:'life', name:'Life', notes:[
+          { id:uid(), title:'買うものメモ', body:'牛乳\n卵\n洗剤\nトイレットペーパー', updatedAt: Date.now() - 1000*60*52 },
+          { id:uid(), title:'晩ごはん候補', body:'カレー / うどん / 餃子', updatedAt: Date.now() - 1000*60*60*26 }
+        ]},
+        { id:'kids', name:'Kids', notes:[
+          { id:uid(), title:'勇誠メモ', body:'学校の持ち物確認\n水筒\n連絡帳', updatedAt: Date.now() - 1000*60*60*5 }
+        ]},
+        { id:'universe', name:'Universe', notes:[
+          { id:uid(), title:'ホーム訂正点', body:'Roomsは最後でよさそう\nMemoとDiaryを先に固める', updatedAt: Date.now() - 1000*60*60*3 },
+          { id:uid(), title:'Living案', body:'共通空間。立ち絵や一言の入口。', updatedAt: Date.now() - 1000*60*60*56 }
+        ]},
+        { id:'shopping', name:'Shopping', notes:[] },
+        { id:'free', name:'Free', notes:[] }
+      ]
+    };
+
+    const views = {
+      home: document.getElementById('view-home'),
+      folders: document.getElementById('view-folders'),
+      notes: document.getElementById('view-notes'),
+      editor: document.getElementById('view-editor')
+    };
+
+    const folderListEl = document.getElementById('folderList');
+    const noteSectionsEl = document.getElementById('noteSections');
+    const notesNavTitle = document.getElementById('notesNavTitle');
+    const notesNavSub = document.getElementById('notesNavSub');
+    const notesScreenTitle = document.getElementById('notesScreenTitle');
+    const notesScreenSubtitle = document.getElementById('notesScreenSubtitle');
+    const editorFolderTag = document.getElementById('editorFolderTag');
+    const editorDateTag = document.getElementById('editorDateTag');
+    const editorTitle = document.getElementById('editorTitle');
+    const editorBody = document.getElementById('editorBody');
+    const editorNavTitle = document.getElementById('editorNavTitle');
+    const editorNavSub = document.getElementById('editorNavSub');
+    const fab = document.getElementById('fab');
+    const moveOverlay = document.getElementById('moveOverlay');
+    const moveFolderList = document.getElementById('moveFolderList');
+    const menuWrap = document.getElementById('menuWrap');
+    const menuCard = document.getElementById('menuCard');
+
+    let state = loadData();
+    let currentView = 'home';
+    let currentFolderId = ALL_FOLDER_ID;
+    let lastUsedFolderId = state.folders[0]?.id || null;
+    let currentNoteId = null;
+    let folderEditMode = false;
+    let draggingFolderId = null;
+    let openSwipeRow = null;
+    let moveTargetNoteId = null;
+    let lastSnapshot = '';
+    let draftChanged = false;
+    let suppressNextClick = false;
+
+    
+    function getTodayKey(){
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function setTodayDate(){
+      const d = new Date();
+      const week = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+      document.getElementById('dateText').textContent = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}  ${week[d.getDay()]}`;
+      const index = d.getDate() % welcomeLines.length;
+      document.getElementById('welcomeText').innerHTML = welcomeLines[index];
+    }
+
+    function readJson(key, fallback){
+      try{
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      }catch(e){
+        return fallback;
+      }
+    }
+
+    function writeJson(key, value){
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    function getMoodMap(){ return readJson(moodKey, {}); }
+    function getMoodForToday(){ const moods = getMoodMap(); return moods[getTodayKey()] || ''; }
+
+    function refreshMoodUI(){
+      const mood = getMoodForToday();
+      document.getElementById('moodDisplay').textContent = mood || '—';
+      document.getElementById('diaryBadge').textContent = `Mood: ${mood || '—'}`;
+      document.querySelectorAll('.pill').forEach(btn => btn.classList.toggle('active', btn.dataset.mood === mood));
+    }
+
+    function saveMood(mood, btn){
+      const moods = getMoodMap();
+      moods[getTodayKey()] = mood;
+      writeJson(moodKey, moods);
+      refreshMoodUI();
+      if(btn) btn.blur();
+    }
+
+    function getDiaryList(){ return readJson(diaryKey, []); }
+    function saveDiaryEntry(text){
+      const diaries = getDiaryList();
+      diaries.unshift({ date:getTodayKey(), mood:getMoodForToday() || '—', text });
+      writeJson(diaryKey, diaries);
+    }
+
+    function getHealthData(){ return readJson(healthKey, []); }
+    function saveHealth(weight, calories){
+      const list = getHealthData();
+      list.unshift({ date:getTodayKey(), weight, calories });
+      writeJson(healthKey, list);
+      refreshHealthSummary();
+    }
+
+    function refreshHealthSummary(){
+      const list = getHealthData();
+      if(!list.length){
+        document.getElementById('healthSummary').textContent = 'Weight / Calories';
+        return;
+      }
+      const latest = list[0];
+      document.getElementById('healthSummary').textContent = `${latest.weight || '—'}kg / ${latest.calories || '—'}kcal`;
+    }
+
+    function openSheet(html){
+      document.getElementById('sheetContent').innerHTML = html;
+      document.getElementById('sheetBackdrop').classList.add('show');
+    }
+
+    function closeSheet(event){
+      if(event && event.target && event.target.id !== 'sheetBackdrop') return;
+      document.getElementById('sheetBackdrop').classList.remove('show');
+    }
+
+    function openSimpleSheet(title, text){
+      openSheet(`<h3>${title}</h3><p>${text}</p><div class="row"><button class="sub-button" onclick="closeSheet(event)">閉じる</button></div>`);
+    }
+
+    function openMoodHistory(){
+      const moods = Object.entries(getMoodMap()).sort((a,b)=> b[0].localeCompare(a[0]));
+      const body = moods.length ? moods.map(([date,mood]) => `<p style="margin:0 0 8px;">${date}　${mood}</p>`).join('') : '<p>まだ記録なし。</p>';
+      openSheet(`<h3>Mood History</h3>${body}<div class="row"><button class="sub-button" onclick="closeSheet(event)">閉じる</button></div>`);
+    }
+
+    function openDiarySheet(){
+      const todayMood = getMoodForToday() || '—';
+      openSheet(`
+        <h3>Diary</h3>
+        <p>今日のMood: ${todayMood}</p>
+        <textarea id="diaryInput" placeholder="気が向いた日に、ひとことでも。"></textarea>
+        <div class="row">
+          <button class="sub-button" onclick="closeSheet(event)">閉じる</button>
+          <button class="sub-button" onclick="submitDiary()">保存</button>
+        </div>`);
+    }
+
+    function submitDiary(){
+      const text = document.getElementById('diaryInput')?.value?.trim() || '';
+      if(!text){ alert('日記が空だよ。'); return; }
+      saveDiaryEntry(text);
+      closeSheet({target:document.getElementById('sheetBackdrop')});
+    }
+
+    function openDiaryList(){
+      const diaries = getDiaryList();
+      const body = diaries.length ? diaries.map(item => `<p style="margin:0 0 12px;"><strong>${item.date} / ${item.mood}</strong><br>${escapeHtml(item.text)}</p>`).join('') : '<p>まだ日記なし。</p>';
+      openSheet(`<h3>Diary List</h3>${body}<div class="row"><button class="sub-button" onclick="closeSheet(event)">閉じる</button></div>`);
+    }
+
+    function openHealthSheet(){
+      openSheet(`
+        <h3>Health</h3>
+        <p>体重とカロリーを中にしまって記録。</p>
+        <input id="healthWeight" type="number" step="0.1" placeholder="体重 (kg)" />
+        <input id="healthCalories" type="number" step="1" placeholder="カロリー (kcal)" />
+        <div class="row">
+          <button class="sub-button" onclick="closeSheet(event)">閉じる</button>
+          <button class="sub-button" onclick="submitHealth()">保存</button>
+        </div>`);
+    }
+
+    function submitHealth(){
+      const weight = document.getElementById('healthWeight')?.value || '';
+      const calories = document.getElementById('healthCalories')?.value || '';
+      if(!weight && !calories){ alert('どちらか入れてね。'); return; }
+      saveHealth(weight, calories);
+      closeSheet({target:document.getElementById('sheetBackdrop')});
+    }
+
+function structuredCloneSafe(obj){ return JSON.parse(JSON.stringify(obj)); }
+
+    function loadData(){
+      for(const key of STORAGE_KEYS){
+        try{
+          const raw = localStorage.getItem(key);
+          if(raw){
+            const parsed = JSON.parse(raw);
+            if(parsed && Array.isArray(parsed.folders)) return parsed;
+          }
+        }catch{}
+      }
+      return structuredCloneSafe(DEFAULT_DATA);
+    }
+
+    function saveData(){ localStorage.setItem(ACTIVE_STORAGE_KEY, JSON.stringify(state)); }
+
+    function showView(name){
+      currentView = name;
+      Object.entries(views).forEach(([k,el]) => el.classList.toggle('active', k===name));
+      fab.classList.toggle('show', name === 'notes');
+      closeOpenSwipe();
+      closeMenu();
+    }
+
+    function getFolderById(id){ return state.folders.find(f=>f.id===id) || null; }
+    function getCurrentFolder(){ return currentFolderId===ALL_FOLDER_ID ? null : getFolderById(currentFolderId); }
+    function getCurrentFolderName(){ return currentFolderId===ALL_FOLDER_ID ? 'All Memo' : (getCurrentFolder()?.name || 'Memo'); }
+    function getAllNotes(){ return state.folders.flatMap(folder => folder.notes.map(note => ({ folder, note }))); }
+    function getCurrentItems(){ return currentFolderId===ALL_FOLDER_ID ? getAllNotes() : (getCurrentFolder()?.notes || []).map(note=>({folder:getCurrentFolder(), note})); }
+
+    function getDefaultWritableFolder(){
+      return getFolderById(lastUsedFolderId)
+        || state.folders.find(f => f.name.toLowerCase() === 'free')
+        || state.folders[0]
+        || null;
+    }
+
+    function findNoteRecord(noteId){
+      for(const folder of state.folders){
+        const note = folder.notes.find(n=>n.id===noteId);
+        if(note) return { folder, note };
+      }
+      return null;
+    }
+
+    function escapeHtml(str=''){
+      return str.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
+    }
+
+    function previewText(body=''){
+      return (body || '').replace(/\n+/g, ' ').trim() || '追加テキストなし';
+    }
+
+    function formatDate(ts){
+      const d = new Date(ts);
+      const now = new Date();
+      const startNow = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startTarget = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      const diff = Math.floor((startNow - startTarget) / 86400000);
+      if(diff === 0) return d.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
+      if(diff === 1) return '昨日';
+      const weekdays = ['日曜日','月曜日','火曜日','水曜日','木曜日','金曜日','土曜日'];
+      if(diff <= 7) return weekdays[d.getDay()];
+      return `${d.getMonth()+1}/${d.getDate()}`;
+    }
+
+    function dayBucket(ts){
+      const now = new Date();
+      const target = new Date(ts);
+      const startNow = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startTarget = new Date(target.getFullYear(), target.getMonth(), target.getDate());
+      const diffDays = Math.floor((startNow - startTarget) / 86400000);
+      if(diffDays === 0) return 'Today';
+      if(diffDays === 1) return 'Yesterday';
+      if(diffDays <= 7) return 'Last 7 Days';
+      return 'Older';
+    }
+
+    function closeOpenSwipe(){
+      if(openSwipeRow){ openSwipeRow.classList.remove('open'); openSwipeRow = null; }
+    }
+
+    function renderFolders(){
+      const totalNotes = state.folders.reduce((sum, f) => sum + f.notes.length, 0);
+      folderListEl.innerHTML = [
+        folderRowHtml({ id:ALL_FOLDER_ID, name:'All Memo', count:totalNotes, all:true }),
+        ...state.folders.map(folder => folderRowHtml({ id:folder.id, name:folder.name, count:folder.notes.length, all:false }))
+      ].join('');
+
+      folderListEl.querySelectorAll('.folder-row').forEach(row => {
+        const id = row.dataset.folderId;
+        const all = id === ALL_FOLDER_ID;
+        if(folderEditMode && !all){ row.classList.add('editing'); }
+        row.addEventListener('click', () => {
+          if(folderEditMode && !all) return;
+          currentFolderId = id;
+          if(id !== ALL_FOLDER_ID) lastUsedFolderId = id;
+          renderNotes();
+          showView('notes');
+        });
+      });
+
+      setupFolderReorder();
+    }
+
+    function folderRowHtml({id,name,count,all}){
+      return `
+        <button class="folder-row" type="button" data-folder-id="${id}">
+          <div class="folder-main">
+            <div class="folder-icon">📁</div>
+            <div class="folder-name">${escapeHtml(name)}</div>
+          </div>
+          <div class="folder-count">${count}</div>
+          <div class="folder-chevron">›</div>
+          ${!all ? `
+            <div class="folder-edit-actions">
+              <div class="dots-icon">◌◌◌</div>
+              <div class="drag-handle"><span></span></div>
+            </div>` : ''}
+        </button>`;
+    }
+
+
+    function setupFolderReorder(){
+      if(!folderEditMode) return;
+      const rows = Array.from(folderListEl.querySelectorAll('.folder-row')).filter(row => row.dataset.folderId !== ALL_FOLDER_ID);
+      rows.forEach(row => {
+        const handle = row.querySelector('.drag-handle');
+        if(!handle) return;
+        handle.onpointerdown = null;
+        handle.ontouchstart = null;
+        handle.onmousedown = null;
+        handle.addEventListener('pointerdown', startFolderDrag);
+      });
+    }
+
+    function startFolderDrag(e){
+      if(!folderEditMode) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const handle = e.currentTarget;
+      const row = handle.closest('.folder-row');
+      if(!row) return;
+
+      const rowId = row.dataset.folderId;
+      const startY = getClientY(e);
+      let currentY = startY;
+      let moved = false;
+      let currentIndex = state.folders.findIndex(f => f.id === rowId);
+      if(currentIndex < 0) return;
+
+      row.classList.add('dragging');
+      row.style.position = 'relative';
+      row.style.zIndex = '5';
+      row.style.touchAction = 'none';
+      document.body.classList.add('folder-dragging');
+
+      const onMove = (ev) => {
+        ev.preventDefault();
+        currentY = getClientY(ev);
+        const delta = currentY - startY;
+        if(Math.abs(delta) > 2) moved = true;
+        row.style.transform = `translateY(${delta}px)`;
+
+        const liveRows = Array.from(folderListEl.querySelectorAll('.folder-row')).filter(r => r.dataset.folderId !== ALL_FOLDER_ID && r !== row);
+        liveRows.forEach(r => r.classList.remove('drop-target'));
+        const target = liveRows.find(r => {
+          const rect = r.getBoundingClientRect();
+          return currentY > rect.top && currentY < rect.bottom;
+        });
+        if(!target) return;
+        target.classList.add('drop-target');
+        const targetId = target.dataset.folderId;
+        const targetIndex = state.folders.findIndex(f => f.id === targetId);
+        if(targetIndex < 0 || targetIndex === currentIndex) return;
+        const targetRect = target.getBoundingClientRect();
+        const shouldPlaceAfter = currentY > targetRect.top + targetRect.height / 2;
+        let newIndex = targetIndex + (shouldPlaceAfter ? 1 : 0);
+        if(newIndex > currentIndex) newIndex -= 1;
+        if(newIndex === currentIndex) return;
+
+        const [movedFolder] = state.folders.splice(currentIndex, 1);
+        state.folders.splice(newIndex, 0, movedFolder);
+        currentIndex = newIndex;
+        saveData();
+        renderFolders();
+        const freshRow = folderListEl.querySelector(`.folder-row[data-folder-id="${rowId}"]`);
+        if(freshRow){
+          freshRow.classList.add('editing','dragging');
+          freshRow.style.position = 'relative';
+          freshRow.style.zIndex = '5';
+          freshRow.style.touchAction = 'none';
+          freshRow.style.transform = `translateY(${currentY - startY}px)`;
+          row.replaceWith(freshRow);
+        }
+      };
+
+      const onEnd = (ev) => {
+        if(ev) ev.preventDefault?.();
+        const activeRow = folderListEl.querySelector(`.folder-row[data-folder-id="${rowId}"]`) || row;
+        folderListEl.querySelectorAll('.folder-row').forEach(r => r.classList.remove('drop-target'));
+        activeRow.classList.remove('dragging');
+        activeRow.style.transform = '';
+        activeRow.style.position = '';
+        activeRow.style.zIndex = '';
+        activeRow.style.touchAction = '';
+        document.body.classList.remove('folder-dragging');
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onEnd);
+        window.removeEventListener('pointercancel', onEnd);
+        window.removeEventListener('touchmove', onMove);
+        window.removeEventListener('touchend', onEnd);
+        window.removeEventListener('mousemove', onMove);
+        window.removeEventListener('mouseup', onEnd);
+        if(moved){
+          renderFolders();
+        }
+      };
+
+      window.addEventListener('pointermove', onMove, {passive:false});
+      window.addEventListener('pointerup', onEnd, {passive:false});
+      window.addEventListener('pointercancel', onEnd, {passive:false});
+      window.addEventListener('touchmove', onMove, {passive:false});
+      window.addEventListener('touchend', onEnd, {passive:false});
+      window.addEventListener('mousemove', onMove, {passive:false});
+      window.addEventListener('mouseup', onEnd, {passive:false});
+    }
+
+    function getClientY(e){
+      if(e.touches && e.touches[0]) return e.touches[0].clientY;
+      if(e.changedTouches && e.changedTouches[0]) return e.changedTouches[0].clientY;
+      return e.clientY;
+    }
+
+    function renderNotes(){
+      const items = getCurrentItems().sort((a,b)=>b.note.updatedAt - a.note.updatedAt);
+      const title = getCurrentFolderName();
+      notesNavTitle.textContent = title;
+      notesNavSub.textContent = `${items.length}件のメモ`;
+      notesScreenTitle.textContent = title;
+      notesScreenSubtitle.textContent = `${items.length}件のメモ`;
+
+      if(items.length === 0){
+        noteSectionsEl.innerHTML = '<div class="list-card"><div class="empty">まだメモがないよ。右下の✎から最初の1枚を書いてみよう。</div></div>';
+        return;
+      }
+
+      const groups = { Today:[], Yesterday:[], 'Last 7 Days':[], Older:[] };
+      items.forEach(item => groups[dayBucket(item.note.updatedAt)].push(item));
+      const labels = { Today:'TODAY', Yesterday:'YESTERDAY', 'Last 7 Days':'LAST 7 DAYS', Older:'OLDER' };
+      noteSectionsEl.innerHTML = Object.entries(groups).filter(([,arr])=>arr.length).map(([bucket, arr]) => `
+        <section class="note-section">
+          <div class="section-title">${labels[bucket]}</div>
+          <div class="list-card note-group">
+            ${arr.map(({folder,note}) => noteRowHtml(folder, note)).join('')}
+          </div>
+        </section>
+      `).join('');
+
+      noteSectionsEl.querySelectorAll('.swipe-row').forEach(row => {
+        const noteId = row.dataset.noteId;
+        setupSwipeRow(row);
+        row.querySelector('.note-front').addEventListener('click', () => {
+          if(suppressNextClick){ suppressNextClick = false; return; }
+          if(row.classList.contains('open')) { closeOpenSwipe(); return; }
+          openEditor(noteId);
+        });
+        row.querySelector('.swipe-action.move').addEventListener('click', (e) => { e.stopPropagation(); openMoveOverlay(noteId); });
+        row.querySelector('.swipe-action.delete').addEventListener('click', (e) => { e.stopPropagation(); deleteNote(noteId); });
+      });
+    }
+
+    function noteRowHtml(folder, note){
+      const showFolder = currentFolderId === ALL_FOLDER_ID;
+      return `
+        <div class="swipe-row" data-note-id="${note.id}">
+          <div class="swipe-actions">
+            <button class="swipe-action move" type="button"><span class="icon">📁</span><span>移動</span></button>
+            <button class="swipe-action delete" type="button"><span class="icon">🗑</span><span>削除</span></button>
+          </div>
+          <button class="note-front" type="button">
+            <div class="note-title">${escapeHtml(note.title || 'Untitled')}</div>
+            <div class="note-preview">${escapeHtml(previewText(note.body))}</div>
+            <div class="note-subline">
+              <span>${escapeHtml(formatDate(note.updatedAt))}</span>
+              ${showFolder ? `<span class="note-folder-chip"><span class="tiny-folder">📁</span>${escapeHtml(folder.name)}</span>` : ''}
+            </div>
+          </button>
+        </div>`;
+    }
+
+    function setupSwipeRow(row){
+      let startX = 0;
+      let deltaX = 0;
+      let touching = false;
+      const front = row.querySelector('.note-front');
+      const maxLeft = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--action-w')) * 2;
+
+      row.addEventListener('touchstart', (e) => {
+        if(e.touches.length !== 1) return;
+        touching = true;
+        startX = e.touches[0].clientX;
+        deltaX = 0;
+        if(openSwipeRow && openSwipeRow !== row) closeOpenSwipe();
+      }, {passive:true});
+
+      row.addEventListener('touchmove', (e) => {
+        if(!touching) return;
+        deltaX = e.touches[0].clientX - startX;
+        if(deltaX > 0) deltaX = 0;
+        const limited = Math.max(deltaX, -maxLeft);
+        front.style.transform = `translateX(${limited}px)`;
+      }, {passive:true});
+
+      row.addEventListener('touchend', () => {
+        if(!touching) return;
+        touching = false;
+        suppressNextClick = Math.abs(deltaX) > 12;
+        front.style.transform = '';
+        if(deltaX < -46){
+          row.classList.add('open');
+          openSwipeRow = row;
+        } else {
+          row.classList.remove('open');
+          if(openSwipeRow === row) openSwipeRow = null;
+        }
+        deltaX = 0;
+      });
+    }
+
+    function startNewFolder(){
+      const name = prompt('フォルダ名を入力してね', 'New Folder');
+      if(!name || !name.trim()) return;
+      state.folders.push({ id:uid(), name:name.trim(), notes:[] });
+      saveData();
+      renderFolders();
+    }
+
+    function startNewNote(){
+      const folder = currentView === 'notes' && currentFolderId !== ALL_FOLDER_ID ? getCurrentFolder() : getDefaultWritableFolder();
+      if(!folder) return;
+      currentFolderId = folder.id;
+      lastUsedFolderId = folder.id;
+      const note = { id:uid(), title:'', body:'', updatedAt:Date.now() };
+      folder.notes.unshift(note);
+      saveData();
+      renderFolders();
+      renderNotes();
+      openEditor(note.id, true);
+    }
+
+    function openEditor(noteId, isNew=false){
+      const rec = findNoteRecord(noteId);
+      if(!rec) return;
+      currentNoteId = noteId;
+      currentFolderId = rec.folder.id;
+      lastUsedFolderId = rec.folder.id;
+      editorNavTitle.textContent = rec.folder.name;
+      editorNavSub.textContent = isNew ? '新規メモ' : '編集';
+      editorFolderTag.textContent = rec.folder.name;
+      editorDateTag.textContent = isNew ? 'new note' : formatDate(rec.note.updatedAt);
+      editorTitle.value = rec.note.title || '';
+      editorBody.value = rec.note.body || '';
+      lastSnapshot = JSON.stringify({title:editorTitle.value, body:editorBody.value});
+      draftChanged = false;
+      showView('editor');
+      setTimeout(() => editorTitle.focus(), 50);
+    }
+
+    function saveCurrentEditorNote(){
+      const rec = findNoteRecord(currentNoteId);
+      if(!rec) return;
+      rec.note.title = editorTitle.value.trim();
+      rec.note.body = editorBody.value;
+      rec.note.updatedAt = Date.now();
+      saveData();
+      draftChanged = false;
+      editorDateTag.textContent = formatDate(rec.note.updatedAt);
+      renderFolders();
+      renderNotes();
+    }
+
+    async function exportCurrentNote(){
+      const title = (editorTitle.value.trim() || 'memo').replace(/[\\/:*?"<>|]/g,'_');
+      const text = `${editorTitle.value.trim() || 'Untitled'}\n\n${editorBody.value || ''}`;
+      const file = new File([text], `${title}.txt`, { type:'text/plain' });
+      try{
+        if(navigator.share && navigator.canShare && navigator.canShare({ files:[file] })){
+          await navigator.share({ files:[file], title, text:'Memoを書き出し' });
+          return;
+        }
+      }catch(err){ if(err && err.name === 'AbortError') return; }
+      const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `${title}.txt`; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 600);
+    }
+
+    function deleteNote(noteId){
+      const rec = findNoteRecord(noteId);
+      if(!rec) return;
+      if(!confirm(`「${rec.note.title || 'Untitled'}」を削除する？`)) return;
+      rec.folder.notes = rec.folder.notes.filter(n => n.id !== noteId);
+      saveData();
+      renderFolders();
+      renderNotes();
+    }
+
+    function deleteCurrentNote(){
+      const rec = findNoteRecord(currentNoteId);
+      if(!rec) return;
+      closeMenu();
+      if(!confirm(`「${rec.note.title || 'Untitled'}」を削除する？`)) return;
+      if(!confirm('本当に削除する？\nこの操作は元に戻せないよ。')) return;
+      rec.folder.notes = rec.folder.notes.filter(n => n.id !== currentNoteId);
+      saveData();
+      renderFolders();
+      renderNotes();
+      showView('notes');
+    }
+
+    function openMoveOverlay(noteId){
+      closeOpenSwipe();
+      moveTargetNoteId = noteId;
+      const rec = findNoteRecord(noteId);
+      if(!rec) return;
+      moveFolderList.innerHTML = state.folders.map(folder => `
+        <button class="picker-item" type="button" data-folder-id="${folder.id}" ${folder.id===rec.folder.id ? 'disabled' : ''}>
+          <div class="folder-icon">📁</div>
+          <div style="min-width:0;flex:1;">
+            <div class="folder-name">${escapeHtml(folder.name)}</div>
+            <div class="folder-count">${folder.notes.length} notes</div>
+          </div>
+        </button>`).join('');
+      moveFolderList.querySelectorAll('.picker-item').forEach(btn => btn.addEventListener('click', () => {
+        if(btn.disabled) return;
+        moveNoteToFolder(noteId, btn.dataset.folderId);
+      }));
+      moveOverlay.classList.add('show');
+    }
+
+    function moveNoteToFolder(noteId, folderId){
+      const rec = findNoteRecord(noteId);
+      const target = getFolderById(folderId);
+      if(!rec || !target || rec.folder.id===folderId) return;
+      rec.folder.notes = rec.folder.notes.filter(n => n.id !== noteId);
+      rec.note.updatedAt = Date.now();
+      target.notes.unshift(rec.note);
+      lastUsedFolderId = target.id;
+      saveData();
+      moveOverlay.classList.remove('show');
+      renderFolders();
+      renderNotes();
+    }
+
+    function closeMenu(){ menuWrap.classList.remove('show'); }
+
+    function openNotesMenu(){
+      menuCard.innerHTML = `
+        <button class="menu-item" id="menuNewNote">新規メモ</button>
+        <button class="menu-item" id="menuNewFolder">新規フォルダ</button>`;
+      document.getElementById('menuNewNote').addEventListener('click', () => { closeMenu(); startNewNote(); });
+      document.getElementById('menuNewFolder').addEventListener('click', () => { closeMenu(); startNewFolder(); });
+      menuWrap.classList.add('show');
+    }
+
+    function openEditorMenu(){
+      menuCard.innerHTML = `
+        <button class="menu-item" id="menuExport">ファイルに保存 / 共有</button>
+        <button class="menu-item delete" id="menuDelete">削除</button>`;
+      document.getElementById('menuExport').addEventListener('click', async () => { closeMenu(); saveCurrentEditorNote(); await exportCurrentNote(); });
+      document.getElementById('menuDelete').addEventListener('click', deleteCurrentNote);
+      menuWrap.classList.add('show');
+    }
+
+    document.getElementById('openMemoFromHome').addEventListener('click', () => showView('folders'));
+    document.getElementById('homeDiaryCard').addEventListener('click', (e) => { if(!e.target.closest('.sub-button')) openDiarySheet(); });
+    document.getElementById('backHomeFromFolders').addEventListener('click', () => showView('home'));
+    document.getElementById('toggleFolderEdit').addEventListener('click', (e) => {
+      folderEditMode = !folderEditMode;
+      e.currentTarget.textContent = folderEditMode ? '完了' : '編集';
+      renderFolders();
+    });
+    document.getElementById('addFolderTop').addEventListener('click', startNewFolder);
+    document.getElementById('backToFolders').addEventListener('click', () => showView('folders'));
+    document.getElementById('notesMoreBtn').addEventListener('click', openNotesMenu);
+    document.getElementById('backToNotes').addEventListener('click', () => { if(draftChanged) saveCurrentEditorNote(); showView('notes'); });
+    document.getElementById('editorMoreBtn').addEventListener('click', openEditorMenu);
+    document.getElementById('doneBtn').addEventListener('click', () => { saveCurrentEditorNote(); showView('notes'); });
+    document.getElementById('closeMoveOverlay').addEventListener('click', () => moveOverlay.classList.remove('show'));
+    moveOverlay.addEventListener('click', (e) => { if(e.target === moveOverlay) moveOverlay.classList.remove('show'); });
+    document.getElementById('closeMenuBackdrop').addEventListener('click', closeMenu);
+    fab.addEventListener('click', startNewNote);
+
+    editorTitle.addEventListener('input', () => { draftChanged = true; });
+    editorBody.addEventListener('input', () => { draftChanged = true; });
+    document.addEventListener('click', (e) => { if(openSwipeRow && !e.target.closest('.swipe-row')) closeOpenSwipe(); });
+
+    setTodayDate();
+    refreshMoodUI();
+    refreshHealthSummary();
+    renderFolders();
+    renderNotes();
+    showView('home');
+  
+  </script>
+</body>
+</html>
