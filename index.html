@@ -150,7 +150,9 @@
     .drag-handle::before{top:3px;}
     .drag-handle span{top:8px;}
     .drag-handle::after{top:13px;}
-    .folder-row.dragging{opacity:.55;}
+    .folder-row.dragging{opacity:.9; background:rgba(255,255,255,.06); z-index:4;}
+    .drag-handle{touch-action:none; cursor:grab;}
+    .folder-row.drop-target{box-shadow:inset 0 2px 0 rgba(255,255,255,.18);}
 
     /* notes */
     .note-section{margin-bottom:16px;}
@@ -174,6 +176,7 @@
       border:none; color:inherit; text-align:left; font-family:inherit; cursor:pointer;
       transform:translateX(0); transition:transform .18s ease;
       padding:12px 14px 12px 18px;
+      touch-action:pan-y;
     }
     .swipe-row.open .note-front{transform:translateX(calc(var(--action-w) * -2));}
     .note-title{font-size:17px;font-weight:740;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -467,31 +470,17 @@
       folderListEl.querySelectorAll('.folder-row').forEach(row => {
         const id = row.dataset.folderId;
         const all = id === ALL_FOLDER_ID;
-        if(folderEditMode && !all){ row.classList.add('editing'); row.setAttribute('draggable','true'); }
-        row.addEventListener('click', (e) => {
+        if(folderEditMode && !all){ row.classList.add('editing'); }
+        row.addEventListener('click', () => {
           if(folderEditMode && !all) return;
           currentFolderId = id;
           if(id !== ALL_FOLDER_ID) lastUsedFolderId = id;
           renderNotes();
           showView('notes');
         });
-        if(!all){
-          row.addEventListener('dragstart', () => { draggingFolderId = id; row.classList.add('dragging'); });
-          row.addEventListener('dragend', () => { draggingFolderId = null; row.classList.remove('dragging'); });
-          row.addEventListener('dragover', (e) => { if(folderEditMode){ e.preventDefault(); }});
-          row.addEventListener('drop', (e) => {
-            if(!folderEditMode || !draggingFolderId || draggingFolderId===id) return;
-            e.preventDefault();
-            const from = state.folders.findIndex(f => f.id === draggingFolderId);
-            const to = state.folders.findIndex(f => f.id === id);
-            if(from < 0 || to < 0) return;
-            const [moved] = state.folders.splice(from, 1);
-            state.folders.splice(to, 0, moved);
-            saveData();
-            renderFolders();
-          });
-        }
       });
+
+      setupFolderReorder();
     }
 
     function folderRowHtml({id,name,count,all}){
@@ -509,6 +498,102 @@
               <div class="drag-handle"><span></span></div>
             </div>` : ''}
         </button>`;
+    }
+
+
+    function setupFolderReorder(){
+      if(!folderEditMode) return;
+      const rows = Array.from(folderListEl.querySelectorAll('.folder-row')).filter(row => row.dataset.folderId !== ALL_FOLDER_ID);
+      rows.forEach(row => {
+        const handle = row.querySelector('.drag-handle');
+        if(!handle) return;
+        handle.addEventListener('pointerdown', startFolderDrag);
+      });
+    }
+
+    function startFolderDrag(e){
+      if(!folderEditMode) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const handle = e.currentTarget;
+      const row = handle.closest('.folder-row');
+      if(!row) return;
+      const rowId = row.dataset.folderId;
+      const containerRect = folderListEl.getBoundingClientRect();
+      const rowRect = row.getBoundingClientRect();
+      const startY = e.clientY;
+      let currentY = startY;
+      let moved = false;
+      let currentIndex = state.folders.findIndex(f => f.id === rowId);
+      if(currentIndex < 0) return;
+
+      row.classList.add('dragging');
+      row.style.position = 'relative';
+      row.style.zIndex = '5';
+      row.style.touchAction = 'none';
+      document.body.style.userSelect = 'none';
+      document.body.style.webkitUserSelect = 'none';
+
+      const onMove = (ev) => {
+        currentY = ev.clientY;
+        const delta = currentY - startY;
+        if(Math.abs(delta) > 2) moved = true;
+        row.style.transform = `translateY(${delta}px)`;
+
+        const liveRows = Array.from(folderListEl.querySelectorAll('.folder-row')).filter(r => r.dataset.folderId !== ALL_FOLDER_ID && r !== row);
+        liveRows.forEach(r => r.classList.remove('drop-target'));
+        const target = liveRows.find(r => {
+          const rect = r.getBoundingClientRect();
+          return currentY > rect.top && currentY < rect.bottom;
+        });
+        if(!target) return;
+        target.classList.add('drop-target');
+        const targetId = target.dataset.folderId;
+        const targetIndex = state.folders.findIndex(f => f.id === targetId);
+        if(targetIndex < 0 || targetIndex === currentIndex) return;
+        const targetRect = target.getBoundingClientRect();
+        const shouldPlaceAfter = currentY > targetRect.top + targetRect.height / 2;
+        let newIndex = targetIndex + (shouldPlaceAfter ? 1 : 0);
+        if(newIndex > currentIndex) newIndex -= 1;
+        if(newIndex === currentIndex) return;
+        const [movedFolder] = state.folders.splice(currentIndex, 1);
+        state.folders.splice(newIndex, 0, movedFolder);
+        currentIndex = newIndex;
+        saveData();
+        renderFolders();
+        const freshRow = folderListEl.querySelector(`.folder-row[data-folder-id="${rowId}"]`);
+        if(freshRow){
+          freshRow.classList.add('editing','dragging');
+          freshRow.style.position = 'relative';
+          freshRow.style.zIndex = '5';
+          freshRow.style.touchAction = 'none';
+          freshRow.style.transform = `translateY(${currentY - startY}px)`;
+          row.replaceWith(freshRow);
+          freshRow.querySelector('.drag-handle')?.removeEventListener('pointerdown', startFolderDrag);
+        }
+      };
+
+      const onEnd = () => {
+        const activeRow = folderListEl.querySelector(`.folder-row[data-folder-id="${rowId}"]`) || row;
+        folderListEl.querySelectorAll('.folder-row').forEach(r => r.classList.remove('drop-target'));
+        activeRow.classList.remove('dragging');
+        activeRow.style.transform = '';
+        activeRow.style.position = '';
+        activeRow.style.zIndex = '';
+        activeRow.style.touchAction = '';
+        document.body.style.userSelect = '';
+        document.body.style.webkitUserSelect = '';
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onEnd);
+        window.removeEventListener('pointercancel', onEnd);
+        if(moved){
+          renderFolders();
+        }
+      };
+
+      window.addEventListener('pointermove', onMove, {passive:true});
+      window.addEventListener('pointerup', onEnd, {passive:true});
+      window.addEventListener('pointercancel', onEnd, {passive:true});
     }
 
     function renderNotes(){
@@ -586,13 +671,9 @@
       row.addEventListener('touchmove', (e) => {
         if(!touching) return;
         deltaX = e.touches[0].clientX - startX;
-        if(deltaX > 0) deltaX = Math.min(deltaX, 24);
-        if(deltaX < 0){
-          const limited = Math.max(deltaX, -maxLeft);
-          front.style.transform = `translateX(${limited}px)`;
-        } else {
-          front.style.transform = `translateX(${deltaX}px)`;
-        }
+        if(deltaX > 0) deltaX = 0;
+        const limited = Math.max(deltaX, -maxLeft);
+        front.style.transform = `translateX(${limited}px)`;
       }, {passive:true});
 
       row.addEventListener('touchend', () => {
@@ -603,7 +684,7 @@
         if(deltaX < -46){
           row.classList.add('open');
           openSwipeRow = row;
-        } else if(deltaX > 14){
+        } else {
           row.classList.remove('open');
           if(openSwipeRow === row) openSwipeRow = null;
         }
