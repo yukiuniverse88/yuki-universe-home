@@ -234,6 +234,9 @@
       .icon-btn,.text-btn{height:48px;}
       .icon-btn{width:48px;}
       .nav-row{min-height:56px;}
+      .pill{width:40px;height:40px;font-size:18px;}
+      .mood-line{gap:10px;}
+      .history-button{padding:0 12px;}
     }
   
 
@@ -246,9 +249,7 @@
     .date{font-size:13px;letter-spacing:.08em;color:var(--muted);margin-bottom:18px;}
     .welcome{font-size:31px;line-height:1.35;font-weight:700;margin:0;max-width:10em;}
     .home-title{font-size:12px;color:var(--muted);letter-spacing:.14em;padding:0 4px;text-transform:uppercase;}
-    .main-grid,.bottom-grid{display:grid;gap:14px;}
-    .main-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
-    .bottom-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+    .main-grid{display:grid;gap:14px;grid-template-columns:repeat(2,minmax(0,1fr));}
     .card{border-radius:26px;padding:18px 16px;background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));border:1px solid var(--line);box-shadow:var(--shadow);position:relative;overflow:hidden;}
     .card::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at top right, rgba(255,255,255,.05), transparent 30%);pointer-events:none;}
     button.card{width:100%;text-align:left;color:inherit;cursor:pointer;border:none;font-family:inherit;}
@@ -259,17 +260,25 @@
     .living-card .icon{color:#8f5bff;border-color:rgba(143,91,255,.28);}
     .rooms-card .icon{color:#e8a3b2;border-color:rgba(232,163,178,.28);}
     .treasures-card .icon{color:#9dd989;border-color:rgba(157,217,137,.24);}
-    .bottom-card{min-height:178px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;}
-    .small-title{font-size:12px;letter-spacing:.12em;color:var(--muted);margin:0 0 10px;text-transform:uppercase;}
+    .today-stack{position:relative;display:flex;flex-direction:column;gap:14px;}
+    .today-stack::before{content:"";position:absolute;left:-28px;right:-28px;top:-18px;bottom:-18px;pointer-events:none;z-index:0;background:radial-gradient(ellipse at center, rgba(122,34,18,.12) 0%, rgba(122,34,18,.07) 28%, rgba(122,34,18,.03) 48%, transparent 74%);filter:blur(28px);opacity:.95;}
+    .today-stack > *{position:relative;z-index:1;}
+    .mood-wide-card{padding:18px 16px 16px;display:flex;flex-direction:column;gap:14px;}
+    .mood-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+    .small-title{font-size:12px;letter-spacing:.12em;color:var(--muted);margin:0;text-transform:uppercase;}
+    .mood-current{font-size:28px;font-weight:780;letter-spacing:-.03em;line-height:1;color:#ffd1dc;min-width:1.25em;text-align:right;}
+    .mood-line{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+    .mood-actions{display:flex;gap:8px;min-width:0;flex:1;}
+    .pill{width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.032);color:var(--text);font-size:20px;cursor:pointer;font-family:inherit;flex:0 0 auto;}
+    .pill.active{border-color:rgba(232,163,178,.55);box-shadow:0 0 0 1px rgba(232,163,178,.18) inset;color:#ffd1dc;}
+    .sub-button{height:44px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);font-size:15px;font-weight:650;cursor:pointer;font-family:inherit;padding:0 16px;}
+    .history-button{padding:0 14px;white-space:nowrap;flex:0 0 auto;}
+    .today-grid{display:grid;gap:14px;grid-template-columns:repeat(2,minmax(0,1fr));}
+    .bottom-card{min-height:168px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;}
     .simple-mark{font-size:38px;font-weight:800;letter-spacing:-.03em;line-height:1;margin:0 0 10px;}
-    .mood-mark{color:#e8a3b2;}
     .diary-mark{color:#8fc8ff;}
     .health-mark{color:#ffcc7a;}
     .compact-status{font-size:13px;color:var(--sub);line-height:1.5;min-height:20px;}
-    .mood-buttons{display:flex;gap:10px;}
-    .pill{width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.032);color:var(--text);font-size:24px;cursor:pointer;font-family:inherit;}
-    .pill.active{border-color:rgba(232,163,178,.55);box-shadow:0 0 0 1px rgba(232,163,178,.18) inset;color:#ffd1dc;}
-    .sub-button{height:46px;border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);font-size:16px;font-weight:650;cursor:pointer;font-family:inherit;padding:0 16px;}
     .mini-row{display:flex;gap:10px;}
     .sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.56);display:none;align-items:flex-end;justify-content:center;padding:18px;z-index:70;}
     .sheet-backdrop.show{display:flex;}
@@ -323,40 +332,42 @@ Roomsはあとで本設計する予定。')">
         </section>
 
         <div class="home-title">Today</div>
-        <section class="bottom-grid">
-          <article class="card bottom-card">
-            <div>
+        <section class="today-stack">
+          <article class="card mood-wide-card">
+            <div class="mood-top">
               <p class="small-title">TODAY'S MOOD</p>
-              <div class="simple-mark mood-mark" id="moodDisplay">—</div>
+              <div class="mood-current" id="moodDisplay">—</div>
             </div>
-            <div class="mood-buttons">
-              <button class="pill" type="button" data-mood="○" onclick="saveMood('○', this)">○</button>
-              <button class="pill" type="button" data-mood="△" onclick="saveMood('△', this)">△</button>
-              <button class="pill" type="button" data-mood="×" onclick="saveMood('×', this)">×</button>
+            <div class="mood-line">
+              <div class="mood-actions">
+                <button class="pill" type="button" data-mood="◎" onclick="saveMood('◎', this)">◎</button>
+                <button class="pill" type="button" data-mood="○" onclick="saveMood('○', this)">○</button>
+                <button class="pill" type="button" data-mood="△" onclick="saveMood('△', this)">△</button>
+                <button class="pill" type="button" data-mood="×" onclick="saveMood('×', this)">×</button>
+              </div>
+              <button class="sub-button history-button" type="button" onclick="openMoodHistory()">History</button>
             </div>
-            <button class="sub-button" type="button" onclick="openMoodHistory()">History</button>
           </article>
 
-          <article class="card bottom-card">
-            <div>
-              <p class="small-title">DIARY</p>
-              <div class="simple-mark diary-mark">✎</div>
-              <div class="compact-status" id="diaryBadge">Mood: —</div>
-            </div>
-            <div class="mini-row">
+          <section class="today-grid">
+            <article class="card bottom-card">
+              <div>
+                <p class="small-title">DIARY</p>
+                <div class="simple-mark diary-mark">✎</div>
+                <div class="compact-status" id="diaryBadge">Mood: —</div>
+              </div>
               <button class="sub-button" type="button" onclick="openDiarySheet()">Open</button>
-              <button class="sub-button" type="button" onclick="openDiaryList()">List</button>
-            </div>
-          </article>
+            </article>
 
-          <article class="card bottom-card">
-            <div>
-              <p class="small-title">HEALTH</p>
-              <div class="simple-mark health-mark">♡</div>
-              <div class="compact-status" id="healthSummary">Weight / Calories</div>
-            </div>
-            <button class="sub-button" type="button" onclick="openHealthSheet()">Open</button>
-          </article>
+            <article class="card bottom-card">
+              <div>
+                <p class="small-title">HEALTH</p>
+                <div class="simple-mark health-mark">♡</div>
+                <div class="compact-status" id="healthSummary">Weight / Calories</div>
+              </div>
+              <button class="sub-button" type="button" onclick="openHealthSheet()">Open</button>
+            </article>
+          </section>
         </section>
         <div class="home-spacer"></div>
       </main>
