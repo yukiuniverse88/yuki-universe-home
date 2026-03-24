@@ -48,16 +48,19 @@
         <div class="home-title">Today</div>
         <section class="today-stack">
           <article class="card mood-card">
-            <p class="small-title">TODAY'S MOOD</p>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <p class="small-title">TODAY'S MOOD</p>
+              <button class="history-button" type="button" onclick="openMoodHistory()" style="height:36px;font-size:14px;padding:0 14px;min-width:auto;">History</button>
+            </div>
             <div class="compact-status" id="moodStatusText">未記録</div>
             <div class="mood-line">
               <div class="mood-symbols">
-                <button class="pill" type="button" data-mood="◎" onclick="saveMood('◎')">◎</button>
-                <button class="pill" type="button" data-mood="○" onclick="saveMood('○')">○</button>
-                <button class="pill" type="button" data-mood="△" onclick="saveMood('△')">△</button>
-                <button class="pill" type="button" data-mood="×" onclick="saveMood('×')">×</button>
+                <button class="pill" type="button" data-mood="◎" onclick="selectMood('◎')">◎</button>
+                <button class="pill" type="button" data-mood="○" onclick="selectMood('○')">○</button>
+                <button class="pill" type="button" data-mood="△" onclick="selectMood('△')">△</button>
+                <button class="pill" type="button" data-mood="×" onclick="selectMood('×')">×</button>
               </div>
-              <button class="history-button" type="button" onclick="openMoodHistory()">History</button>
+              <button class="history-button" type="button" id="moodSaveBtn" onclick="confirmMood()" style="display:none;">Save</button>
             </div>
           </article>
 
@@ -68,7 +71,7 @@
                 <div class="simple-icon diary-icon">✎</div>
                 <div class="compact-status" id="diaryBadge">Mood: —</div>
               </div>
-              <span class="sub-button" style="text-align:center;">Open</span>
+              <span class="sub-button" style="display:block;text-align:center;">Open</span>
             </button>
 
             <button class="card bottom-card" type="button" id="openHealthFromHome">
@@ -77,7 +80,7 @@
                 <div class="simple-icon health-icon">♡</div>
                 <div class="compact-status" id="healthSummary">Weight / Calories</div>
               </div>
-              <span class="sub-button" style="text-align:center;">Open</span>
+              <span class="sub-button" style="display:block;text-align:center;">Open</span>
             </button>
           </div>
         </section>
@@ -123,6 +126,8 @@
     const simpleSheetBackdrop = document.getElementById('simpleSheetBackdrop');
     const simpleSheetContent = document.getElementById('simpleSheetContent');
 
+    let pendingMood = null;
+
     function renderHome(){
       if(dateText) dateText.textContent = formatHomeDate();
       const welcomes = [
@@ -133,17 +138,27 @@
       const dayIndex = new Date().getDate() % welcomes.length;
       if(welcomeText) welcomeText.innerHTML = welcomes[dayIndex];
       const mood = currentMood();
-      if(moodStatusText) moodStatusText.textContent = mood ? `今日の気分: ${mood}` : '未記録';
-      document.querySelectorAll('.pill[data-mood]').forEach(btn => btn.classList.toggle('active', btn.dataset.mood === mood));
+      const display = pendingMood || mood;
+      if(moodStatusText) moodStatusText.textContent = display ? `今日の気分: ${display}` : '未記録';
+      document.querySelectorAll('.pill[data-mood]').forEach(btn => btn.classList.toggle('active', btn.dataset.mood === display));
       if(diaryBadge) diaryBadge.textContent = `Mood: ${mood || '—'}`;
       const health = getHealthData();
       if(healthSummary) healthSummary.textContent = `${health.weight || 'Weight'} / ${health.calories || 'Calories'}`;
+      const saveBtn = document.getElementById('moodSaveBtn');
+      if(saveBtn) saveBtn.style.display = pendingMood ? '' : 'none';
     }
 
-    function saveMood(symbol){
+    function selectMood(symbol){
+      pendingMood = symbol;
+      renderHome();
+    }
+
+    function confirmMood(){
+      if(!pendingMood) return;
       const data = getMoodMap();
-      data[getTodayKey()] = symbol;
+      data[getTodayKey()] = pendingMood;
       saveJson(moodKey, data);
+      pendingMood = null;
       renderHome();
     }
 
