@@ -330,19 +330,20 @@ button.card{width:100%;text-align:left;color:inherit;cursor:pointer;border:none;
 
 
 /* health */
-.health-shell{padding-bottom:18px;}
-.health-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
-.health-field{display:flex;flex-direction:column;gap:8px;min-width:0;}
+.health-shell{padding-bottom:18px;width:100%;max-width:100%;overflow:hidden;}
+.health-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;width:100%;min-width:0;}
+.health-field{display:flex;flex-direction:column;gap:8px;min-width:0;max-width:100%;}
 .health-field-full{grid-column:1 / -1;}
 .health-field-label{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:0 2px;}
-.health-input-wrap{position:relative;}
+.health-input-wrap{position:relative;width:100%;min-width:0;max-width:100%;}
 .health-input{
-  width:100%;height:62px;border:none;outline:none;border-radius:18px;
+  display:block;width:100%;max-width:100%;min-width:0;height:62px;border:none;outline:none;border-radius:18px;
   background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--text);
   font-family:inherit;font-size:22px;font-weight:700;padding:0 18px;
 }
 .health-input::placeholder{color:rgba(255,255,255,.35);}
 .health-input[type="date"]{font-size:18px;font-weight:650;}
+.health-input[type="date"]{-webkit-appearance:none;appearance:none;}
 .health-input-wrap .health-input{padding-right:72px;}
 .health-suffix{position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--sub);pointer-events:none;}
 .health-actions{display:flex;gap:10px;margin-top:2px;}
