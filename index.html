@@ -78,6 +78,7 @@
               <div class="duo-badge health-badge">♡</div>
               <div class="duo-info">
                 <div class="duo-label">Health</div>
+                
               </div>
               <span class="duo-arrow">›</span>
             </button>
@@ -96,11 +97,6 @@
     const moodKey = 'yuki_home_moods_v4';
     const diaryKey = 'yuki_home_diaries_v4';
     const healthKey = 'yuki_home_health_v4';
-    const healthRecordsKey = 'yuki_home_health_records_v1';
-    const healthSeedVersionKey = 'yuki_home_health_seed_version';
-    const healthSeedVersion = '2026-03-24-seed-v1';
-    const healthSeedRecords = [{"day":"2026-01-20","weight":"","calories":"1587"},{"day":"2026-01-21","weight":"92.0","calories":"1563"},{"day":"2026-01-22","weight":"","calories":"1701"},{"day":"2026-01-23","weight":"","calories":"1505"},{"day":"2026-01-24","weight":"","calories":"1646"},{"day":"2026-01-25","weight":"89.5","calories":"1700"},{"day":"2026-01-26","weight":"89.3","calories":"1794"},{"day":"2026-01-27","weight":"","calories":"1722"},{"day":"2026-01-28","weight":"89.6","calories":"1782"},{"day":"2026-01-29","weight":"","calories":"1618"},{"day":"2026-01-30","weight":"89.7","calories":"1506"},{"day":"2026-01-31","weight":"","calories":"1714"},{"day":"2026-02-01","weight":"89.1","calories":"1994"},{"day":"2026-02-02","weight":"88.8","calories":"1577"},{"day":"2026-02-03","weight":"89.1","calories":"1558"},{"day":"2026-02-04","weight":"88.8","calories":"1581"},{"day":"2026-02-05","weight":"89.3","calories":"1752"},{"day":"2026-02-06","weight":"","calories":"1521"},{"day":"2026-02-07","weight":"88.9","calories":"1803"},{"day":"2026-02-08","weight":"89.2","calories":"1283"},{"day":"2026-02-09","weight":"","calories":"2549"},{"day":"2026-02-10","weight":"","calories":"1570"},{"day":"2026-02-11","weight":"89.2","calories":"2092"},{"day":"2026-02-12","weight":"89.2","calories":"1589"},{"day":"2026-02-13","weight":"88.5","calories":"1486"},{"day":"2026-02-14","weight":"","calories":"1616"},{"day":"2026-02-15","weight":"88.3","calories":"1575"},{"day":"2026-02-16","weight":"88.8","calories":"1687"},{"day":"2026-02-17","weight":"88.8","calories":"2075"},{"day":"2026-02-18","weight":"89.1","calories":"1412"},{"day":"2026-02-19","weight":"","calories":"2388"},{"day":"2026-02-20","weight":"","calories":"1967"},{"day":"2026-02-21","weight":"","calories":"2138"},{"day":"2026-02-22","weight":"","calories":"2028"},{"day":"2026-02-23","weight":"","calories":"2700"},{"day":"2026-02-24","weight":"","calories":"2023"},{"day":"2026-02-25","weight":"89.6","calories":"1556"},{"day":"2026-02-26","weight":"","calories":"1552"},{"day":"2026-02-27","weight":"","calories":"2055"},{"day":"2026-02-28","weight":"89.0","calories":"1619"},{"day":"2026-03-01","weight":"88.8","calories":"1577"},{"day":"2026-03-02","weight":"88.9","calories":"1614"},{"day":"2026-03-03","weight":"88.2","calories":"1568"},{"day":"2026-03-04","weight":"","calories":"1763"},{"day":"2026-03-05","weight":"88.0","calories":"1528"},{"day":"2026-03-06","weight":"88.3","calories":"1969"},{"day":"2026-03-07","weight":"88.3","calories":"1729"},{"day":"2026-03-08","weight":"88.4","calories":"1972"},{"day":"2026-03-09","weight":"88.5","calories":"2362"},{"day":"2026-03-10","weight":"88.6","calories":"1641"},{"day":"2026-03-11","weight":"87.8","calories":"1665"},{"day":"2026-03-12","weight":"","calories":"1531"},{"day":"2026-03-13","weight":"87.6","calories":"1804"},{"day":"2026-03-14","weight":"87.8","calories":"2005"},{"day":"2026-03-15","weight":"","calories":"2076"},{"day":"2026-03-16","weight":"88.0","calories":"2233"},{"day":"2026-03-17","weight":"","calories":"1576"},{"day":"2026-03-18","weight":"88.2","calories":"1579"},{"day":"2026-03-19","weight":"88.0","calories":"2285"},{"day":"2026-03-20","weight":"","calories":"1416"},{"day":"2026-03-21","weight":"88.1","calories":"2616"},{"day":"2026-03-22","weight":"","calories":"1496"},{"day":"2026-03-23","weight":"87.9","calories":"1505"}];
-
 
     function loadJson(key, fallback){
       try{ const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }catch{ return fallback; }
@@ -119,69 +115,14 @@
       return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${days[d.getDay()]}`;
     }
     function getMoodMap(){ return loadJson(moodKey, {}); }
-    function parseNumber(value){
-      if(value == null) return null;
-      const cleaned = String(value).replace(/,/g,'').replace(/[^\d.\-]/g,'').trim();
-      if(!cleaned) return null;
-      const num = Number(cleaned);
-      return Number.isFinite(num) ? num : null;
-    }
-    function uid(){ return 'id-' + Math.random().toString(36).slice(2,11); }
-    function mergeSeedRecords(existing, incoming){
-      const map = new Map();
-      (Array.isArray(existing) ? existing : []).forEach(record => {
-        if(!record || !record.day) return;
-        map.set(record.day, { ...record });
-      });
-      incoming.forEach(seed => {
-        const current = map.get(seed.day);
-        if(current){
-          map.set(seed.day, {
-            ...current,
-            weight: String(current.weight || '').trim() || String(seed.weight || '').trim(),
-            calories: String(current.calories || '').trim() || String(seed.calories || '').trim(),
-            ts: current.ts || Date.now()
-          });
-        }else{
-          map.set(seed.day, {
-            id: uid(),
-            day: seed.day,
-            weight: String(seed.weight || '').trim(),
-            calories: String(seed.calories || '').trim(),
-            ts: Date.now()
-          });
-        }
-      });
-      return Array.from(map.values());
-    }
-    function ensureHealthSeedData(){
-      if(localStorage.getItem(healthSeedVersionKey) === healthSeedVersion) return;
-      const existing = loadJson(healthRecordsKey, []);
-      const merged = mergeSeedRecords(existing, healthSeedRecords);
-      saveJson(healthRecordsKey, merged.sort((a,b)=>(a.day < b.day ? 1 : -1)));
-      const latest = [...merged].sort((a,b)=>(a.day < b.day ? 1 : -1)).find(entry => (entry.weight || '').trim() || (entry.calories || '').trim());
-      if(latest){
-        saveJson(healthKey, { weight: latest.weight || '', calories: latest.calories || '' });
-      }
-      localStorage.setItem(healthSeedVersionKey, healthSeedVersion);
-    }
-    function getHealthData(){
-      ensureHealthSeedData();
-      const records = loadJson(healthRecordsKey, []);
-      if(Array.isArray(records) && records.length){
-        const latest = [...records].sort((a,b)=>(a.day < b.day ? 1 : -1)).find(entry => (entry.weight || '').trim() || (entry.calories || '').trim());
-        if(latest) return { weight: latest.weight || '', calories: latest.calories || '' };
-      }
-      return loadJson(healthKey, {weight:'', calories:''});
-    }
+    function getHealthData(){ return loadJson(healthKey, {weight:'', calories:''}); }
     function currentMood(){ return getMoodMap()[getTodayKey()] || ''; }
 
     const dateText = document.getElementById('dateText');
     const welcomeText = document.getElementById('welcomeText');
     const moodStatusText = document.getElementById('moodStatusText');
     const diaryBadge = document.getElementById('diaryBadge');
-    const healthSummary = document.getElementById('healthSummary');
-    const simpleSheetBackdrop = document.getElementById('simpleSheetBackdrop');
+        const simpleSheetBackdrop = document.getElementById('simpleSheetBackdrop');
     const simpleSheetContent = document.getElementById('simpleSheetContent');
 
     let pendingMood = null;
@@ -200,12 +141,6 @@
       if(moodStatusText) moodStatusText.textContent = display ? `今日の気分: ${display}` : '未記録';
       document.querySelectorAll('.pill[data-mood]').forEach(btn => btn.classList.toggle('active', btn.dataset.mood === display));
       if(diaryBadge) diaryBadge.textContent = `Mood: ${mood || '—'}`;
-      const health = getHealthData();
-      const weightNum = parseNumber(health.weight);
-      const caloriesNum = parseNumber(health.calories);
-      const weightText = weightNum != null ? `${weightNum.toFixed(1)}kg` : 'Weight';
-      const caloriesText = caloriesNum != null ? `${Math.round(caloriesNum).toLocaleString('ja-JP')}kcal` : 'Calories';
-      if(healthSummary) healthSummary.textContent = `${weightText} / ${caloriesText}`;
       const saveBtn = document.getElementById('moodSaveBtn');
       if(saveBtn) saveBtn.style.display = pendingMood ? '' : 'none';
     }
@@ -215,6 +150,7 @@
       renderHome();
     }
 
+    function uid(){ return 'id-' + Math.random().toString(36).slice(2,11); }
 
     function confirmMood(){
       if(!pendingMood) return;
