@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#060405" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Memo｜祐紀ユニバース</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+
+    <section id="view-folders" class="view active">
+      <div class="nav">
+        <div class="nav-row">
+          <button class="icon-btn" id="backHomeFromFolders" aria-label="ホームへ戻る">‹</button>
+          <div class="nav-title">フォルダ</div>
+          <div class="nav-actions">
+            <button class="icon-btn quiet" id="addFolderTop" aria-label="新規フォルダ">🗂️</button>
+            <button class="text-btn quiet" id="toggleFolderEdit">編集</button>
+          </div>
+        </div>
+      </div>
+      <div class="screen-head">
+        <div class="section-title" style="margin-top:6px; text-transform:none; letter-spacing:0; font-size:16px; color:var(--text); font-weight:800;">iPhone</div>
+      </div>
+      <div class="list-card" id="folderList"></div>
+      <div class="spacer"></div>
+    </section>
+
+    <section id="view-notes" class="view">
+      <div class="nav">
+        <div class="nav-row">
+          <button class="icon-btn" id="backToFolders" aria-label="フォルダへ戻る">‹</button>
+          <div>
+            <div class="nav-title" id="notesNavTitle">All Memo</div>
+            <div class="nav-sub" id="notesNavSub">0件のメモ</div>
+          </div>
+          <div class="nav-actions">
+            <button class="icon-btn" id="notesMoreBtn" aria-label="メモ一覧のメニュー">…</button>
+          </div>
+        </div>
+      </div>
+      <div class="screen-head">
+        <h1 class="screen-title" id="notesScreenTitle">All Memo</h1>
+        <div class="screen-count" id="notesScreenSubtitle">0件のメモ</div>
+      </div>
+      <div id="noteSections"></div>
+    </section>
+
+    <section id="view-editor" class="view">
+      <div class="nav">
+        <div class="nav-row">
+          <button class="icon-btn" id="backToNotes" aria-label="一覧へ戻る">‹</button>
+          <div>
+            <div class="nav-title" id="editorNavTitle">Memo</div>
+            <div class="nav-sub" id="editorNavSub">編集</div>
+          </div>
+          <div class="nav-actions">
+            <button class="icon-btn" id="editorMoreBtn" aria-label="その他">…</button>
+            <button class="text-btn" id="doneBtn">完了</button>
+          </div>
+        </div>
+      </div>
+      <div class="editor-shell">
+        <div class="chip-row">
+          <span class="chip" id="editorFolderTag">Life</span>
+          <span class="chip" id="editorDateTag">just now</span>
+        </div>
+        <input id="editorTitle" class="editor-title" type="text" placeholder="タイトル" />
+        <textarea id="editorBody" class="editor-body" placeholder="ここに書く…"></textarea>
+      </div>
+    </section>
+
+    <button id="fab" class="fab" aria-label="新規メモ" style="display:none;">✎</button>
+  </div>
+
+  <div id="moveOverlay" class="overlay" aria-hidden="true">
+    <div class="sheet-card">
+      <div class="sheet-head">
+        <div class="sheet-title">フォルダを選択</div>
+        <button class="icon-btn small" id="closeMoveOverlay">✕</button>
+      </div>
+      <div id="moveFolderList"></div>
+    </div>
+  </div>
+
+  <div id="menuWrap" class="menu-wrap" aria-hidden="true">
+    <div class="menu-backdrop" id="closeMenuBackdrop"></div>
+    <div class="menu-card" id="menuCard"></div>
+  </div>
+
+  <script>
+    const STORAGE_KEYS = ['yuki-universe-memo-v4','yuki-universe-memo-v3','yuki-universe-memo-v2','yuki-universe-memo-v1'];
+    const ACTIVE_STORAGE_KEY = STORAGE_KEYS[0];
+    const ALL_FOLDER_ID = '__all__';
+
+    function uid(){ return 'id-' + Math.random().toString(36).slice(2,11); }
+
+    const DEFAULT_DATA = {
+      folders: [
+        { id:'life', name:'Life', notes:[
+          { id:uid(), title:'買うものメモ', body:'牛乳\n卵\n洗剤\nトイレットペーパー', updatedAt: Date.now() - 1000*60*52 },
+          { id:uid(), title:'晩ごはん候補', body:'カレー / うどん / 餃子', updatedAt: Date.now() - 1000*60*60*26 }
+        ]},
+        { id:'kids', name:'Kids', notes:[
+          { id:uid(), title:'勇誠メモ', body:'学校の持ち物確認\n水筒\n連絡帳', updatedAt: Date.now() - 1000*60*60*5 }
+        ]},
+        { id:'universe', name:'Universe', notes:[
+          { id:uid(), title:'ホーム訂正点', body:'Roomsは最後でよさそう\nMemoとDiaryを先に固める', updatedAt: Date.now() - 1000*60*60*3 },
+          { id:uid(), title:'Living案', body:'共通空間。立ち絵や一言の入口。', updatedAt: Date.now() - 1000*60*60*56 }
+        ]},
+        { id:'shopping', name:'Shopping', notes:[] },
+        { id:'free', name:'Free', notes:[] }
+      ]
+    };
+
+    const views = {
+      folders: document.getElementById('view-folders'),
+      notes: document.getElementById('view-notes'),
+      editor: document.getElementById('view-editor')
+    };
+
+    const folderListEl = document.getElementById('folderList');
+    const noteSectionsEl = document.getElementById('noteSections');
+    const notesNavTitle = document.getElementById('notesNavTitle');
+    const notesNavSub = document.getElementById('notesNavSub');
+    const notesScreenTitle = document.getElementById('notesScreenTitle');
+    const notesScreenSubtitle = document.getElementById('notesScreenSubtitle');
+    const editorFolderTag = document.getElementById('editorFolderTag');
+    const editorDateTag = document.getElementById('editorDateTag');
+    const editorTitle = document.getElementById('editorTitle');
+    const editorBody = document.getElementById('editorBody');
+    const editorNavTitle = document.getElementById('editorNavTitle');
+    const editorNavSub = document.getElementById('editorNavSub');
+    const fab = document.getElementById('fab');
+    const moveOverlay = document.getElementById('moveOverlay');
+    const moveFolderList = document.getElementById('moveFolderList');
+    const menuWrap = document.getElementById('menuWrap');
+    const menuCard = document.getElementById('menuCard');
+
+    let state = loadData();
+    let currentView = 'folders';
+    let currentFolderId = ALL_FOLDER_ID;
+    let lastUsedFolderId = state.folders[0]?.id || null;
+    let currentNoteId = null;
+    let folderEditMode = false;
+    let openSwipeRow = null;
+    let moveTargetNoteId = null;
+    let lastSnapshot = '';
+    let draftChanged = false;
+    let suppressNextClick = false;
+
+    function structuredCloneSafe(obj){ return JSON.parse(JSON.stringify(obj)); }
+
+    function loadData(){
+      for(const key of STORAGE_KEYS){
+        try{
+          const raw = localStorage.getItem(key);
+          if(raw){
+            const parsed = JSON.parse(raw);
+            if(parsed && Array.isArray(parsed.folders)) return parsed;
+          }
+        }catch{}
+      }
+      return structuredCloneSafe(DEFAULT_DATA);
+    }
+
+    function saveData(){ localStorage.setItem(ACTIVE_STORAGE_KEY, JSON.stringify(state)); }
+
+    function showView(name){
+      currentView = name;
+      Object.entries(views).forEach(([k,el]) => el.classList.toggle('active', k===name));
+      fab.style.display = name === 'notes' ? 'grid' : 'none';
+      closeOpenSwipe();
+      closeMenu();
+    }
+
+    function escapeHtml(str=''){
+      return str.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
+    }
+
+    function getFolderById(id){ return state.folders.find(f=>f.id===id) || null; }
+    function getCurrentFolder(){ return currentFolderId===ALL_FOLDER_ID ? null : getFolderById(currentFolderId); }
+    function getCurrentFolderName(){ return currentFolderId===ALL_FOLDER_ID ? 'All Memo' : (getCurrentFolder()?.name || 'Memo'); }
+    function getAllNotes(){ return state.folders.flatMap(folder => folder.notes.map(note => ({ folder, note }))); }
+    function getCurrentItems(){ return currentFolderId===ALL_FOLDER_ID ? getAllNotes() : (getCurrentFolder()?.notes || []).map(note=>({folder:getCurrentFolder(), note})); }
+
+    function getDefaultWritableFolder(){
+      return getFolderById(lastUsedFolderId)
+        || state.folders.find(f => f.name.toLowerCase() === 'free')
+        || state.folders[0]
+        || null;
+    }
+
+    function findNoteRecord(noteId){
+      for(const folder of state.folders){
+        const note = folder.notes.find(n=>n.id===noteId);
+        if(note) return { folder, note };
+      }
+      return null;
+    }
+
+    function previewText(body=''){
+      return (body || '').replace(/\n+/g, ' ').trim() || '追加テキストなし';
+    }
+
+    function formatDate(ts){
+      const d = new Date(ts);
+      const now = new Date();
+      const startNow = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startTarget = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      const diff = Math.floor((startNow - startTarget) / 86400000);
+      if(diff === 0) return d.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
+      if(diff === 1) return '昨日';
+      const weekdays = ['日曜日','月曜日','火曜日','水曜日','木曜日','金曜日','土曜日'];
+      if(diff <= 7) return weekdays[d.getDay()];
+      return `${d.getMonth()+1}/${d.getDate()}`;
+    }
+
+    function dayBucket(ts){
+      const now = new Date();
+      const target = new Date(ts);
+      const startNow = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startTarget = new Date(target.getFullYear(), target.getMonth(), target.getDate());
+      const diffDays = Math.floor((startNow - startTarget) / 86400000);
+      if(diffDays === 0) return 'Today';
+      if(diffDays === 1) return 'Yesterday';
+      if(diffDays <= 7) return 'Last 7 Days';
+      return 'Older';
+    }
+
+    function closeOpenSwipe(){
+      if(openSwipeRow){ openSwipeRow.classList.remove('open'); openSwipeRow = null; }
+    }
+    function closeMenu(){ menuWrap.classList.remove('show'); }
+
+    /* === Folders === */
+    function renderFolders(){
+      const totalNotes = state.folders.reduce((sum, f) => sum + f.notes.length, 0);
+      folderListEl.innerHTML = [
+        folderRowHtml({ id:ALL_FOLDER_ID, name:'All Memo', count:totalNotes, all:true }),
+        ...state.folders.map(folder => folderRowHtml({ id:folder.id, name:folder.name, count:folder.notes.length, all:false }))
+      ].join('');
+
+      folderListEl.querySelectorAll('.folder-row').forEach(row => {
+        const id = row.dataset.folderId;
+        const all = id === ALL_FOLDER_ID;
+        if(folderEditMode && !all){ row.classList.add('editing'); }
+        row.addEventListener('click', () => {
+          if(folderEditMode && !all) return;
+          currentFolderId = id;
+          if(id !== ALL_FOLDER_ID) lastUsedFolderId = id;
+          renderNotes();
+          showView('notes');
+        });
+      });
+
+      setupFolderReorder();
+    }
+
+    function folderRowHtml({id,name,count,all}){
+      return `
+        <button class="folder-row" type="button" data-folder-id="${id}">
+          <div class="folder-main">
+            <div class="folder-icon">📁</div>
+            <div class="folder-name">${escapeHtml(name)}</div>
+          </div>
+          <div class="folder-count">${count}</div>
+          <div class="folder-chevron">›</div>
+          ${!all ? `
+            <div class="folder-edit-actions">
+              <div class="dots-icon">◌◌◌</div>
+              <div class="drag-handle"><span></span></div>
+            </div>` : ''}
+        </button>`;
+    }
+
+    function setupFolderReorder(){
+      if(!folderEditMode) return;
+      const rows = Array.from(folderListEl.querySelectorAll('.folder-row')).filter(row => row.dataset.folderId !== ALL_FOLDER_ID);
+      rows.forEach(row => {
+        const handle = row.querySelector('.drag-handle');
+        if(!handle) return;
+        handle.addEventListener('pointerdown', startFolderDrag);
+      });
+    }
+
+    function startFolderDrag(e){
+      if(!folderEditMode) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const handle = e.currentTarget;
+      const row = handle.closest('.folder-row');
+      if(!row) return;
+      const rowId = row.dataset.folderId;
+      const startY = e.clientY;
+      let currentY = startY;
+      let moved = false;
+      let currentIndex = state.folders.findIndex(f => f.id === rowId);
+      if(currentIndex < 0) return;
+
+      row.classList.add('dragging');
+      row.style.position = 'relative';
+      row.style.zIndex = '5';
+      row.style.touchAction = 'none';
+      document.body.style.userSelect = 'none';
+      document.body.style.webkitUserSelect = 'none';
+
+      const onMove = (ev) => {
+        currentY = ev.clientY;
+        const delta = currentY - startY;
+        if(Math.abs(delta) > 2) moved = true;
+        row.style.transform = `translateY(${delta}px)`;
+
+        const liveRows = Array.from(folderListEl.querySelectorAll('.folder-row')).filter(r => r.dataset.folderId !== ALL_FOLDER_ID && r !== row);
+        liveRows.forEach(r => r.classList.remove('drop-target'));
+        const target = liveRows.find(r => {
+          const rect = r.getBoundingClientRect();
+          return currentY > rect.top && currentY < rect.bottom;
+        });
+        if(!target) return;
+        target.classList.add('drop-target');
+        const targetId = target.dataset.folderId;
+        const targetIndex = state.folders.findIndex(f => f.id === targetId);
+        if(targetIndex < 0 || targetIndex === currentIndex) return;
+        const targetRect = target.getBoundingClientRect();
+        const shouldPlaceAfter = currentY > targetRect.top + targetRect.height / 2;
+        let newIndex = targetIndex + (shouldPlaceAfter ? 1 : 0);
+        if(newIndex > currentIndex) newIndex -= 1;
+        if(newIndex === currentIndex) return;
+        const [movedFolder] = state.folders.splice(currentIndex, 1);
+        state.folders.splice(newIndex, 0, movedFolder);
+        currentIndex = newIndex;
+        saveData();
+        renderFolders();
+        const freshRow = folderListEl.querySelector(`.folder-row[data-folder-id="${rowId}"]`);
+        if(freshRow){
+          freshRow.classList.add('editing','dragging');
+          freshRow.style.position = 'relative';
+          freshRow.style.zIndex = '5';
+          freshRow.style.touchAction = 'none';
+          freshRow.style.transform = `translateY(${currentY - startY}px)`;
+          row.replaceWith(freshRow);
+          freshRow.querySelector('.drag-handle')?.removeEventListener('pointerdown', startFolderDrag);
+        }
+      };
+
+      const onEnd = () => {
+        const activeRow = folderListEl.querySelector(`.folder-row[data-folder-id="${rowId}"]`) || row;
+        folderListEl.querySelectorAll('.folder-row').forEach(r => r.classList.remove('drop-target'));
+        activeRow.classList.remove('dragging');
+        activeRow.style.transform = '';
+        activeRow.style.position = '';
+        activeRow.style.zIndex = '';
+        activeRow.style.touchAction = '';
+        document.body.style.userSelect = '';
+        document.body.style.webkitUserSelect = '';
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onEnd);
+        window.removeEventListener('pointercancel', onEnd);
+        if(moved) renderFolders();
+      };
+
+      window.addEventListener('pointermove', onMove, {passive:true});
+      window.addEventListener('pointerup', onEnd, {passive:true});
+      window.addEventListener('pointercancel', onEnd, {passive:true});
+    }
+
+    /* === Notes === */
+    function renderNotes(){
+      const items = getCurrentItems().sort((a,b)=>b.note.updatedAt - a.note.updatedAt);
+      const title = getCurrentFolderName();
+      notesNavTitle.textContent = title;
+      notesNavSub.textContent = `${items.length}件のメモ`;
+      notesScreenTitle.textContent = title;
+      notesScreenSubtitle.textContent = `${items.length}件のメモ`;
+
+      if(items.length === 0){
+        noteSectionsEl.innerHTML = '<div class="list-card"><div class="empty">まだメモがないよ。右下の✎から最初の1枚を書いてみよう。</div></div>';
+        return;
+      }
+
+      const groups = { Today:[], Yesterday:[], 'Last 7 Days':[], Older:[] };
+      items.forEach(item => groups[dayBucket(item.note.updatedAt)].push(item));
+      const labels = { Today:'TODAY', Yesterday:'YESTERDAY', 'Last 7 Days':'LAST 7 DAYS', Older:'OLDER' };
+      noteSectionsEl.innerHTML = Object.entries(groups).filter(([,arr])=>arr.length).map(([bucket, arr]) => `
+        <section class="note-section">
+          <div class="section-title">${labels[bucket]}</div>
+          <div class="list-card note-group">
+            ${arr.map(({folder,note}) => noteRowHtml(folder, note)).join('')}
+          </div>
+        </section>
+      `).join('');
+
+      noteSectionsEl.querySelectorAll('.swipe-row').forEach(row => {
+        const noteId = row.dataset.noteId;
+        setupSwipeRow(row);
+        row.querySelector('.note-front').addEventListener('click', () => {
+          if(suppressNextClick){ suppressNextClick = false; return; }
+          if(row.classList.contains('open')) { closeOpenSwipe(); return; }
+          openEditor(noteId);
+        });
+        row.querySelector('.swipe-action.move').addEventListener('click', (e) => { e.stopPropagation(); openMoveOverlay(noteId); });
+        row.querySelector('.swipe-action.delete').addEventListener('click', (e) => { e.stopPropagation(); deleteNote(noteId); });
+      });
+    }
+
+    function noteRowHtml(folder, note){
+      const showFolder = currentFolderId === ALL_FOLDER_ID;
+      return `
+        <div class="swipe-row" data-note-id="${note.id}">
+          <div class="swipe-actions">
+            <button class="swipe-action move" type="button"><span class="icon">📁</span><span>移動</span></button>
+            <button class="swipe-action delete" type="button"><span class="icon">🗑</span><span>削除</span></button>
+          </div>
+          <button class="note-front" type="button">
+            <div class="note-title">${escapeHtml(note.title || 'Untitled')}</div>
+            <div class="note-preview">${escapeHtml(previewText(note.body))}</div>
+            <div class="note-subline">
+              <span>${escapeHtml(formatDate(note.updatedAt))}</span>
+              ${showFolder ? `<span class="note-folder-chip"><span class="tiny-folder">📁</span>${escapeHtml(folder.name)}</span>` : ''}
+            </div>
+          </button>
+        </div>`;
+    }
+
+    function setupSwipeRow(row){
+      let startX = 0, deltaX = 0, touching = false;
+      const front = row.querySelector('.note-front');
+      const maxLeft = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--action-w')) * 2;
+
+      row.addEventListener('touchstart', (e) => {
+        if(e.touches.length !== 1) return;
+        touching = true; startX = e.touches[0].clientX; deltaX = 0;
+        if(openSwipeRow && openSwipeRow !== row) closeOpenSwipe();
+      }, {passive:true});
+
+      row.addEventListener('touchmove', (e) => {
+        if(!touching) return;
+        deltaX = e.touches[0].clientX - startX;
+        if(deltaX > 0) deltaX = 0;
+        front.style.transform = `translateX(${Math.max(deltaX, -maxLeft)}px)`;
+      }, {passive:true});
+
+      row.addEventListener('touchend', () => {
+        if(!touching) return;
+        touching = false;
+        suppressNextClick = Math.abs(deltaX) > 12;
+        front.style.transform = '';
+        if(deltaX < -46){ row.classList.add('open'); openSwipeRow = row; }
+        else { row.classList.remove('open'); if(openSwipeRow === row) openSwipeRow = null; }
+        deltaX = 0;
+      });
+    }
+
+    /* === Editor === */
+    function startNewFolder(){
+      const name = prompt('フォルダ名を入力してね', 'New Folder');
+      if(!name || !name.trim()) return;
+      state.folders.push({ id:uid(), name:name.trim(), notes:[] });
+      saveData();
+      renderFolders();
+    }
+
+    function startNewNote(){
+      const folder = currentView === 'notes' && currentFolderId !== ALL_FOLDER_ID ? getCurrentFolder() : getDefaultWritableFolder();
+      if(!folder) return;
+      currentFolderId = folder.id;
+      lastUsedFolderId = folder.id;
+      const note = { id:uid(), title:'', body:'', updatedAt:Date.now() };
+      folder.notes.unshift(note);
+      saveData();
+      renderFolders();
+      renderNotes();
+      openEditor(note.id, true);
+    }
+
+    function openEditor(noteId, isNew=false){
+      const rec = findNoteRecord(noteId);
+      if(!rec) return;
+      currentNoteId = noteId;
+      currentFolderId = rec.folder.id;
+      lastUsedFolderId = rec.folder.id;
+      editorNavTitle.textContent = rec.folder.name;
+      editorNavSub.textContent = isNew ? '新規メモ' : '編集';
+      editorFolderTag.textContent = rec.folder.name;
+      editorDateTag.textContent = isNew ? 'new note' : formatDate(rec.note.updatedAt);
+      editorTitle.value = rec.note.title || '';
+      editorBody.value = rec.note.body || '';
+      lastSnapshot = JSON.stringify({title:editorTitle.value, body:editorBody.value});
+      draftChanged = false;
+      showView('editor');
+      setTimeout(() => editorTitle.focus(), 50);
+    }
+
+    function saveCurrentEditorNote(){
+      const rec = findNoteRecord(currentNoteId);
+      if(!rec) return;
+      rec.note.title = editorTitle.value.trim();
+      rec.note.body = editorBody.value;
+      rec.note.updatedAt = Date.now();
+      saveData();
+      draftChanged = false;
+      editorDateTag.textContent = formatDate(rec.note.updatedAt);
+      renderFolders();
+      renderNotes();
+    }
+
+    async function exportCurrentNote(){
+      const title = (editorTitle.value.trim() || 'memo').replace(/[\\/:*?"<>|]/g,'_');
+      const text = `${editorTitle.value.trim() || 'Untitled'}\n\n${editorBody.value || ''}`;
+      const file = new File([text], `${title}.txt`, { type:'text/plain' });
+      try{
+        if(navigator.share && navigator.canShare && navigator.canShare({ files:[file] })){
+          await navigator.share({ files:[file], title, text:'Memoを書き出し' });
+          return;
+        }
+      }catch(err){ if(err && err.name === 'AbortError') return; }
+      const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `${title}.txt`; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 600);
+    }
+
+    function deleteNote(noteId){
+      const rec = findNoteRecord(noteId);
+      if(!rec) return;
+      if(!confirm(`「${rec.note.title || 'Untitled'}」を削除する？`)) return;
+      rec.folder.notes = rec.folder.notes.filter(n => n.id !== noteId);
+      saveData(); renderFolders(); renderNotes();
+    }
+
+    function deleteCurrentNote(){
+      const rec = findNoteRecord(currentNoteId);
+      if(!rec) return;
+      closeMenu();
+      if(!confirm(`「${rec.note.title || 'Untitled'}」を削除する？`)) return;
+      if(!confirm('本当に削除する？\nこの操作は元に戻せないよ。')) return;
+      rec.folder.notes = rec.folder.notes.filter(n => n.id !== currentNoteId);
+      saveData(); renderFolders(); renderNotes();
+      showView('notes');
+    }
+
+    function openMoveOverlay(noteId){
+      closeOpenSwipe();
+      moveTargetNoteId = noteId;
+      const rec = findNoteRecord(noteId);
+      if(!rec) return;
+      moveFolderList.innerHTML = state.folders.map(folder => `
+        <button class="picker-item" type="button" data-folder-id="${folder.id}" ${folder.id===rec.folder.id ? 'disabled' : ''}>
+          <div class="folder-icon">📁</div>
+          <div style="min-width:0;flex:1;">
+            <div class="folder-name">${escapeHtml(folder.name)}</div>
+            <div class="folder-count">${folder.notes.length} notes</div>
+          </div>
+        </button>`).join('');
+      moveFolderList.querySelectorAll('.picker-item').forEach(btn => btn.addEventListener('click', () => {
+        if(btn.disabled) return;
+        moveNoteToFolder(noteId, btn.dataset.folderId);
+      }));
+      moveOverlay.classList.add('show');
+    }
+
+    function moveNoteToFolder(noteId, folderId){
+      const rec = findNoteRecord(noteId);
+      const target = getFolderById(folderId);
+      if(!rec || !target || rec.folder.id===folderId) return;
+      rec.folder.notes = rec.folder.notes.filter(n => n.id !== noteId);
+      rec.note.updatedAt = Date.now();
+      target.notes.unshift(rec.note);
+      lastUsedFolderId = target.id;
+      saveData();
+      moveOverlay.classList.remove('show');
+      renderFolders(); renderNotes();
+    }
+
+    function openNotesMenu(){
+      menuCard.innerHTML = `
+        <button class="menu-item" id="menuNewNote">新規メモ</button>
+        <button class="menu-item" id="menuNewFolder">新規フォルダ</button>`;
+      document.getElementById('menuNewNote').addEventListener('click', () => { closeMenu(); startNewNote(); });
+      document.getElementById('menuNewFolder').addEventListener('click', () => { closeMenu(); startNewFolder(); });
+      menuWrap.classList.add('show');
+    }
+
+    function openEditorMenu(){
+      menuCard.innerHTML = `
+        <button class="menu-item" id="menuExport">ファイルに保存 / 共有</button>
+        <button class="menu-item delete" id="menuDelete">削除</button>`;
+      document.getElementById('menuExport').addEventListener('click', async () => { closeMenu(); saveCurrentEditorNote(); await exportCurrentNote(); });
+      document.getElementById('menuDelete').addEventListener('click', deleteCurrentNote);
+      menuWrap.classList.add('show');
+    }
+
+    /* === Event Listeners === */
+    document.getElementById('backHomeFromFolders').addEventListener('click', () => { window.location.href = 'index.html'; });
+    document.getElementById('toggleFolderEdit').addEventListener('click', (e) => {
+      folderEditMode = !folderEditMode;
+      e.currentTarget.textContent = folderEditMode ? '完了' : '編集';
+      renderFolders();
+    });
+    document.getElementById('addFolderTop').addEventListener('click', startNewFolder);
+    document.getElementById('backToFolders').addEventListener('click', () => showView('folders'));
+    document.getElementById('notesMoreBtn').addEventListener('click', openNotesMenu);
+    document.getElementById('backToNotes').addEventListener('click', () => { if(draftChanged) saveCurrentEditorNote(); showView('notes'); });
+    document.getElementById('editorMoreBtn').addEventListener('click', openEditorMenu);
+    document.getElementById('doneBtn').addEventListener('click', () => { saveCurrentEditorNote(); showView('notes'); });
+    document.getElementById('closeMoveOverlay').addEventListener('click', () => moveOverlay.classList.remove('show'));
+    moveOverlay.addEventListener('click', (e) => { if(e.target === moveOverlay) moveOverlay.classList.remove('show'); });
+    document.getElementById('closeMenuBackdrop').addEventListener('click', closeMenu);
+    fab.addEventListener('click', startNewNote);
+
+    editorTitle.addEventListener('input', () => { draftChanged = true; });
+    editorBody.addEventListener('input', () => { draftChanged = true; });
+    document.addEventListener('click', (e) => { if(openSwipeRow && !e.target.closest('.swipe-row')) closeOpenSwipe(); });
+
+    renderFolders();
+    renderNotes();
+  </script>
+</body>
+</html>

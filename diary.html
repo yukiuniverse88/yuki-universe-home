@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#060405" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Diary｜祐紀ユニバース</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- 日記記入ビュー -->
+    <section id="view-write" class="view active">
+      <div class="nav">
+        <div class="nav-row">
+          <button class="icon-btn" id="backHome" aria-label="ホームへ戻る">‹</button>
+          <div>
+            <div class="nav-title">Diary</div>
+            <div class="nav-sub" id="writeNavSub">Today</div>
+          </div>
+          <div class="nav-actions">
+            <button class="icon-btn" id="openListBtn" aria-label="一覧">📋</button>
+          </div>
+        </div>
+      </div>
+      <div class="screen-head">
+        <h1 class="screen-title" id="writeDateTitle"></h1>
+      </div>
+      <div class="editor-shell" style="min-height:auto;">
+        <div class="diary-mood-picker" id="writeMoodPicker"></div>
+        <textarea id="diaryInput" class="editor-body diary-textarea" placeholder="気が向いた日に、ひとことでも。"></textarea>
+        <div id="writeImageSection"></div>
+        <div style="display:flex;gap:10px;margin-top:8px;">
+          <button class="sub-button" type="button" onclick="saveDiary()" style="flex:1;">保存</button>
+          <button class="sub-button danger" type="button" id="deleteEntryBtn" style="flex:0 0 auto;display:none;">削除</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 日記一覧ビュー -->
+    <section id="view-list" class="view">
+      <div class="nav">
+        <div class="nav-row">
+          <button class="icon-btn" id="backToWrite" aria-label="記入へ戻る">‹</button>
+          <div class="nav-title">Diary List</div>
+          <div class="nav-actions">
+            <button class="icon-btn" id="listMenuBtn" aria-label="メニュー">…</button>
+          </div>
+        </div>
+      </div>
+      <div class="screen-head">
+        <h1 class="screen-title">Diary List</h1>
+        <div class="screen-count" id="listCount">0件</div>
+      </div>
+      <div id="diaryListContainer"></div>
+    </section>
+
+  </div>
+
+  <div id="menuWrap" class="menu-wrap" aria-hidden="true">
+    <div class="menu-backdrop" id="closeMenuBackdrop"></div>
+    <div class="menu-card" id="menuCard"></div>
+  </div>
+
+  <input id="diaryImageInput" type="file" accept="image/*" hidden />
+  <input id="diaryRestoreInput" type="file" accept="application/json,.json" hidden />
+
+  <div class="diary-lightbox" id="diaryLightbox" onclick="closeLightbox(event)">
+    <div class="diary-lightbox-card" onclick="event.stopPropagation()">
+      <button class="icon-btn small diary-lightbox-close" type="button" onclick="closeLightbox()">✕</button>
+      <img id="diaryLightboxImage" alt="Diary image preview" />
+    </div>
+  </div>
+
+  <script>
+    const moodKey = 'yuki_home_moods_v4';
+    const diaryKey = 'yuki_home_diaries_v4';
+    const healthKey = 'yuki_home_health_v4';
+
+    function uid(){ return 'id-' + Math.random().toString(36).slice(2,11); }
+    function loadJson(key, fallback){
+      try{ const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }catch{ return fallback; }
+    }
+    function saveJson(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
+    function escapeHtml(str=''){
+      return str.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
+    }
+    function getTodayKey(){
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+    function formatDiaryDay(day){ return (day || '').replaceAll('-', '.'); }
+    function getMoodMap(){ return loadJson(moodKey, {}); }
+    function moodForDay(day){ return getMoodMap()[day] || ''; }
+
+    function normalizeDiaryList(){
+      const diaries = loadJson(diaryKey, []);
+      let changed = false;
+      const byDay = new Map();
+      diaries.forEach(entry => {
+        if(!entry || typeof entry !== 'object') { changed = true; return; }
+        const next = { ...entry };
+        if(!next.id){ next.id = uid(); changed = true; }
+        if(typeof next.text !== 'string'){ next.text = ''; changed = true; }
+        if(typeof next.mood !== 'string'){ next.mood = ''; changed = true; }
+        if(typeof next.image !== 'string'){ next.image = ''; changed = true; }
+        if(typeof next.imageName !== 'string'){ next.imageName = ''; changed = true; }
+        if(!next.day){ next.day = getTodayKey(); changed = true; }
+        if(!next.ts){ next.ts = Date.now(); changed = true; }
+        const saved = byDay.get(next.day);
+        if(!saved || (next.ts || 0) > (saved.ts || 0)){
+          if(saved) changed = true;
+          byDay.set(next.day, next);
+        } else { changed = true; }
+      });
+      const normalized = Array.from(byDay.values()).sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0, 180);
+      if(changed){ try{ saveJson(diaryKey, normalized); }catch{} }
+      return normalized;
+    }
+    function getDiaryList(){ return normalizeDiaryList(); }
+    function persistDiaryList(list){
+      try{ saveJson(diaryKey, list.slice(0,180)); return true; }
+      catch(err){ alert('画像つき日記の保存容量がいっぱいかも。\n古い画像つき日記を減らすか、バックアップ後に整理してみてね。'); return false; }
+    }
+
+    /* === Image Handling === */
+    function readFileAsDataUrl(file){
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = () => reject(new Error('file-read-failed'));
+        reader.readAsDataURL(file);
+      });
+    }
+    function loadImageElement(src){
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('image-load-failed'));
+        img.src = src;
+      });
+    }
+    async function compressDiaryImage(file){
+      const rawUrl = await readFileAsDataUrl(file);
+      const img = await loadImageElement(rawUrl);
+      const maxSide = 960;
+      let { width, height } = img;
+      if(width > height && width > maxSide){
+        height = Math.max(1, Math.round(height * (maxSide / width)));
+        width = maxSide;
+      }else if(height >= width && height > maxSide){
+        width = Math.max(1, Math.round(width * (maxSide / height)));
+        height = maxSide;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#111'; ctx.fillRect(0, 0, width, height);
+      ctx.drawImage(img, 0, 0, width, height);
+      return canvas.toDataURL('image/jpeg', 0.72);
+    }
+
+    /* === State === */
+    const views = {
+      write: document.getElementById('view-write'),
+      list: document.getElementById('view-list')
+    };
+    const diaryInput = document.getElementById('diaryInput');
+    const writeNavSub = document.getElementById('writeNavSub');
+    const writeDateTitle = document.getElementById('writeDateTitle');
+    const writeMoodPicker = document.getElementById('writeMoodPicker');
+    const writeImageSection = document.getElementById('writeImageSection');
+    const deleteEntryBtn = document.getElementById('deleteEntryBtn');
+    const diaryListContainer = document.getElementById('diaryListContainer');
+    const listCount = document.getElementById('listCount');
+    const menuWrap = document.getElementById('menuWrap');
+    const menuCard = document.getElementById('menuCard');
+    const diaryImageInput = document.getElementById('diaryImageInput');
+    const diaryRestoreInput = document.getElementById('diaryRestoreInput');
+    const diaryLightbox = document.getElementById('diaryLightbox');
+    const diaryLightboxImage = document.getElementById('diaryLightboxImage');
+
+    let currentView = 'write';
+    let draft = null;
+
+    function showView(name){
+      currentView = name;
+      Object.entries(views).forEach(([k,el]) => el.classList.toggle('active', k===name));
+    }
+    function closeMenu(){ menuWrap.classList.remove('show'); }
+
+    /* === Write View === */
+    function initWriteView(entryId){
+      const diaries = getDiaryList();
+      const existing = entryId
+        ? diaries.find(e => e.id === entryId)
+        : diaries.find(e => e.day === getTodayKey()) || null;
+
+      draft = {
+        id: existing?.id || uid(),
+        day: existing?.day || getTodayKey(),
+        mood: existing?.mood || moodForDay(existing?.day || getTodayKey()) || '',
+        text: existing?.text || '',
+        image: existing?.image || '',
+        imageName: existing?.imageName || '',
+        ts: existing?.ts || Date.now()
+      };
+
+      const isExisting = diaries.some(e => e.id === draft.id);
+      const isToday = draft.day === getTodayKey();
+
+      writeNavSub.textContent = isToday ? 'Today' : formatDiaryDay(draft.day);
+      writeDateTitle.textContent = formatDiaryDay(draft.day);
+      diaryInput.value = draft.text || '';
+      deleteEntryBtn.style.display = isExisting ? '' : 'none';
+
+      renderMoodPicker();
+      renderImageSection();
+      showView('write');
+    }
+
+    function renderMoodPicker(){
+      const selected = draft?.mood || '';
+      writeMoodPicker.innerHTML = ['◎','○','△','×'].map(symbol => `
+        <button class="pill${selected === symbol ? ' active' : ''}" type="button" onclick="setMood('${symbol}')">${symbol}</button>
+      `).join('');
+    }
+
+    function setMood(symbol){
+      if(!draft) return;
+      syncDraftFromInput();
+      draft.mood = symbol;
+      renderMoodPicker();
+    }
+
+    function syncDraftFromInput(){
+      if(!draft) return;
+      draft.text = diaryInput.value || '';
+    }
+
+    function renderImageSection(){
+      if(!draft) return;
+      if(draft.image){
+        writeImageSection.innerHTML = `
+          <div class="diary-photo-strip">
+            <button class="diary-photo-thumb" type="button" onclick="openLightboxFromDraft()">
+              <img src="${draft.image}" alt="Diary image">
+            </button>
+            <div class="diary-photo-actions">
+              <button class="sub-button secondary" type="button" onclick="pickImage()">差し替え</button>
+              <button class="sub-button secondary" type="button" onclick="removeImage()">削除</button>
+            </div>
+          </div>`;
+      } else {
+        writeImageSection.innerHTML = `
+          <div class="diary-sheet-tools">
+            <button class="sub-button secondary" type="button" onclick="pickImage()">画像を追加</button>
+          </div>`;
+      }
+    }
+
+    function pickImage(){
+      diaryImageInput.value = '';
+      diaryImageInput.click();
+    }
+
+    diaryImageInput.addEventListener('change', async (event) => {
+      const file = event.target.files?.[0];
+      if(!file || !draft) return;
+      syncDraftFromInput();
+      try{
+        draft.image = await compressDiaryImage(file);
+        draft.imageName = file.name || 'diary.jpg';
+        renderImageSection();
+      }catch(err){
+        alert('画像の読み込みに失敗したよ。別の画像でもう一回試してみてね。');
+      }
+    });
+
+    function removeImage(){
+      if(!draft) return;
+      syncDraftFromInput();
+      draft.image = '';
+      draft.imageName = '';
+      renderImageSection();
+    }
+
+    function openLightboxFromDraft(){
+      if(!draft?.image) return;
+      diaryLightboxImage.src = draft.image;
+      diaryLightbox.classList.add('show');
+    }
+    function closeLightbox(event){
+      if(event && event.target !== diaryLightbox) return;
+      diaryLightbox.classList.remove('show');
+      diaryLightboxImage.src = '';
+    }
+
+    /* === Save / Delete === */
+    function saveDiary(){
+      syncDraftFromInput();
+      if(!draft) return;
+      const text = (draft.text || '').trim();
+      const mood = draft.mood || '';
+      const image = draft.image || '';
+      if(!text && !mood && !image){
+        window.location.href = 'index.html';
+        return;
+      }
+      const diaries = getDiaryList().filter(e => e.id !== draft.id && e.day !== draft.day);
+      const entry = {
+        id: draft.id || uid(),
+        day: draft.day || getTodayKey(),
+        mood, text, image,
+        imageName: draft.imageName || '',
+        ts: draft.ts || Date.now()
+      };
+      diaries.unshift(entry);
+      diaries.sort((a,b)=>(b.ts||0)-(a.ts||0));
+      if(!persistDiaryList(diaries)) return;
+
+      const moods = getMoodMap();
+      if(mood){
+        moods[entry.day] = mood;
+      } else if(moods[entry.day] && entry.day === getTodayKey()){
+        delete moods[entry.day];
+      }
+      saveJson(moodKey, moods);
+
+      draft = { ...entry };
+      deleteEntryBtn.style.display = '';
+      alert('保存したよ。');
+    }
+
+    function deleteCurrentEntry(){
+      if(!draft) return;
+      const label = formatDiaryDay(draft.day);
+      if(!confirm(`${label} の日記を削除する？`)) return;
+      const diaries = getDiaryList().filter(e => e.id !== draft.id && e.day !== draft.day);
+      if(!persistDiaryList(diaries)) return;
+      initWriteView(); // reset to today
+    }
+
+    deleteEntryBtn.addEventListener('click', deleteCurrentEntry);
+
+    /* === List View === */
+    function renderList(){
+      const diaries = getDiaryList().sort((a,b)=>(b.ts||0)-(a.ts||0));
+      listCount.textContent = `${diaries.length}件`;
+
+      if(diaries.length === 0){
+        diaryListContainer.innerHTML = '<div class="list-card"><div class="empty">まだ日記がないよ。</div></div>';
+        return;
+      }
+
+      diaryListContainer.innerHTML = `<div class="list-card" style="padding:10px;">
+        ${diaries.map(entry => {
+          const mood = entry.mood || '—';
+          const text = (entry.text || '').trim();
+          const preview = text || (entry.image ? 'Photo only' : 'Mood only');
+          return `<button class="diary-item${text ? '' : ' compact'}" type="button" data-entry-id="${entry.id}">
+            <div class="diary-item-head">
+              <span class="diary-item-date">${formatDiaryDay(entry.day)}</span>
+              <span class="diary-item-mood">${escapeHtml(mood)}</span>
+            </div>
+            <div class="diary-item-body">
+              <div class="diary-item-text">
+                <div class="diary-item-preview">${escapeHtml(preview)}</div>
+              </div>
+              ${entry.image ? `<div class="diary-item-thumb"><img src="${entry.image}" alt="Diary thumbnail"></div>` : ''}
+            </div>
+          </button>`;
+        }).join('')}
+      </div>`;
+
+      diaryListContainer.querySelectorAll('.diary-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const entryId = btn.dataset.entryId;
+          initWriteView(entryId);
+        });
+      });
+    }
+
+    /* === Backup / Restore === */
+    async function exportDiaryBackup(){
+      const backup = {
+        type: 'yuki-home-diary-backup',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        data: {
+          diaries: getDiaryList(),
+          moods: getMoodMap(),
+          health: loadJson(healthKey, {weight:'', calories:''})
+        }
+      };
+      const text = JSON.stringify(backup, null, 2);
+      const filename = `yuki-diary-backup-${getTodayKey()}.json`;
+      const file = new File([text], filename, { type:'application/json' });
+      try{
+        if(navigator.share && navigator.canShare && navigator.canShare({ files:[file] })){
+          await navigator.share({ files:[file], title:'Diary Backup', text:'Diaryバックアップ' });
+          return;
+        }
+      }catch(err){ if(err && err.name === 'AbortError') return; }
+      const blob = new Blob([text], {type:'application/json;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 600);
+    }
+
+    function triggerRestore(){
+      diaryRestoreInput.value = '';
+      diaryRestoreInput.click();
+    }
+
+    diaryRestoreInput.addEventListener('change', async (event) => {
+      const file = event.target.files?.[0];
+      if(!file) return;
+      try{
+        const raw = JSON.parse(await file.text());
+        const data = raw?.data || raw;
+        const diaries = Array.isArray(data?.diaries) ? data.diaries : [];
+        const moods = data?.moods && typeof data.moods === 'object' ? data.moods : {};
+        const health = data?.health && typeof data.health === 'object' ? data.health : { weight:'', calories:'' };
+        if(!confirm('今の Diary / Mood / Health を、このバックアップで置き換える？')) return;
+        if(!persistDiaryList(diaries)) return;
+        saveJson(moodKey, moods);
+        saveJson(healthKey, { weight: health.weight || '', calories: health.calories || '' });
+        renderList();
+        alert('バックアップを戻したよ。');
+      }catch(err){
+        alert('バックアップの読み込みに失敗したよ。ファイルを確認してみてね。');
+      } finally {
+        diaryRestoreInput.value = '';
+      }
+    });
+
+    function openListMenu(){
+      menuCard.innerHTML = `
+        <button class="menu-item" id="menuBackup">バックアップ</button>
+        <button class="menu-item" id="menuRestore">復元</button>`;
+      document.getElementById('menuBackup').addEventListener('click', () => { closeMenu(); exportDiaryBackup(); });
+      document.getElementById('menuRestore').addEventListener('click', () => { closeMenu(); triggerRestore(); });
+      menuWrap.classList.add('show');
+    }
+
+    /* === Event Listeners === */
+    document.getElementById('backHome').addEventListener('click', () => { window.location.href = 'index.html'; });
+    document.getElementById('openListBtn').addEventListener('click', () => { renderList(); showView('list'); });
+    document.getElementById('backToWrite').addEventListener('click', () => { initWriteView(); });
+    document.getElementById('listMenuBtn').addEventListener('click', openListMenu);
+    document.getElementById('closeMenuBackdrop').addEventListener('click', closeMenu);
+
+    /* === Init === */
+    initWriteView();
+  </script>
+</body>
+</html>
