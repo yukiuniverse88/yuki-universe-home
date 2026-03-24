@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>平均予測ジェネレーター</title>
+  <style>
+    :root {
+      --bg: #fffaf7;
+      --card: #ffffff;
+      --text: #2d2a26;
+      --muted: #7a7169;
+      --line: #eadfd7;
+      --accent: #ff8fa3;
+      --accent-strong: #ff6b8b;
+      --good: #2d9d78;
+      --warn: #d88400;
+      --danger: #d94c4c;
+      --shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", sans-serif;
+      background: linear-gradient(180deg, #fff7f9 0%, var(--bg) 100%);
+      color: var(--text);
+      -webkit-text-size-adjust: 100%;
+    }
+
+    .wrap {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 18px 14px 40px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #ffd9e2 0%, #ffece0 100%);
+      border: 1px solid #ffd2dc;
+      border-radius: 24px;
+      padding: 20px 18px;
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(24px, 5vw, 34px);
+      line-height: 1.2;
+    }
+
+    .sub {
+      margin: 0;
+      color: #5c544e;
+      line-height: 1.65;
+      font-size: 15px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      margin: 0 0 12px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    input, select {
+      width: 100%;
+      border: 1px solid #d9ccc2;
+      border-radius: 12px;
+      padding: 13px 14px;
+      font-size: 16px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      min-height: 48px;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent-strong);
+      box-shadow: 0 0 0 4px rgba(255, 107, 139, 0.12);
+    }
+
+    .inline-note {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .row-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .btn {
+      appearance: none;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 16px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      min-height: 46px;
+    }
+
+    .btn-main {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-main:hover { background: var(--accent-strong); }
+
+    .btn-sub {
+      background: #fff4f6;
+      color: #c34d68;
+      border: 1px solid #ffd1dc;
+    }
+
+    .btn-ghost {
+      background: #fff;
+      color: #7c6a5f;
+      border: 1px solid var(--line);
+    }
+
+    .scenario-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .scenario-item {
+      border: 1px solid #f0e2da;
+      background: #fffdfc;
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    .scenario-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .delete-btn {
+      min-width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      border: 1px solid #ffd9df;
+      background: #fff5f7;
+      color: #cc4a69;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .stat {
+      border: 1px solid #f0e2da;
+      background: #fffdfc;
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .stat .label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+
+    .stat .value {
+      font-size: clamp(21px, 4vw, 30px);
+      font-weight: 800;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+
+    .hint {
+      margin-top: 12px;
+      padding: 12px 13px;
+      border-radius: 14px;
+      background: #fffaf0;
+      border: 1px solid #f5dfb5;
+      color: #7d5b12;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .good { color: var(--good); }
+    .warn { color: var(--warn); }
+    .danger { color: var(--danger); }
+
+    .footer-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--line);
+      margin: 14px 0;
+    }
+
+    @media (max-width: 640px) {
+      .grid,
+      .stats,
+      .scenario-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .delete-btn {
+        width: 100%;
+      }
+
+      .wrap {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .row-head {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .row-head .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>平均予測ジェネレーター</h1>
+      <p class="sub">
+        今の月平均カロリーと今日が何日目かを入れて、<br>
+        「あと何日は何カロリー」で月末の平均をシミュレーションできるよ。
+      </p>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">① 今の状況</h2>
+      <div class="grid">
+        <div class="field">
+          <label for="monthDays">その月の日数</label>
+          <select id="monthDays">
+            <option value="28">28日</option>
+            <option value="29">29日</option>
+            <option value="30">30日</option>
+            <option value="31" selected>31日</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="currentDay">今、何日目？</label>
+          <input id="currentDay" type="number" min="1" step="1" value="24" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label for="currentAverage">今の月平均カロリー</label>
+          <input id="currentAverage" type="number" min="0" step="0.1" value="1700" inputmode="decimal">
+          <div class="inline-note">例：1700 と入れると「今の平均1700kcal/日」扱い</div>
+        </div>
+        <div class="field">
+          <label for="targetAverage">目標の月平均（任意）</label>
+          <input id="targetAverage" type="number" min="0" step="0.1" placeholder="例：1650" inputmode="decimal">
+          <div class="inline-note">入れると、目標達成に必要な残り平均も表示するよ</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="row-head">
+        <h2 class="section-title" style="margin:0;">② 残り日数のシミュレーション</h2>
+        <button class="btn btn-main" id="addScenarioBtn" type="button">＋ パターンを追加</button>
+      </div>
+      <div id="scenarioList" class="scenario-list"></div>
+      <div class="footer-tools">
+        <button class="btn btn-sub" id="fillRemainingBtn" type="button">残り日数を自動で埋める</button>
+        <button class="btn btn-ghost" id="resetBtn" type="button">入力をリセット</button>
+      </div>
+      <p class="small">例：3日を1500kcal、その次の4日を1800kcal、みたいに分けて入れられるよ。</p>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">③ 結果</h2>
+      <div class="stats">
+        <div class="stat">
+          <div class="label">今までの合計カロリー</div>
+          <div id="currentTotal" class="value">0 kcal</div>
+        </div>
+        <div class="stat">
+          <div class="label">残り日数</div>
+          <div id="remainingDays" class="value">0日</div>
+        </div>
+        <div class="stat">
+          <div class="label">シミュレーション後の月平均</div>
+          <div id="predictedAverage" class="value">0 kcal</div>
+        </div>
+        <div class="stat">
+          <div class="label">シミュレーション合計日数</div>
+          <div id="plannedDays" class="value">0日</div>
+        </div>
+        <div class="stat">
+          <div class="label">シミュレーション合計カロリー</div>
+          <div id="plannedCalories" class="value">0 kcal</div>
+        </div>
+        <div class="stat">
+          <div class="label">月末の合計カロリー予測</div>
+          <div id="finalTotal" class="value">0 kcal</div>
+        </div>
+      </div>
+      <div id="statusBox" class="hint">数字を入れるとここに案内が出るよ。</div>
+      <div class="divider"></div>
+      <div class="stats">
+        <div class="stat">
+          <div class="label">目標平均達成に必要な残り平均</div>
+          <div id="neededAverage" class="value">—</div>
+        </div>
+        <div class="stat">
+          <div class="label">残りで使える合計カロリー</div>
+          <div id="remainingBudget" class="value">—</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <template id="scenarioTemplate">
+    <div class="scenario-item">
+      <div class="scenario-grid">
+        <div class="field">
+          <label>何日間？</label>
+          <input class="daysInput" type="number" min="0" step="1" value="1" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label>1日あたり何kcal？</label>
+          <input class="calInput" type="number" min="0" step="0.1" value="1600" inputmode="decimal">
+        </div>
+        <button class="delete-btn" type="button" title="削除">×</button>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    const monthDaysEl = document.getElementById('monthDays');
+    const currentDayEl = document.getElementById('currentDay');
+    const currentAverageEl = document.getElementById('currentAverage');
+    const targetAverageEl = document.getElementById('targetAverage');
+    const scenarioListEl = document.getElementById('scenarioList');
+    const scenarioTemplate = document.getElementById('scenarioTemplate');
+
+    const currentTotalEl = document.getElementById('currentTotal');
+    const remainingDaysEl = document.getElementById('remainingDays');
+    const predictedAverageEl = document.getElementById('predictedAverage');
+    const plannedDaysEl = document.getElementById('plannedDays');
+    const plannedCaloriesEl = document.getElementById('plannedCalories');
+    const finalTotalEl = document.getElementById('finalTotal');
+    const statusBoxEl = document.getElementById('statusBox');
+    const neededAverageEl = document.getElementById('neededAverage');
+    const remainingBudgetEl = document.getElementById('remainingBudget');
+
+    const addScenarioBtn = document.getElementById('addScenarioBtn');
+    const fillRemainingBtn = document.getElementById('fillRemainingBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    function fmt(value) {
+      if (!isFinite(value)) return '—';
+      return new Intl.NumberFormat('ja-JP', {
+        maximumFractionDigits: value % 1 === 0 ? 0 : 1,
+        minimumFractionDigits: value % 1 === 0 ? 0 : 1
+      }).format(value);
+    }
+
+    function readNumber(el) {
+      const n = parseFloat(el.value);
+      return isFinite(n) ? n : 0;
+    }
+
+    function createScenario(days = 1, calories = 1600) {
+      const node = scenarioTemplate.content.firstElementChild.cloneNode(true);
+      node.querySelector('.daysInput').value = days;
+      node.querySelector('.calInput').value = calories;
+
+      node.querySelectorAll('input').forEach((input) => {
+        input.addEventListener('input', () => {
+          saveState();
+          calculate();
+        });
+      });
+
+      node.querySelector('.delete-btn').addEventListener('click', () => {
+        node.remove();
+        saveState();
+        calculate();
+      });
+
+      scenarioListEl.appendChild(node);
+    }
+
+    function getScenarioRows() {
+      return Array.from(document.querySelectorAll('.scenario-item')).map((item) => {
+        const days = parseFloat(item.querySelector('.daysInput').value) || 0;
+        const calories = parseFloat(item.querySelector('.calInput').value) || 0;
+        return { days, calories };
+      });
+    }
+
+    function saveState() {
+      const state = {
+        monthDays: monthDaysEl.value,
+        currentDay: currentDayEl.value,
+        currentAverage: currentAverageEl.value,
+        targetAverage: targetAverageEl.value,
+        scenarios: getScenarioRows()
+      };
+      localStorage.setItem('avgPredictorState', JSON.stringify(state));
+    }
+
+    function loadState() {
+      const raw = localStorage.getItem('avgPredictorState');
+      if (!raw) {
+        createScenario(7, 1600);
+        return;
+      }
+
+      try {
+        const state = JSON.parse(raw);
+        monthDaysEl.value = state.monthDays || '31';
+        currentDayEl.value = state.currentDay || '24';
+        currentAverageEl.value = state.currentAverage || '1700';
+        targetAverageEl.value = state.targetAverage || '';
+        scenarioListEl.innerHTML = '';
+
+        if (Array.isArray(state.scenarios) && state.scenarios.length > 0) {
+          state.scenarios.forEach((row) => createScenario(row.days, row.calories));
+        } else {
+          createScenario(7, 1600);
+        }
+      } catch {
+        createScenario(7, 1600);
+      }
+    }
+
+    function calculate() {
+      const monthDays = Math.max(1, Math.floor(readNumber(monthDaysEl)));
+      const currentDayRaw = Math.floor(readNumber(currentDayEl));
+      const currentDay = Math.min(Math.max(currentDayRaw, 0), monthDays);
+      const currentAverage = Math.max(0, readNumber(currentAverageEl));
+      const targetAverage = targetAverageEl.value === '' ? null : Math.max(0, readNumber(targetAverageEl));
+
+      if (String(currentDay) !== currentDayEl.value && currentDayEl.value !== '') {
+        currentDayEl.value = currentDay;
+      }
+
+      const currentTotal = currentAverage * currentDay;
+      const remainingDays = Math.max(monthDays - currentDay, 0);
+      const scenarios = getScenarioRows();
+      const plannedDays = scenarios.reduce((sum, row) => sum + row.days, 0);
+      const plannedCalories = scenarios.reduce((sum, row) => sum + row.days * row.calories, 0);
+
+      const usablePlannedDays = Math.min(plannedDays, remainingDays);
+      const predictedFinalTotal = currentTotal + plannedCalories;
+      const predictedAverage = predictedFinalTotal / monthDays;
+
+      currentTotalEl.textContent = `${fmt(currentTotal)} kcal`;
+      remainingDaysEl.textContent = `${fmt(remainingDays)}日`;
+      predictedAverageEl.textContent = `${fmt(predictedAverage)} kcal`;
+      plannedDaysEl.textContent = `${fmt(plannedDays)}日`;
+      plannedCaloriesEl.textContent = `${fmt(plannedCalories)} kcal`;
+      finalTotalEl.textContent = `${fmt(predictedFinalTotal)} kcal`;
+
+      let statusClass = 'hint';
+      let statusText = '';
+
+      if (currentDay <= 0) {
+        statusClass += ' warn';
+        statusText = 'まず「今、何日目？」を1以上で入れてね。';
+      } else if (plannedDays < remainingDays) {
+        statusClass += ' warn';
+        const shortage = remainingDays - plannedDays;
+        statusText = `まだ残り ${fmt(shortage)}日分 が未入力だよ。月末平均をぴったり出したいなら、あと ${fmt(shortage)}日分 を追加してね。`;
+      } else if (plannedDays > remainingDays) {
+        statusClass += ' danger';
+        const over = plannedDays - remainingDays;
+        statusText = `シミュレーション日数が ${fmt(over)}日分 多いよ。残り ${fmt(remainingDays)}日に収めるとちょうど計算しやすいよ。`;
+      } else {
+        statusClass += ' good';
+        statusText = `ぴったり月末まで入力できてるよ。予測平均は ${fmt(predictedAverage)} kcal/日 だよ。`;
+      }
+
+      statusBoxEl.className = statusClass;
+      statusBoxEl.textContent = statusText;
+
+      if (targetAverage === null || !isFinite(targetAverage)) {
+        neededAverageEl.textContent = '—';
+        remainingBudgetEl.textContent = '—';
+      } else {
+        const targetTotal = targetAverage * monthDays;
+        const remainingBudget = targetTotal - currentTotal;
+        const neededAverage = remainingDays > 0 ? remainingBudget / remainingDays : 0;
+        remainingBudgetEl.textContent = `${fmt(remainingBudget)} kcal`;
+        neededAverageEl.textContent = `${fmt(neededAverage)} kcal`;
+      }
+
+      saveState();
+    }
+
+    addScenarioBtn.addEventListener('click', () => {
+      createScenario(1, 1600);
+      saveState();
+      calculate();
+    });
+
+    fillRemainingBtn.addEventListener('click', () => {
+      const monthDays = Math.max(1, Math.floor(readNumber(monthDaysEl)));
+      const currentDay = Math.min(Math.max(Math.floor(readNumber(currentDayEl)), 0), monthDays);
+      const remainingDays = Math.max(monthDays - currentDay, 0);
+      const currentPlannedDays = getScenarioRows().reduce((sum, row) => sum + row.days, 0);
+      const missing = remainingDays - currentPlannedDays;
+
+      if (missing > 0) {
+        createScenario(missing, 1600);
+      }
+      saveState();
+      calculate();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      monthDaysEl.value = '31';
+      currentDayEl.value = '24';
+      currentAverageEl.value = '1700';
+      targetAverageEl.value = '';
+      scenarioListEl.innerHTML = '';
+      createScenario(7, 1600);
+      saveState();
+      calculate();
+    });
+
+    [monthDaysEl, currentDayEl, currentAverageEl, targetAverageEl].forEach((el) => {
+      el.addEventListener('input', calculate);
+      el.addEventListener('change', calculate);
+    });
+
+    loadState();
+    calculate();
+  </script>
+</body>
+</html>
