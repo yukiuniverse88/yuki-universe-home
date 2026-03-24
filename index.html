@@ -276,6 +276,8 @@
     .history-button{flex:0 0 auto;min-width:106px;}
     .duo-grid{display:grid;gap:14px;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;}
     .bottom-card{min-height:186px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;}
+    .clickable-card{cursor:pointer;}
+    .clickable-card:focus-visible{outline:2px solid rgba(255,255,255,.28);outline-offset:3px;}
     .simple-icon{font-size:40px;line-height:1;margin-top:8px;}
     .diary-icon{color:#8fc8ff;}
     .health-icon{color:#ffcc7a;}
@@ -353,7 +355,7 @@
           </article>
 
           <div class="duo-grid">
-            <article class="card bottom-card">
+            <article class="card bottom-card clickable-card" id="diaryCard" role="button" tabindex="0" aria-label="Diaryを開く">
               <div>
                 <p class="small-title">DIARY</p>
                 <div class="simple-icon diary-icon">✎</div>
@@ -501,6 +503,7 @@
     const moodStatusText = document.getElementById('moodStatusText');
     const diaryBadge = document.getElementById('diaryBadge');
     const healthSummary = document.getElementById('healthSummary');
+    const diaryCard = document.getElementById('diaryCard');
     const simpleSheetBackdrop = document.getElementById('simpleSheetBackdrop');
     const simpleSheetContent = document.getElementById('simpleSheetContent');
     const folderListEl = document.getElementById('folderList');
@@ -1120,6 +1123,19 @@
     document.getElementById('closeMenuBackdrop').addEventListener('click', closeMenu);
     fab.addEventListener('click', startNewNote);
 
+
+    if(diaryCard){
+      diaryCard.addEventListener('click', (e) => {
+        if(e.target.closest('.sub-button')) return;
+        openDiarySheet();
+      });
+      diaryCard.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' || e.key === ' '){
+          e.preventDefault();
+          openDiarySheet();
+        }
+      });
+    }
     editorTitle.addEventListener('input', () => { draftChanged = true; });
     editorBody.addEventListener('input', () => { draftChanged = true; });
     document.addEventListener('click', (e) => { if(openSwipeRow && !e.target.closest('.swipe-row')) closeOpenSwipe(); });
