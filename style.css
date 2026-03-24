@@ -265,12 +265,15 @@ button.card{width:100%;text-align:left;color:inherit;cursor:pointer;border:none;
 .pill.active{border-color:rgba(232,163,178,.55);box-shadow:0 0 0 1px rgba(232,163,178,.18) inset;color:#ffd1dc;}
 .history-button,.sub-button{height:46px;border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);font-size:16px;font-weight:650;cursor:pointer;font-family:inherit;padding:0 16px;white-space:nowrap;}
 .history-button{flex:0 0 auto;min-width:106px;}
-.duo-grid{display:grid;gap:14px;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;}
-.bottom-card{min-height:186px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;}
-.bottom-card .sub-button{display:flex;align-items:center;justify-content:center;width:100%;text-align:center;}
-.simple-icon{font-size:40px;line-height:1;margin-top:8px;}
-.diary-icon{color:#8fc8ff;}
-.health-icon{color:#ffcc7a;}
+.duo-grid{display:flex;flex-direction:column;gap:10px;width:100%;}
+.duo-card{min-height:88px;display:flex;align-items:center;gap:14px;padding:16px 14px 16px 16px;}
+.duo-badge{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;font-size:24px;flex:0 0 auto;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.035);}
+.diary-badge{color:#8fc8ff;border-color:rgba(143,200,255,.22);}
+.health-badge{color:#ffcc7a;border-color:rgba(255,204,122,.22);}
+.duo-info{flex:1;min-width:0;}
+.duo-label{font-size:17px;font-weight:700;line-height:1.2;}
+.duo-sub{font-size:13px;color:var(--sub);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.duo-arrow{font-size:22px;color:var(--muted);flex:0 0 auto;line-height:1;}
 .home-spacer{height:8px;}
 .simple-sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.56);display:none;align-items:flex-end;justify-content:center;padding:18px;z-index:70;backdrop-filter:blur(8px);}
 .simple-sheet-backdrop.show{display:flex;}

@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>祐紀ユニバース｜帰る家</title>
-  <link rel="stylesheet" href="style.css?v=2" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app">
@@ -65,22 +65,22 @@
           </article>
 
           <div class="duo-grid">
-            <button class="card bottom-card diary-card" type="button" id="openDiaryFromHome">
-              <div>
-                <p class="small-title">DIARY</p>
-                <div class="simple-icon diary-icon">✎</div>
-                <div class="compact-status" id="diaryBadge">Mood: —</div>
+            <button class="card duo-card" type="button" id="openDiaryFromHome">
+              <div class="duo-badge diary-badge">✎</div>
+              <div class="duo-info">
+                <div class="duo-label">Diary</div>
+                <div class="duo-sub" id="diaryBadge">Mood: —</div>
               </div>
-              <span class="sub-button">Open</span>
+              <span class="duo-arrow">›</span>
             </button>
 
-            <button class="card bottom-card" type="button" id="openHealthFromHome">
-              <div>
-                <p class="small-title">HEALTH</p>
-                <div class="simple-icon health-icon">♡</div>
-                <div class="compact-status" id="healthSummary">Weight / Calories</div>
+            <button class="card duo-card" type="button" id="openHealthFromHome">
+              <div class="duo-badge health-badge">♡</div>
+              <div class="duo-info">
+                <div class="duo-label">Health</div>
+                <div class="duo-sub" id="healthSummary">Weight / Calories</div>
               </div>
-              <span class="sub-button">Open</span>
+              <span class="duo-arrow">›</span>
             </button>
           </div>
         </section>
