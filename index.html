@@ -280,9 +280,9 @@
     .diary-icon{color:#8fc8ff;}
     .health-icon{color:#ffcc7a;}
     .home-spacer{height:8px;}
-    .simple-sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.56);display:none;align-items:flex-end;justify-content:center;padding:18px;z-index:70;backdrop-filter:blur(8px);}
+    .simple-sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.56);display:none;align-items:flex-end;justify-content:center;padding:18px 18px calc(18px + env(safe-area-inset-bottom));z-index:70;backdrop-filter:blur(8px);}
     .simple-sheet-backdrop.show{display:flex;}
-    .simple-sheet{width:min(540px, 100%);background:linear-gradient(180deg, rgba(28,23,24,.98), rgba(18,15,16,.98));border:1px solid var(--line);border-radius:28px 28px 18px 18px;box-shadow:var(--shadow);padding:20px 18px calc(20px + env(safe-area-inset-bottom));}
+    .simple-sheet{width:min(540px, 100%);max-height:calc(100dvh - max(88px, env(safe-area-inset-top) + 52px));overflow:auto;-webkit-overflow-scrolling:touch;background:linear-gradient(180deg, rgba(28,23,24,.98), rgba(18,15,16,.98));border:1px solid var(--line);border-radius:28px 28px 18px 18px;box-shadow:var(--shadow);padding:20px 18px calc(20px + env(safe-area-inset-bottom));}
     .simple-sheet h3{margin:0 0 10px;font-size:22px;}
     .sheet-title-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;}
     .sheet-title-row h3{margin:0;}
@@ -290,7 +290,7 @@
     .simple-sheet textarea,.simple-sheet input{width:100%;border:none;outline:none;color:var(--text);background:rgba(255,255,255,.04);border-radius:18px;padding:14px 14px;font:inherit;margin-top:12px;}
     .simple-sheet .row{display:flex;gap:10px;margin-top:14px;}
     .simple-sheet .row .sub-button{flex:1;}
-    .diary-sheet-meta{font-size:14px;color:var(--sub);margin-top:2px;}
+    .diary-sheet-meta{font-size:14px;color:var(--sub);margin-top:2px;position:sticky;top:-2px;background:linear-gradient(180deg, rgba(28,23,24,.98), rgba(28,23,24,.92));padding-bottom:8px;z-index:1;}
     .diary-sheet-meta strong{color:var(--text);font-weight:700;}
     .diary-list{display:flex;flex-direction:column;gap:10px;margin-top:14px;max-height:min(62dvh, 560px);overflow:auto;padding-right:2px;}
     .diary-item{width:100%;border:none;text-align:left;color:inherit;font-family:inherit;cursor:pointer;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:20px;padding:14px 14px 13px;display:flex;flex-direction:column;gap:8px;}
@@ -298,31 +298,30 @@
     .diary-item-head{display:flex;align-items:center;justify-content:space-between;gap:12px;}
     .diary-item-date{font-size:14px;font-weight:700;letter-spacing:.02em;}
     .diary-item-mood{font-size:17px;line-height:1;color:#ffd1dc;flex:0 0 auto;}
-    .diary-item-preview{font-size:15px;line-height:1.6;color:var(--sub);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden;white-space:pre-wrap;word-break:break-word;}
+    .diary-item-preview{font-size:15px;line-height:1.6;color:var(--sub);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;white-space:pre-wrap;word-break:break-word;}
     .diary-item-noteonly{font-size:13px;color:var(--muted);}
     .diary-empty{padding:18px 4px 8px;color:var(--muted);line-height:1.7;text-align:center;}
-    .diary-textarea{min-height:190px;resize:vertical;}
+    .diary-textarea{min-height:230px;resize:vertical;}
     .diary-mood-picker{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;}
     .diary-mood-picker .pill{width:42px;height:42px;font-size:20px;}
-    .diary-photo-strip{margin-top:14px;display:flex;align-items:center;gap:12px;}
-    .diary-photo-thumb{width:108px;height:108px;border:none;border-radius:22px;overflow:hidden;flex:0 0 auto;border:1px solid var(--line);background:rgba(255,255,255,.03);padding:0;cursor:pointer;box-shadow:var(--shadow);}
+    .diary-photo-inline{margin-top:14px;display:flex;align-items:center;gap:12px;min-width:0;}
+    .diary-photo-inline.empty{display:block;}
+    .diary-photo-thumb{width:94px;height:94px;border:none;border-radius:20px;overflow:hidden;flex:0 0 auto;border:1px solid var(--line);background:rgba(255,255,255,.03);padding:0;cursor:pointer;box-shadow:var(--shadow);}
     .diary-photo-thumb img{display:block;width:100%;height:100%;object-fit:cover;background:#0d0a0b;}
-    .diary-photo-hint{font-size:13px;line-height:1.6;color:var(--muted);}
-    .diary-sheet-tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
-    .diary-sheet-tools .sub-button{flex:1 1 0;min-width:120px;}
+    .diary-photo-actions{display:flex;flex-direction:column;gap:10px;min-width:0;flex:1;}
+    .diary-photo-actions .sub-button{width:100%;}
     .sub-button.secondary{background:rgba(255,255,255,.022);}
     .sub-button.danger{background:rgba(241,100,100,.13);color:#ffb1b1;}
     .diary-item-body{display:flex;align-items:flex-start;gap:12px;}
     .diary-item-text{min-width:0;flex:1;}
     .diary-item-thumb{width:72px;height:72px;border-radius:16px;overflow:hidden;flex:0 0 auto;border:1px solid var(--line);background:rgba(255,255,255,.03);}
     .diary-item-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
-    .diary-item-preview{-webkit-line-clamp:2;}
     .diary-lightbox{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:18px;z-index:95;background:rgba(0,0,0,.76);backdrop-filter:blur(10px);}
     .diary-lightbox.show{display:flex;}
     .diary-lightbox-card{position:relative;width:min(560px,100%);max-height:86dvh;border-radius:28px;overflow:hidden;border:1px solid var(--line);background:rgba(18,15,16,.98);box-shadow:var(--shadow);}
     .diary-lightbox-card img{display:block;width:100%;max-height:86dvh;object-fit:contain;background:#090707;}
     .diary-lightbox-close{position:absolute;top:12px;right:12px;z-index:2;}
-    @media (max-width:390px){
+@media (max-width:390px){
       .welcome{font-size:28px;}
       .pill{width:42px;height:42px;font-size:20px;}
       .history-button{min-width:92px;padding:0 12px;}
@@ -387,13 +386,13 @@
           </article>
 
           <div class="duo-grid">
-            <article class="card bottom-card diary-card" id="openDiaryWrite" role="button" tabindex="0">
+            <article class="card bottom-card">
               <div>
                 <p class="small-title">DIARY</p>
                 <div class="simple-icon diary-icon">✎</div>
                 <div class="compact-status" id="diaryBadge">Mood: —</div>
               </div>
-              <button class="sub-button" type="button" onclick="event.stopPropagation(); openDiaryList()">List</button>
+              <button class="sub-button" type="button" onclick="openDiarySheet()">Open</button>
             </article>
 
             <article class="card bottom-card">
@@ -410,7 +409,7 @@
       </main>
     </section>
 
-    <section id="view-folders" class="view">
+    <section id="view-folders" class="view active">
       <div class="nav">
         <div class="nav-row">
           <button class="icon-btn" id="backHomeFromFolders" aria-label="ホームへ戻る">‹</button>
@@ -686,8 +685,6 @@
       return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
     function getMoodMap(){ return loadJson(moodKey, {}); }
-    function getHealthData(){ return loadJson(healthKey, {weight:'', calories:''}); }
-    function currentMood(){ return getMoodMap()[getTodayKey()] || ''; }
     function moodForDay(day){ return getMoodMap()[day] || ''; }
     function formatDiaryDay(day){ return (day || '').replaceAll('-', '.'); }
     function normalizeDiaryList(){
@@ -713,21 +710,17 @@
         }
       });
       const normalized = Array.from(byDay.values()).sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0, 180);
-      if(changed){
-        try{ saveJson(diaryKey, normalized); }catch{}
-      }
+      if(changed){ try{ saveJson(diaryKey, normalized); }catch{} }
       return normalized;
     }
     function getDiaryList(){ return normalizeDiaryList(); }
     function persistDiaryList(list){
-      try{
-        saveJson(diaryKey, list.slice(0,180));
-        return true;
-      }catch(err){
-        alert('画像つき日記の保存容量がいっぱいかも。\n古い画像つき日記を減らすか、バックアップ後に整理してみてね。');
-        return false;
-      }
+      try{ saveJson(diaryKey, list.slice(0,180)); return true; }
+      catch(err){ alert('画像つき日記の保存容量がいっぱいかも。
+古い画像つき日記を減らすか、バックアップ後に整理してみてね。'); return false; }
     }
+    function getHealthData(){ return loadJson(healthKey, {weight:'', calories:''}); }
+    function currentMood(){ return getMoodMap()[getTodayKey()] || ''; }
     function currentDiaryHeading(entry){
       const day = entry?.day || getTodayKey();
       const mood = entry?.mood || moodForDay(day) || '—';
@@ -764,7 +757,8 @@
     function openMoodHistory(){
       const data = getMoodMap();
       const rows = Object.entries(data).sort((a,b)=>a[0] < b[0] ? 1 : -1).slice(0,30)
-        .map(([day,val]) => `${day}  ${val}`).join('\n') || 'まだ記録がないよ。';
+        .map(([day,val]) => `${day}  ${val}`).join('
+') || 'まだ記録がないよ。';
       openSimpleSheet('Mood History', rows.replaceAll('-', '.'));
     }
     function readFileAsDataUrl(file){
@@ -788,20 +782,12 @@
       const img = await loadImageElement(rawUrl);
       const maxSide = 960;
       let { width, height } = img;
-      if(width > height && width > maxSide){
-        height = Math.max(1, Math.round(height * (maxSide / width)));
-        width = maxSide;
-      }else if(height >= width && height > maxSide){
-        width = Math.max(1, Math.round(width * (maxSide / height)));
-        height = maxSide;
-      }
+      if(width > height && width > maxSide){ height = Math.max(1, Math.round(height * (maxSide / width))); width = maxSide; }
+      else if(height >= width && height > maxSide){ width = Math.max(1, Math.round(width * (maxSide / height))); height = maxSide; }
       const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
+      canvas.width = width; canvas.height = height;
       const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#111';
-      ctx.fillRect(0, 0, width, height);
-      ctx.drawImage(img, 0, 0, width, height);
+      ctx.fillStyle = '#111'; ctx.fillRect(0, 0, width, height); ctx.drawImage(img, 0, 0, width, height);
       return canvas.toDataURL('image/jpeg', 0.72);
     }
     function syncDiaryDraftFromInputs(){
@@ -820,22 +806,25 @@
       const heading = currentDiaryHeading(draft);
       const hasImage = !!draft.image;
       const hasExistingEntry = getDiaryList().some(entry => entry.id === draft.id);
+      const photoBlock = hasImage ? `
+        <div class="diary-photo-inline">
+          <button class="diary-photo-thumb" type="button" onclick="openDiaryDraftImagePreview()" aria-label="画像を大きく見る">
+            <img src="${draft.image}" alt="Diary image">
+          </button>
+          <div class="diary-photo-actions">
+            <button class="sub-button secondary" type="button" onclick="pickDiaryImage()">画像を差し替え</button>
+            <button class="sub-button secondary" type="button" onclick="removeDiaryImage()">画像を削除</button>
+          </div>
+        </div>` : `
+        <div class="diary-photo-inline empty">
+          <button class="sub-button secondary" type="button" onclick="pickDiaryImage()">画像を追加</button>
+        </div>`;
       simpleSheetContent.innerHTML = `
         <h3>Diary</h3>
         <div class="diary-sheet-meta">${heading.day}　<strong>${heading.mood}</strong></div>
         <div class="diary-mood-picker">${diaryMoodButtons(draft.mood || '')}</div>
         <textarea id="diaryInput" class="diary-textarea" rows="8" placeholder="気が向いた日に、ひとことでも。">${escapeHtml(draft.text || '')}</textarea>
-        ${hasImage ? `
-          <div class="diary-photo-strip">
-            <button class="diary-photo-thumb" type="button" onclick="openDiaryDraftImagePreview()">
-              <img src="${draft.image}" alt="Diary image">
-            </button>
-            <div class="diary-photo-hint">画像は小さめ表示。<br>タップで大きく見られるよ。</div>
-          </div>` : ''}
-        <div class="diary-sheet-tools">
-          <button class="sub-button secondary" type="button" onclick="pickDiaryImage()">${hasImage ? '画像を差し替え' : '画像を追加'}</button>
-          ${hasImage ? '<button class="sub-button secondary" type="button" onclick="removeDiaryImage()">画像を削除</button>' : ''}
-        </div>
+        ${photoBlock}
         <div class="row">
           <button class="sub-button" type="button" onclick="closeSheet()">閉じる</button>
           ${hasExistingEntry ? '<button class="sub-button danger" type="button" onclick="deleteCurrentDiaryEntry()">削除</button>' : ''}
@@ -849,113 +838,42 @@
       const diaries = getDiaryList();
       const existing = entryId ? diaries.find(entry => entry.id === entryId) : (diaries.find(entry => entry.day === getTodayKey()) || null);
       currentDiaryId = existing?.id || null;
-      currentDiaryDraft = {
-        id: existing?.id || uid(),
-        day: existing?.day || getTodayKey(),
-        mood: existing?.mood || moodForDay(existing?.day || getTodayKey()) || '',
-        text: existing?.text || '',
-        image: existing?.image || '',
-        imageName: existing?.imageName || '',
-        ts: existing?.ts || Date.now()
-      };
+      currentDiaryDraft = { id: existing?.id || uid(), day: existing?.day || getTodayKey(), mood: existing?.mood || moodForDay(existing?.day || getTodayKey()) || '', text: existing?.text || '', image: existing?.image || '', imageName: existing?.imageName || '', ts: existing?.ts || Date.now() };
       renderDiarySheet();
     }
-    function setDiaryDraftMood(symbol){
-      syncDiaryDraftFromInputs();
-      if(!currentDiaryDraft) return;
-      currentDiaryDraft.mood = symbol;
-      renderDiarySheet();
-    }
-    function pickDiaryImage(){
-      if(!diaryImageInput) return;
-      diaryImageInput.value = '';
-      diaryImageInput.click();
-    }
+    function setDiaryDraftMood(symbol){ syncDiaryDraftFromInputs(); if(!currentDiaryDraft) return; currentDiaryDraft.mood = symbol; renderDiarySheet(); }
+    function pickDiaryImage(){ if(!diaryImageInput) return; diaryImageInput.value = ''; diaryImageInput.click(); }
     async function handleDiaryImageSelection(event){
-      const file = event.target.files?.[0];
-      if(!file) return;
+      const file = event.target.files?.[0]; if(!file) return;
       if(!currentDiaryDraft) openDiarySheet();
       syncDiaryDraftFromInputs();
-      try{
-        currentDiaryDraft.image = await compressDiaryImage(file);
-        currentDiaryDraft.imageName = file.name || 'diary.jpg';
-        renderDiarySheet();
-      }catch(err){
-        alert('画像の読み込みに失敗したよ。別の画像でもう一回試してみてね。');
-      }
+      try{ currentDiaryDraft.image = await compressDiaryImage(file); currentDiaryDraft.imageName = file.name || 'diary.jpg'; renderDiarySheet(); }
+      catch(err){ alert('画像の読み込みに失敗したよ。別の画像でもう一回試してみてね。'); }
     }
-    function removeDiaryImage(){
-      syncDiaryDraftFromInputs();
-      if(!currentDiaryDraft) return;
-      currentDiaryDraft.image = '';
-      currentDiaryDraft.imageName = '';
-      renderDiarySheet();
-    }
-    function openDiaryDraftImagePreview(){
-      if(!currentDiaryDraft?.image || !diaryLightbox || !diaryLightboxImage) return;
-      diaryLightboxImage.src = currentDiaryDraft.image;
-      diaryLightbox.classList.add('show');
-    }
-    function closeDiaryImageLightbox(event){
-      if(event && event.target !== diaryLightbox) return;
-      if(!diaryLightbox || !diaryLightboxImage) return;
-      diaryLightbox.classList.remove('show');
-      diaryLightboxImage.src = '';
-    }
+    function removeDiaryImage(){ syncDiaryDraftFromInputs(); if(!currentDiaryDraft) return; currentDiaryDraft.image = ''; currentDiaryDraft.imageName = ''; renderDiarySheet(); }
+    function openDiaryDraftImagePreview(){ if(!currentDiaryDraft?.image || !diaryLightbox || !diaryLightboxImage) return; diaryLightboxImage.src = currentDiaryDraft.image; diaryLightbox.classList.add('show'); }
+    function closeDiaryImageLightbox(event){ if(event && event.target !== diaryLightbox) return; if(!diaryLightbox || !diaryLightboxImage) return; diaryLightbox.classList.remove('show'); diaryLightboxImage.src = ''; }
     function deleteCurrentDiaryEntry(){
       if(!currentDiaryDraft) return;
       const label = formatDiaryDay(currentDiaryDraft.day);
       if(!confirm(`${label} の日記を削除する？`)) return;
       const diaries = getDiaryList().filter(entry => entry.id !== currentDiaryDraft.id && entry.day !== currentDiaryDraft.day);
       if(!persistDiaryList(diaries)) return;
-      currentDiaryDraft = null;
-      currentDiaryId = null;
-      renderHome();
-      closeSheet();
+      currentDiaryDraft = null; currentDiaryId = null; renderHome(); closeSheet();
     }
     function saveDiary(){
-      syncDiaryDraftFromInputs();
-      if(!currentDiaryDraft) return;
-      const draft = currentDiaryDraft;
-      const text = (draft.text || '').trim();
-      const mood = draft.mood || '';
-      const image = draft.image || '';
-      if(!text && !mood && !image){
-        closeSheet();
-        return;
-      }
+      syncDiaryDraftFromInputs(); if(!currentDiaryDraft) return;
+      const draft = currentDiaryDraft; const text = (draft.text || '').trim(); const mood = draft.mood || ''; const image = draft.image || '';
+      if(!text && !mood && !image){ closeSheet(); return; }
       const diaries = getDiaryList().filter(entry => entry.id !== draft.id && entry.day !== draft.day);
-      const entry = {
-        id: draft.id || uid(),
-        day: draft.day || getTodayKey(),
-        mood,
-        text,
-        image,
-        imageName: draft.imageName || '',
-        ts: draft.ts || Date.now()
-      };
-      diaries.unshift(entry);
-      diaries.sort((a,b)=>(b.ts||0)-(a.ts||0));
-      if(!persistDiaryList(diaries)) return;
-      const moods = getMoodMap();
-      if(mood){
-        moods[entry.day] = mood;
-      } else if(moods[entry.day] && entry.day === getTodayKey()){
-        delete moods[entry.day];
-      }
-      saveJson(moodKey, moods);
-      currentDiaryId = entry.id;
-      currentDiaryDraft = { ...entry };
-      renderHome();
-      closeSheet();
+      const entry = { id: draft.id || uid(), day: draft.day || getTodayKey(), mood, text, image, imageName: draft.imageName || '', ts: draft.ts || Date.now() };
+      diaries.unshift(entry); diaries.sort((a,b)=>(b.ts||0)-(a.ts||0)); if(!persistDiaryList(diaries)) return;
+      const moods = getMoodMap(); if(mood){ moods[entry.day] = mood; } else if(moods[entry.day] && entry.day === getTodayKey()){ delete moods[entry.day]; }
+      saveJson(moodKey, moods); currentDiaryId = entry.id; currentDiaryDraft = { ...entry }; renderHome(); closeSheet();
     }
-    function openDiaryEntry(entryId){
-      openDiarySheet(entryId);
-    }
+    function openDiaryEntry(entryId){ openDiarySheet(entryId); }
     function diaryItemHtml(entry){
-      const mood = entry.mood || '—';
-      const text = (entry.text || '').trim();
-      const preview = text || (entry.image ? 'Photo only' : 'Mood only');
+      const mood = entry.mood || '—'; const text = (entry.text || '').trim(); const preview = text || (entry.image ? 'Photo only' : 'Mood only');
       return `<button class="diary-item${text ? '' : ' compact'}" type="button" onclick="openDiaryEntry('${entry.id}')">
         <div class="diary-item-head">
           <span class="diary-item-date">${formatDiaryDay(entry.day)}</span>
@@ -986,11 +904,7 @@
         </div>`;
       simpleSheetBackdrop.classList.add('show');
     }
-    function triggerDiaryRestore(){
-      if(!diaryRestoreInput) return;
-      diaryRestoreInput.value = '';
-      diaryRestoreInput.click();
-    }
+    function triggerDiaryRestore(){ if(!diaryRestoreInput) return; diaryRestoreInput.value = ''; diaryRestoreInput.click(); }
     function openDiaryListMenu(){
       menuCard.innerHTML = `
         <button class="menu-item" id="menuDiaryBackup">バックアップ</button>
@@ -1000,60 +914,26 @@
       menuWrap.classList.add('show');
     }
     async function exportDiaryBackup(){
-      const backup = {
-        type: 'yuki-home-diary-backup',
-        version: 1,
-        exportedAt: new Date().toISOString(),
-        data: {
-          diaries: getDiaryList(),
-          moods: getMoodMap(),
-          health: getHealthData()
-        }
-      };
-      const text = JSON.stringify(backup, null, 2);
-      const filename = `yuki-diary-backup-${getTodayKey()}.json`;
-      const file = new File([text], filename, { type:'application/json' });
-      try{
-        if(navigator.share && navigator.canShare && navigator.canShare({ files:[file] })){
-          await navigator.share({ files:[file], title:'Diary Backup', text:'Diaryバックアップ' });
-          return;
-        }
-      }catch(err){
-        if(err && err.name === 'AbortError') return;
-      }
-      const blob = new Blob([text], {type:'application/json;charset=utf-8'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 600);
+      const backup = { type: 'yuki-home-diary-backup', version: 1, exportedAt: new Date().toISOString(), data: { diaries: getDiaryList(), moods: getMoodMap(), health: getHealthData() } };
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob); const a = document.createElement('a'); const stamp = new Date().toISOString().slice(0,19).replace(/[T:]/g,'-');
+      a.href = url; a.download = `yuki-home-backup-${stamp}.json`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
-    async function restoreDiaryBackup(event){
-      const file = event.target.files?.[0];
-      if(!file) return;
-      try{
-        const raw = JSON.parse(await file.text());
-        const data = raw?.data || raw;
-        const diaries = Array.isArray(data?.diaries) ? data.diaries : [];
-        const moods = data?.moods && typeof data.moods === 'object' ? data.moods : {};
-        const health = data?.health && typeof data.health === 'object' ? data.health : { weight:'', calories:'' };
-        if(!confirm('今の Diary / Mood / Health を、このバックアップで置き換える？')) return;
-        if(!persistDiaryList(diaries)) return;
-        saveJson(moodKey, moods);
-        saveJson(healthKey, { weight: health.weight || '', calories: health.calories || '' });
-        renderHome();
-        openDiaryList();
-        alert('バックアップを戻したよ。');
-      }catch(err){
-        alert('バックアップの読み込みに失敗したよ。ファイルを確認してみてね。');
-      } finally {
-        if(diaryRestoreInput) diaryRestoreInput.value = '';
-      }
+    function restoreDiaryBackupFromFile(file){
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          try{ const parsed = JSON.parse(String(reader.result || '{}')); if(parsed?.type !== 'yuki-home-diary-backup') throw new Error('invalid-backup'); const data = parsed.data || {}; if(Array.isArray(data.diaries)) saveJson(diaryKey, data.diaries); if(data.moods && typeof data.moods === 'object') saveJson(moodKey, data.moods); if(data.health && typeof data.health === 'object') saveJson(healthKey, data.health); resolve(); }catch(err){ reject(err); }
+        };
+        reader.onerror = () => reject(new Error('restore-read-failed')); reader.readAsText(file);
+      });
     }
-
+    async function handleDiaryRestoreSelection(event){
+      const file = event.target.files?.[0]; if(!file) return;
+      try{ await restoreDiaryBackupFromFile(file); renderHome(); closeSheet(); alert('Diary / Mood / Health を復元したよ。'); }
+      catch(err){ alert('復元に失敗したよ。バックアップファイルを確認してもう一回試してみてね。'); }
+      finally { if(diaryRestoreInput) diaryRestoreInput.value = ''; }
+    }
     function openHealthSheet(){
       const health = getHealthData();
       simpleSheetContent.innerHTML = `
@@ -1081,9 +961,6 @@
     function closeSheet(event){
       if(event && event.target !== simpleSheetBackdrop) return;
       simpleSheetBackdrop.classList.remove('show');
-      closeDiaryImageLightbox();
-      currentDiaryDraft = null;
-      currentDiaryId = null;
     }
 
     function renderFolders(){
@@ -1464,23 +1341,12 @@
       menuWrap.classList.add('show');
     }
 
+    document.getElementById('openMemoFromHome').addEventListener('click', () => { renderFolders(); showView('folders'); });
     const diaryCard = document.getElementById('openDiaryWrite');
     if (diaryCard) {
-      diaryCard.addEventListener('click', (e) => {
-        if(!e.target.closest('.sub-button')) openDiarySheet();
-      });
-      diaryCard.addEventListener('keydown', (e) => {
-        if((e.key === 'Enter' || e.key === ' ') && !e.target.closest('.sub-button')) {
-          e.preventDefault();
-          openDiarySheet();
-        }
-      });
+      diaryCard.addEventListener('click', (e) => { if(!e.target.closest('.sub-button')) openDiarySheet(); });
+      diaryCard.addEventListener('keydown', (e) => { if((e.key === 'Enter' || e.key === ' ') && !e.target.closest('.sub-button')) { e.preventDefault(); openDiarySheet(); } });
     }
-
-    diaryImageInput?.addEventListener('change', handleDiaryImageSelection);
-    diaryRestoreInput?.addEventListener('change', restoreDiaryBackup);
-
-    document.getElementById('openMemoFromHome').addEventListener('click', () => { renderFolders(); showView('folders'); });
     document.getElementById('openLivingFromHome').addEventListener('click', () => openSimpleSheet('Living','みんながいる共有のリビング。\nここは次の制作でつないでいく場所。'));
     document.getElementById('openRoomsFromHome').addEventListener('click', () => openSimpleSheet('Rooms','それぞれの部屋へ入る入口。\nRoomsはあとで本設計する予定。'));
     document.getElementById('openTreasuresFromHome').addEventListener('click', () => openSimpleSheet('Treasures','宝物や思い出の保管場所。\nここも次の制作で育てていく。'));
@@ -1499,6 +1365,8 @@
     document.getElementById('closeMoveOverlay').addEventListener('click', () => moveOverlay.classList.remove('show'));
     moveOverlay.addEventListener('click', (e) => { if(e.target === moveOverlay) moveOverlay.classList.remove('show'); });
     document.getElementById('closeMenuBackdrop').addEventListener('click', closeMenu);
+    if(diaryImageInput) diaryImageInput.addEventListener('change', handleDiaryImageSelection);
+    if(diaryRestoreInput) diaryRestoreInput.addEventListener('change', handleDiaryRestoreSelection);
     fab.addEventListener('click', startNewNote);
 
     editorTitle.addEventListener('input', () => { draftChanged = true; });
