@@ -267,7 +267,7 @@ button.card{width:100%;text-align:left;color:inherit;cursor:pointer;border:none;
 .history-button{flex:0 0 auto;min-width:106px;}
 .duo-grid{display:grid;gap:14px;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;}
 .bottom-card{min-height:186px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;}
-.bottom-card .sub-button{display:block;width:100%;text-align:center;}
+.bottom-card .sub-button{display:flex;align-items:center;justify-content:center;width:100%;text-align:center;}
 .simple-icon{font-size:40px;line-height:1;margin-top:8px;}
 .diary-icon{color:#8fc8ff;}
 .health-icon{color:#ffcc7a;}
