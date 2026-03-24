@@ -28,19 +28,19 @@
       --fab-bottom:calc(36px + env(safe-area-inset-bottom));
     }
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-    html,body{margin:0;height:100%;width:100%;max-width:100%;overflow-x:clip;background:#060405;overscroll-behavior:none;touch-action:pan-y;position:relative;}
+    html,body{margin:0;height:100%;width:100%;overflow-x:hidden;background:#060405;overscroll-behavior-x:none;}
     body{
       font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
       color:var(--text);
       background:
-        radial-gradient(90% 36% at 50% -8%, rgba(88,32,24,.10) 0%, rgba(88,32,24,.04) 28%, rgba(88,32,24,0) 60%),
-        radial-gradient(28% 18% at 82% 26%, rgba(106,70,198,.12) 0%, rgba(106,70,198,0) 72%),
-        linear-gradient(180deg,#080607 0%, #060405 68%, #050404 100%);
+        radial-gradient(140% 52% at 50% -8%, rgba(110,34,18,.14) 0%, rgba(110,34,18,.10) 18%, rgba(110,34,18,0) 58%),
+        radial-gradient(34% 22% at 82% 26%, rgba(106,70,198,.12) 0%, rgba(106,70,198,0) 70%),
+        linear-gradient(180deg,#090707 0%, #060405 72%, #050404 100%);
       overscroll-behavior-y:none;
       -webkit-text-size-adjust:100%;
     }
     body::before{
-      content:"";position:fixed;inset:0 0 auto 0;height:max(48px, env(safe-area-inset-top) + 14px);background:#060405;pointer-events:none;z-index:0;
+      content:"";position:fixed;inset:0 0 auto 0;height:max(18px, env(safe-area-inset-top));background:#060405;pointer-events:none;z-index:0;
     }
     .app{
       width:min(540px,100%);
@@ -50,9 +50,9 @@
       padding:0 18px calc(24px + env(safe-area-inset-bottom));
       position:relative;
       z-index:1;
-      overflow-x:clip; overscroll-behavior:none;
+      overflow-x:hidden;
     }
-    .view{display:none;min-height:100dvh;width:100%;max-width:100%;overflow-x:clip;}
+    .view{display:none;min-height:100dvh;}
     .view.active{display:block;}
     .nav{
       position:sticky; top:0; z-index:40;
@@ -208,7 +208,6 @@
 
     /* floating */
     .fab{
-      display:none;
       position:fixed;
       right:max(18px, calc((100vw - min(540px, 100vw))/2 + 18px));
       bottom:var(--fab-bottom);
@@ -230,12 +229,6 @@
     .menu-item.delete{background:rgba(241,100,100,.13);color:#ffb1b1;}
 
     .spacer{height:4px;}
-
-
-    .home-view,.home-wrap,.today-stack,.main-grid,.duo-grid,.hero,.card{max-width:100%;min-width:0;}
-    .brand{max-width:100%;}
-    .brand-title{max-width:100%;overflow:hidden;text-overflow:clip;}
-    .mood-line,.mood-symbols{min-width:0;max-width:100%;}
 
     @media (max-width:390px){
       :root{--row-h:84px; --action-w:78px;}
@@ -280,10 +273,9 @@
     .pill{width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.032);color:var(--text);font-size:22px;cursor:pointer;font-family:inherit;flex:0 0 auto;}
     .pill.active{border-color:rgba(232,163,178,.55);box-shadow:0 0 0 1px rgba(232,163,178,.18) inset;color:#ffd1dc;}
     .history-button,.sub-button{height:46px;border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);font-size:16px;font-weight:650;cursor:pointer;font-family:inherit;padding:0 16px;white-space:nowrap;}
-    .history-button{flex:0 0 auto;min-width:96px;max-width:42%;padding:0 14px;}
+    .history-button{flex:0 0 auto;min-width:106px;}
     .duo-grid{display:grid;gap:14px;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;}
     .bottom-card{min-height:186px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;}
-    .diary-card{cursor:pointer;}
     .simple-icon{font-size:40px;line-height:1;margin-top:8px;}
     .diary-icon{color:#8fc8ff;}
     .health-icon{color:#ffcc7a;}
@@ -307,12 +299,6 @@
     .diary-item-preview{font-size:15px;line-height:1.6;color:var(--sub);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden;white-space:pre-wrap;word-break:break-word;}
     .diary-item-noteonly{font-size:13px;color:var(--muted);}
     .diary-empty{padding:18px 4px 8px;color:var(--muted);line-height:1.7;text-align:center;}
-
-    .home-view,.home-wrap,.today-stack,.main-grid,.duo-grid,.hero,.card{max-width:100%;min-width:0;}
-    .brand{max-width:100%;}
-    .brand-title{max-width:100%;overflow:hidden;text-overflow:clip;}
-    .mood-line,.mood-symbols{min-width:0;max-width:100%;}
-
     @media (max-width:390px){
       .welcome{font-size:28px;}
       .pill{width:42px;height:42px;font-size:20px;}
@@ -365,6 +351,7 @@
         <section class="today-stack">
           <article class="card mood-card">
             <p class="small-title">TODAY'S MOOD</p>
+            <div class="compact-status" id="moodStatusText">未記録</div>
             <div class="mood-line">
               <div class="mood-symbols">
                 <button class="pill" type="button" data-mood="◎" onclick="saveMood('◎', this)">◎</button>
@@ -522,6 +509,7 @@
 
     const dateText = document.getElementById('dateText');
     const welcomeText = document.getElementById('welcomeText');
+    const moodStatusText = document.getElementById('moodStatusText');
     const diaryBadge = document.getElementById('diaryBadge');
     const healthSummary = document.getElementById('healthSummary');
     const simpleSheetBackdrop = document.getElementById('simpleSheetBackdrop');
@@ -676,8 +664,8 @@
       return normalized;
     }
     function getDiaryList(){ return normalizeDiaryList(); }
+    function getHealthData(){ return loadJson(healthKey, {weight:'', calories:''}); }
     function currentMood(){ return getMoodMap()[getTodayKey()] || ''; }
-    function findDiaryEntry(entryId){ return getDiaryList().find(entry => entry.id === entryId) || null; }
     function formatDiaryDay(day){ return (day || '').replaceAll('-', '.'); }
     function currentDiaryHeading(entry){
       const day = entry?.day || getTodayKey();
@@ -694,11 +682,11 @@
       const dayIndex = new Date().getDate() % welcomes.length;
       if(welcomeText) welcomeText.innerHTML = welcomes[dayIndex];
       const mood = currentMood();
-      moodStatusText.textContent = mood ? `今日の気分: ${mood}` : '未記録';
+      if(moodStatusText) moodStatusText.textContent = mood ? `今日の気分: ${mood}` : '未記録';
       document.querySelectorAll('.pill[data-mood]').forEach(btn => btn.classList.toggle('active', btn.dataset.mood === mood));
-      diaryBadge.textContent = `Mood: ${mood || '—'}`;
+      if(diaryBadge) diaryBadge.textContent = `Mood: ${mood || '—'}`;
       const health = getHealthData();
-      healthSummary.textContent = `${health.weight || 'Weight'} / ${health.calories || 'Calories'}`;
+      if(healthSummary) healthSummary.textContent = `${health.weight || 'Weight'} / ${health.calories || 'Calories'}`;
     }
     function saveMood(symbol){
       const data = getMoodMap();
@@ -717,17 +705,18 @@
       const existing = entryId ? diaries.find(entry => entry.id === entryId) : (diaries.find(entry => entry.day === getTodayKey()) || null);
       currentDiaryId = existing?.id || null;
       const heading = currentDiaryHeading(existing);
-      const text = existing?.text || '';
       simpleSheetContent.innerHTML = `
         <h3>Diary</h3>
         <div class="diary-sheet-meta">${heading.day}　<strong>${heading.mood}</strong></div>
-        <textarea id="diaryInput" placeholder="気が向いた日に、ひとことでも。">${escapeHtml(text)}</textarea>
+        <textarea id="diaryInput" placeholder="気が向いた日に、ひとことでも。"></textarea>
         <div class="row">
           <button class="sub-button" type="button" onclick="closeSheet()">閉じる</button>
           <button class="sub-button" type="button" onclick="saveDiary()">保存</button>
         </div>`;
+      const input = document.getElementById('diaryInput');
+      if(input) input.value = existing?.text || '';
       simpleSheetBackdrop.classList.add('show');
-      setTimeout(() => document.getElementById('diaryInput')?.focus(), 0);
+      setTimeout(() => input?.focus(), 0);
     }
     function saveDiary(){
       const input = document.getElementById('diaryInput');
@@ -1202,8 +1191,6 @@
       menuWrap.classList.add('show');
     }
 
-    document.getElementById('openMemoFromHome').addEventListener('click', () => { renderFolders(); showView('folders'); });
-
     const diaryCard = document.getElementById('openDiaryWrite');
     if (diaryCard) {
       diaryCard.addEventListener('click', (e) => {
@@ -1216,6 +1203,8 @@
         }
       });
     }
+
+    document.getElementById('openMemoFromHome').addEventListener('click', () => { renderFolders(); showView('folders'); });
     document.getElementById('openLivingFromHome').addEventListener('click', () => openSimpleSheet('Living','みんながいる共有のリビング。\nここは次の制作でつないでいく場所。'));
     document.getElementById('openRoomsFromHome').addEventListener('click', () => openSimpleSheet('Rooms','それぞれの部屋へ入る入口。\nRoomsはあとで本設計する予定。'));
     document.getElementById('openTreasuresFromHome').addEventListener('click', () => openSimpleSheet('Treasures','宝物や思い出の保管場所。\nここも次の制作で育てていく。'));
@@ -1244,8 +1233,6 @@
     renderFolders();
     renderNotes();
     showView('home');
-    window.scrollTo(0,0);
-    window.addEventListener('pageshow', ()=>window.scrollTo(0,0));
   </script>
 </body>
 </html>
