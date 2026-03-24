@@ -83,21 +83,15 @@
 
       <section class="health-stats-grid">
         <article class="sheet-card health-stat-card">
-          <div class="health-stat-eyebrow">全体平均カロリー</div>
-          <div class="health-stat-value" id="overallAvgCalories">—</div>
-          <div class="health-stat-note" id="overallAvgCaloriesNote">記録を増やすとここに出るよ。</div>
-        </article>
-
-        <article class="sheet-card health-stat-card">
           <div class="health-stat-eyebrow">その月の平均カロリー</div>
           <div class="health-stat-value" id="monthAvgCalories">—</div>
           <div class="health-stat-note" id="monthAvgCaloriesNote">選んだ日付の月で計算するよ。</div>
         </article>
 
-        <article class="sheet-card health-stat-card health-stat-card-wide">
-          <div class="health-stat-eyebrow">最高体重から現在まで</div>
-          <div class="health-stat-value" id="highestToToday">—</div>
-          <div class="health-stat-note" id="highestToTodayNote">最高体重と現在の差が見えるよ。</div>
+        <article class="sheet-card health-stat-card">
+          <div class="health-stat-eyebrow">全体平均カロリー</div>
+          <div class="health-stat-value" id="overallAvgCalories">—</div>
+          <div class="health-stat-note" id="overallAvgCaloriesNote">記録を増やすとここに出るよ。</div>
         </article>
       </section>
 
@@ -296,8 +290,6 @@
     const weightStartValue = document.getElementById('weightStartValue');
     const weightLatestDay = document.getElementById('weightLatestDay');
     const weightLatestValue = document.getElementById('weightLatestValue');
-    const highestToToday = document.getElementById('highestToToday');
-    const highestToTodayNote = document.getElementById('highestToTodayNote');
 
     function loadEntryForSelectedDate(){
       const day = normalizeDay(healthDateInput.value) || getTodayKey();
@@ -389,7 +381,8 @@
         weightStartValue.textContent = formatWeight(first.weightNum);
         weightLatestDay.textContent = formatShortDay(latest.day);
         weightLatestValue.textContent = formatWeight(latest.weightNum);
-        weightChangeNote.textContent = `体重の比較は ${formatShortDay(first.day)} スタート。`;
+        const sinceAugust = latest.weightNum - 95;
+        weightChangeNote.textContent = `8/24 95kg → 今日 ${formatWeight(latest.weightNum)}（${formatWeightDelta(sinceAugust)}）`; 
       }else if(weightRecordsAsc.length === 1){
         const only = weightRecordsAsc[0];
         weightChange.textContent = '±0.0kg';
@@ -398,7 +391,8 @@
         weightStartValue.textContent = formatWeight(only.weightNum);
         weightLatestDay.textContent = formatShortDay(only.day);
         weightLatestValue.textContent = formatWeight(only.weightNum);
-        weightChangeNote.textContent = '比較にはもう1件体重記録がほしいよ。';
+        const sinceAugust = only.weightNum - 95;
+        weightChangeNote.textContent = `8/24 95kg → 今日 ${formatWeight(only.weightNum)}（${formatWeightDelta(sinceAugust)}）`; 
       }else{
         weightChange.textContent = '—';
         weightChange.classList.remove('is-loss', 'is-gain');
@@ -406,23 +400,9 @@
         weightStartValue.textContent = '—';
         weightLatestDay.textContent = '—';
         weightLatestValue.textContent = '—';
-        weightChangeNote.textContent = '体重を記録すると、ここに変化が出るよ。';
+        weightChangeNote.textContent = '8/24 95kg → 今日の体重';
       }
 
-      if(weightRecordsAsc.length){
-        const latest = weightRecordsAsc[weightRecordsAsc.length - 1];
-        const highest = weightRecordsAsc.reduce((max, record) => record.weightNum > max.weightNum ? record : max, weightRecordsAsc[0]);
-        const highestDelta = latest.weightNum - highest.weightNum;
-
-        highestToToday.textContent = formatWeightDelta(highestDelta);
-        highestToToday.classList.toggle('is-loss', highestDelta < 0);
-        highestToToday.classList.toggle('is-gain', highestDelta > 0);
-        highestToTodayNote.textContent = `最高 ${formatWeight(highest.weightNum)}（${formatShortDay(highest.day)}） → 現在 ${formatWeight(latest.weightNum)}`;
-      }else{
-        highestToToday.textContent = '—';
-        highestToToday.classList.remove('is-loss', 'is-gain');
-        highestToTodayNote.textContent = '体重記録が増えるとここに出るよ。';
-      }
     }
 
     function renderRecordList(){
