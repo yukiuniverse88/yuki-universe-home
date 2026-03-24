@@ -296,6 +296,17 @@
     .simple-sheet textarea,.simple-sheet input{width:100%;border:none;outline:none;color:var(--text);background:rgba(255,255,255,.04);border-radius:18px;padding:14px 14px;font:inherit;margin-top:12px;}
     .simple-sheet .row{display:flex;gap:10px;margin-top:14px;}
     .simple-sheet .row .sub-button{flex:1;}
+    .diary-sheet-meta{font-size:14px;color:var(--sub);margin-top:2px;}
+    .diary-sheet-meta strong{color:var(--text);font-weight:700;}
+    .diary-list{display:flex;flex-direction:column;gap:10px;margin-top:14px;max-height:min(62dvh, 560px);overflow:auto;padding-right:2px;}
+    .diary-item{width:100%;border:none;text-align:left;color:inherit;font-family:inherit;cursor:pointer;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:20px;padding:14px 14px 13px;display:flex;flex-direction:column;gap:8px;}
+    .diary-item.compact{padding:12px 14px;gap:6px;opacity:.96;}
+    .diary-item-head{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+    .diary-item-date{font-size:14px;font-weight:700;letter-spacing:.02em;}
+    .diary-item-mood{font-size:17px;line-height:1;color:#ffd1dc;flex:0 0 auto;}
+    .diary-item-preview{font-size:15px;line-height:1.6;color:var(--sub);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden;white-space:pre-wrap;word-break:break-word;}
+    .diary-item-noteonly{font-size:13px;color:var(--muted);}
+    .diary-empty{padding:18px 4px 8px;color:var(--muted);line-height:1.7;text-align:center;}
 
     .home-view,.home-wrap,.today-stack,.main-grid,.duo-grid,.hero,.card{max-width:100%;min-width:0;}
     .brand{max-width:100%;}
@@ -538,6 +549,7 @@
     let currentFolderId = ALL_FOLDER_ID;
     let lastUsedFolderId = state.folders[0]?.id || null;
     let currentNoteId = null;
+    let currentDiaryId = null;
     let folderEditMode = false;
     let draggingFolderId = null;
     let openSwipeRow = null;
@@ -648,9 +660,30 @@
       return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
     function getMoodMap(){ return loadJson(moodKey, {}); }
-    function getDiaryList(){ return loadJson(diaryKey, []); }
-    function getHealthData(){ return loadJson(healthKey, {weight:'', calories:''}); }
+    function normalizeDiaryList(){
+      const diaries = loadJson(diaryKey, []);
+      let changed = false;
+      const normalized = diaries.map(entry => {
+        const next = { ...entry };
+        if(!next.id){ next.id = uid(); changed = true; }
+        if(typeof next.text !== 'string'){ next.text = ''; changed = true; }
+        if(typeof next.mood !== 'string'){ next.mood = ''; changed = true; }
+        if(!next.day){ next.day = getTodayKey(); changed = true; }
+        if(!next.ts){ next.ts = Date.now(); changed = true; }
+        return next;
+      }).sort((a,b)=>(b.ts||0)-(a.ts||0));
+      if(changed) saveJson(diaryKey, normalized);
+      return normalized;
+    }
+    function getDiaryList(){ return normalizeDiaryList(); }
     function currentMood(){ return getMoodMap()[getTodayKey()] || ''; }
+    function findDiaryEntry(entryId){ return getDiaryList().find(entry => entry.id === entryId) || null; }
+    function formatDiaryDay(day){ return (day || '').replaceAll('-', '.'); }
+    function currentDiaryHeading(entry){
+      const day = entry?.day || getTodayKey();
+      const mood = entry?.mood || currentMood() || '—';
+      return { day: formatDiaryDay(day), mood };
+    }
     function renderHome(){
       if(dateText) dateText.textContent = formatHomeDate();
       const welcomes = [
@@ -661,6 +694,7 @@
       const dayIndex = new Date().getDate() % welcomes.length;
       if(welcomeText) welcomeText.innerHTML = welcomes[dayIndex];
       const mood = currentMood();
+      moodStatusText.textContent = mood ? `今日の気分: ${mood}` : '未記録';
       document.querySelectorAll('.pill[data-mood]').forEach(btn => btn.classList.toggle('active', btn.dataset.mood === mood));
       diaryBadge.textContent = `Mood: ${mood || '—'}`;
       const health = getHealthData();
@@ -678,41 +712,89 @@
         .map(([day,val]) => `${day}  ${val}`).join('\n') || 'まだ記録がないよ。';
       openSimpleSheet('Mood History', rows.replaceAll('-', '.'));
     }
-    function openDiarySheet(){
-      const mood = currentMood() || '—';
+    function openDiarySheet(entryId = null){
       const diaries = getDiaryList();
-      const latest = diaries[0]?.text || '';
+      const existing = entryId ? diaries.find(entry => entry.id === entryId) : (diaries.find(entry => entry.day === getTodayKey()) || null);
+      currentDiaryId = existing?.id || null;
+      const heading = currentDiaryHeading(existing);
+      const text = existing?.text || '';
       simpleSheetContent.innerHTML = `
         <h3>Diary</h3>
-        <p>今日の気分: ${mood}</p>
-        <textarea id="diaryInput" placeholder="気が向いた日に、ひとことでも。">${escapeHtml(latest)}</textarea>
+        <div class="diary-sheet-meta">${heading.day}　<strong>${heading.mood}</strong></div>
+        <textarea id="diaryInput" placeholder="気が向いた日に、ひとことでも。">${escapeHtml(text)}</textarea>
         <div class="row">
           <button class="sub-button" type="button" onclick="closeSheet()">閉じる</button>
           <button class="sub-button" type="button" onclick="saveDiary()">保存</button>
         </div>`;
       simpleSheetBackdrop.classList.add('show');
+      setTimeout(() => document.getElementById('diaryInput')?.focus(), 0);
     }
     function saveDiary(){
       const input = document.getElementById('diaryInput');
       if(!input) return;
       const text = input.value.trim();
-      if(!text){ closeSheet(); return; }
       const diaries = getDiaryList();
-      diaries.unshift({ day:getTodayKey(), mood:currentMood() || '', text, ts:Date.now() });
-      saveJson(diaryKey, diaries.slice(0,60));
-      diaryBadge.textContent = `Mood: ${currentMood() || '—'}`;
+      const existingIndex = currentDiaryId ? diaries.findIndex(entry => entry.id === currentDiaryId) : -1;
+      const existing = existingIndex >= 0 ? diaries[existingIndex] : null;
+      const mood = existing?.mood ?? currentMood() ?? '';
+      const day = existing?.day || getTodayKey();
+      if(!text && !mood){
+        closeSheet();
+        return;
+      }
+      const entry = {
+        id: existing?.id || uid(),
+        day,
+        mood,
+        text,
+        ts: existing?.ts || Date.now()
+      };
+      if(existingIndex >= 0){
+        diaries.splice(existingIndex, 1);
+      }
+      diaries.unshift(entry);
+      saveJson(diaryKey, diaries.slice(0, 100));
+      currentDiaryId = entry.id;
+      renderHome();
       closeSheet();
     }
-    function openDiaryList(){
-      const diaries = getDiaryList();
-      const rows = diaries.length
-        ? diaries.slice(0,60)
-            .map(d => `${d.day.replaceAll('-', '.')}  ${d.mood || '—'}\n${(d.text || '').replace(/\n+/g,' ').trim()}`)
-            .join('\n\n')
-        : 'まだ日記がないよ。';
-      openSimpleSheet('Diary List', rows);
+    function openDiaryEntry(entryId){
+      openDiarySheet(entryId);
     }
-    
+    function openDiaryList(){
+      const diaries = getDiaryList().sort((a,b)=>(b.ts||0)-(a.ts||0));
+      const body = diaries.length ? `
+        <div class="diary-list">
+          ${diaries.map(entry => {
+            const mood = entry.mood || '—';
+            const text = (entry.text || '').trim();
+            if(text){
+              return `<button class="diary-item" type="button" onclick="openDiaryEntry('${entry.id}')">
+                <div class="diary-item-head">
+                  <span class="diary-item-date">${formatDiaryDay(entry.day)}</span>
+                  <span class="diary-item-mood">${escapeHtml(mood)}</span>
+                </div>
+                <div class="diary-item-preview">${escapeHtml(text)}</div>
+              </button>`;
+            }
+            return `<button class="diary-item compact" type="button" onclick="openDiaryEntry('${entry.id}')">
+              <div class="diary-item-head">
+                <span class="diary-item-date">${formatDiaryDay(entry.day)}</span>
+                <span class="diary-item-mood">${escapeHtml(mood)}</span>
+              </div>
+              <div class="diary-item-noteonly">Mood only</div>
+            </button>`;
+          }).join('')}
+        </div>` : '<div class="diary-empty">まだ日記がないよ。</div>';
+      simpleSheetContent.innerHTML = `
+        <h3>Diary List</h3>
+        ${body}
+        <div class="row">
+          <button class="sub-button" type="button" onclick="closeSheet()">閉じる</button>
+        </div>`;
+      simpleSheetBackdrop.classList.add('show');
+    }
+
     function openHealthSheet(){
       const health = getHealthData();
       simpleSheetContent.innerHTML = `
@@ -1124,18 +1206,16 @@
 
     const diaryCard = document.getElementById('openDiaryWrite');
     if (diaryCard) {
-      diaryCard.addEventListener('click', () => openDiarySheet());
+      diaryCard.addEventListener('click', (e) => {
+        if(!e.target.closest('.sub-button')) openDiarySheet();
+      });
       diaryCard.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
+        if((e.key === 'Enter' || e.key === ' ') && !e.target.closest('.sub-button')) {
           e.preventDefault();
           openDiarySheet();
         }
       });
     }
-    document.getElementById('openDiaryWrite').addEventListener('click', openDiarySheet);
-    document.getElementById('openDiaryWrite').addEventListener('keydown', (e) => {
-      if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDiarySheet(); }
-    });
     document.getElementById('openLivingFromHome').addEventListener('click', () => openSimpleSheet('Living','みんながいる共有のリビング。\nここは次の制作でつないでいく場所。'));
     document.getElementById('openRoomsFromHome').addEventListener('click', () => openSimpleSheet('Rooms','それぞれの部屋へ入る入口。\nRoomsはあとで本設計する予定。'));
     document.getElementById('openTreasuresFromHome').addEventListener('click', () => openSimpleSheet('Treasures','宝物や思い出の保管場所。\nここも次の制作で育てていく。'));
