@@ -284,6 +284,8 @@
     .simple-sheet-backdrop.show{display:flex;}
     .simple-sheet{width:min(540px, 100%);background:linear-gradient(180deg, rgba(28,23,24,.98), rgba(18,15,16,.98));border:1px solid var(--line);border-radius:28px 28px 18px 18px;box-shadow:var(--shadow);padding:20px 18px calc(20px + env(safe-area-inset-bottom));}
     .simple-sheet h3{margin:0 0 10px;font-size:22px;}
+    .sheet-title-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;}
+    .sheet-title-row h3{margin:0;}
     .simple-sheet p{margin:0;color:var(--sub);line-height:1.7;white-space:pre-wrap;}
     .simple-sheet textarea,.simple-sheet input{width:100%;border:none;outline:none;color:var(--text);background:rgba(255,255,255,.04);border-radius:18px;padding:14px 14px;font:inherit;margin-top:12px;}
     .simple-sheet .row{display:flex;gap:10px;margin-top:14px;}
@@ -302,9 +304,10 @@
     .diary-textarea{min-height:190px;resize:vertical;}
     .diary-mood-picker{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;}
     .diary-mood-picker .pill{width:42px;height:42px;font-size:20px;}
-    .diary-photo-frame{margin-top:14px;border-radius:20px;overflow:hidden;border:1px solid var(--line);background:rgba(255,255,255,.03);}
-    .diary-photo-frame.empty{display:flex;align-items:center;justify-content:center;min-height:120px;padding:18px;text-align:center;color:var(--muted);line-height:1.7;}
-    .diary-photo-frame img{display:block;width:100%;max-height:320px;object-fit:cover;background:#0d0a0b;}
+    .diary-photo-strip{margin-top:14px;display:flex;align-items:center;gap:12px;}
+    .diary-photo-thumb{width:108px;height:108px;border:none;border-radius:22px;overflow:hidden;flex:0 0 auto;border:1px solid var(--line);background:rgba(255,255,255,.03);padding:0;cursor:pointer;box-shadow:var(--shadow);}
+    .diary-photo-thumb img{display:block;width:100%;height:100%;object-fit:cover;background:#0d0a0b;}
+    .diary-photo-hint{font-size:13px;line-height:1.6;color:var(--muted);}
     .diary-sheet-tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
     .diary-sheet-tools .sub-button{flex:1 1 0;min-width:120px;}
     .sub-button.secondary{background:rgba(255,255,255,.022);}
@@ -314,9 +317,11 @@
     .diary-item-thumb{width:72px;height:72px;border-radius:16px;overflow:hidden;flex:0 0 auto;border:1px solid var(--line);background:rgba(255,255,255,.03);}
     .diary-item-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
     .diary-item-preview{-webkit-line-clamp:2;}
-    .diary-list-tools{margin-top:12px;}
-    .diary-list-tools .sub-button{flex:1;}
-    .diary-restore-note{margin-top:10px;font-size:12px;line-height:1.6;color:var(--muted);}
+    .diary-lightbox{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:18px;z-index:95;background:rgba(0,0,0,.76);backdrop-filter:blur(10px);}
+    .diary-lightbox.show{display:flex;}
+    .diary-lightbox-card{position:relative;width:min(560px,100%);max-height:86dvh;border-radius:28px;overflow:hidden;border:1px solid var(--line);background:rgba(18,15,16,.98);box-shadow:var(--shadow);}
+    .diary-lightbox-card img{display:block;width:100%;max-height:86dvh;object-fit:contain;background:#090707;}
+    .diary-lightbox-close{position:absolute;top:12px;right:12px;z-index:2;}
     @media (max-width:390px){
       .welcome{font-size:28px;}
       .pill{width:42px;height:42px;font-size:20px;}
@@ -493,6 +498,13 @@
   <input id="diaryImageInput" type="file" accept="image/*" hidden />
   <input id="diaryRestoreInput" type="file" accept="application/json,.json" hidden />
 
+  <div class="diary-lightbox" id="diaryLightbox" onclick="closeDiaryImageLightbox(event)">
+    <div class="diary-lightbox-card" onclick="event.stopPropagation()">
+      <button class="icon-btn small diary-lightbox-close" type="button" onclick="closeDiaryImageLightbox()">✕</button>
+      <img id="diaryLightboxImage" alt="Diary image preview" />
+    </div>
+  </div>
+
   <script>
     const STORAGE_KEYS = ['yuki-universe-memo-v4','yuki-universe-memo-v3','yuki-universe-memo-v2','yuki-universe-memo-v1'];
     const ACTIVE_STORAGE_KEY = STORAGE_KEYS[0];
@@ -554,6 +566,8 @@
     const menuCard = document.getElementById('menuCard');
     const diaryImageInput = document.getElementById('diaryImageInput');
     const diaryRestoreInput = document.getElementById('diaryRestoreInput');
+    const diaryLightbox = document.getElementById('diaryLightbox');
+    const diaryLightboxImage = document.getElementById('diaryLightboxImage');
 
     let state = loadData();
     let currentView = 'home';
@@ -811,9 +825,13 @@
         <div class="diary-sheet-meta">${heading.day}　<strong>${heading.mood}</strong></div>
         <div class="diary-mood-picker">${diaryMoodButtons(draft.mood || '')}</div>
         <textarea id="diaryInput" class="diary-textarea" rows="8" placeholder="気が向いた日に、ひとことでも。">${escapeHtml(draft.text || '')}</textarea>
-        <div class="diary-photo-frame${hasImage ? '' : ' empty'}">
-          ${hasImage ? `<img src="${draft.image}" alt="Diary image">` : 'この時の写真ね♡って見返す用に、1枚つけられるよ。'}
-        </div>
+        ${hasImage ? `
+          <div class="diary-photo-strip">
+            <button class="diary-photo-thumb" type="button" onclick="openDiaryDraftImagePreview()">
+              <img src="${draft.image}" alt="Diary image">
+            </button>
+            <div class="diary-photo-hint">画像は小さめ表示。<br>タップで大きく見られるよ。</div>
+          </div>` : ''}
         <div class="diary-sheet-tools">
           <button class="sub-button secondary" type="button" onclick="pickDiaryImage()">${hasImage ? '画像を差し替え' : '画像を追加'}</button>
           ${hasImage ? '<button class="sub-button secondary" type="button" onclick="removeDiaryImage()">画像を削除</button>' : ''}
@@ -872,6 +890,17 @@
       currentDiaryDraft.image = '';
       currentDiaryDraft.imageName = '';
       renderDiarySheet();
+    }
+    function openDiaryDraftImagePreview(){
+      if(!currentDiaryDraft?.image || !diaryLightbox || !diaryLightboxImage) return;
+      diaryLightboxImage.src = currentDiaryDraft.image;
+      diaryLightbox.classList.add('show');
+    }
+    function closeDiaryImageLightbox(event){
+      if(event && event.target !== diaryLightbox) return;
+      if(!diaryLightbox || !diaryLightboxImage) return;
+      diaryLightbox.classList.remove('show');
+      diaryLightboxImage.src = '';
     }
     function deleteCurrentDiaryEntry(){
       if(!currentDiaryDraft) return;
@@ -947,13 +976,11 @@
           ${diaries.map(diaryItemHtml).join('')}
         </div>` : '<div class="diary-empty">まだ日記がないよ。</div>';
       simpleSheetContent.innerHTML = `
-        <h3>Diary List</h3>
-        <div class="row diary-list-tools">
-          <button class="sub-button secondary" type="button" onclick="exportDiaryBackup()">バックアップ</button>
-          <button class="sub-button secondary" type="button" onclick="triggerDiaryRestore()">復元</button>
+        <div class="sheet-title-row">
+          <h3>Diary List</h3>
+          <button class="icon-btn small" type="button" onclick="openDiaryListMenu()">…</button>
         </div>
         ${body}
-        <div class="diary-restore-note">※ バックアップと復元は Diary / Mood / Health をまとめて扱うよ。</div>
         <div class="row">
           <button class="sub-button" type="button" onclick="closeSheet()">閉じる</button>
         </div>`;
@@ -963,6 +990,14 @@
       if(!diaryRestoreInput) return;
       diaryRestoreInput.value = '';
       diaryRestoreInput.click();
+    }
+    function openDiaryListMenu(){
+      menuCard.innerHTML = `
+        <button class="menu-item" id="menuDiaryBackup">バックアップ</button>
+        <button class="menu-item" id="menuDiaryRestore">復元</button>`;
+      document.getElementById('menuDiaryBackup').addEventListener('click', () => { closeMenu(); exportDiaryBackup(); });
+      document.getElementById('menuDiaryRestore').addEventListener('click', () => { closeMenu(); triggerDiaryRestore(); });
+      menuWrap.classList.add('show');
     }
     async function exportDiaryBackup(){
       const backup = {
@@ -1046,6 +1081,7 @@
     function closeSheet(event){
       if(event && event.target !== simpleSheetBackdrop) return;
       simpleSheetBackdrop.classList.remove('show');
+      closeDiaryImageLightbox();
       currentDiaryDraft = null;
       currentDiaryId = null;
     }
