@@ -222,6 +222,33 @@
       showView('write');
     }
 
+    function initWriteViewForDay(day){
+      const diaries = getDiaryList();
+      const existing = diaries.find(e => e.day === day) || null;
+
+      draft = {
+        id: existing?.id || uid(),
+        day: day,
+        mood: existing?.mood || moodForDay(day) || '',
+        text: existing?.text || '',
+        image: existing?.image || '',
+        imageName: existing?.imageName || '',
+        ts: existing?.ts || Date.now()
+      };
+
+      const isExisting = diaries.some(e => e.id === draft.id);
+      const isToday = day === getTodayKey();
+
+      writeNavSub.textContent = isToday ? 'Today' : formatDiaryDay(draft.day);
+      writeDateTitle.textContent = formatDiaryDay(draft.day);
+      diaryInput.value = draft.text || '';
+      deleteEntryBtn.style.display = isExisting ? '' : 'none';
+
+      renderMoodPicker();
+      renderImageSection();
+      showView('write');
+    }
+
     function renderMoodPicker(){
       const selected = draft?.mood || '';
       writeMoodPicker.innerHTML = ['◎','○','△','×'].map(symbol => `
@@ -347,8 +374,21 @@
     deleteEntryBtn.addEventListener('click', deleteCurrentEntry);
 
     /* === List View === */
+    function getFullDiaryList(){
+      const diaries = getDiaryList();
+      const moods = getMoodMap();
+      const diaryDays = new Set(diaries.map(e => e.day));
+      // Add mood-only days that don't have diary entries
+      Object.entries(moods).forEach(([day, mood]) => {
+        if(!diaryDays.has(day) && mood){
+          diaries.push({ id:'mood-'+day, day, mood, text:'', image:'', imageName:'', ts: new Date(day+'T12:00:00').getTime() });
+        }
+      });
+      return diaries.sort((a,b)=>(b.ts||0)-(a.ts||0));
+    }
+
     function renderList(){
-      const diaries = getDiaryList().sort((a,b)=>(b.ts||0)-(a.ts||0));
+      const diaries = getFullDiaryList();
       listCount.textContent = `${diaries.length}件`;
 
       if(diaries.length === 0){
@@ -358,10 +398,10 @@
 
       diaryListContainer.innerHTML = `<div class="list-card" style="padding:10px;">
         ${diaries.map(entry => {
-          const mood = entry.mood || '—';
+          const mood = entry.mood || moodForDay(entry.day) || '—';
           const text = (entry.text || '').trim();
           const preview = text || (entry.image ? 'Photo only' : 'Mood only');
-          return `<button class="diary-item${text ? '' : ' compact'}" type="button" data-entry-id="${entry.id}">
+          return `<button class="diary-item${text ? '' : ' compact'}" type="button" data-entry-id="${entry.id}" data-entry-day="${entry.day}">
             <div class="diary-item-head">
               <span class="diary-item-date">${formatDiaryDay(entry.day)}</span>
               <span class="diary-item-mood">${escapeHtml(mood)}</span>
@@ -379,7 +419,12 @@
       diaryListContainer.querySelectorAll('.diary-item').forEach(btn => {
         btn.addEventListener('click', () => {
           const entryId = btn.dataset.entryId;
-          initWriteView(entryId);
+          if(entryId.startsWith('mood-')){
+            // Mood-only entry: open write view for that day
+            initWriteViewForDay(btn.dataset.entryDay);
+          } else {
+            initWriteView(entryId);
+          }
         });
       });
     }

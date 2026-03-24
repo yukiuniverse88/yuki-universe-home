@@ -71,7 +71,7 @@
                 <div class="simple-icon diary-icon">✎</div>
                 <div class="compact-status" id="diaryBadge">Mood: —</div>
               </div>
-              <span class="sub-button" style="display:block;text-align:center;">Open</span>
+              <span class="sub-button" style="display:block;width:100%;text-align:center;">Open</span>
             </button>
 
             <button class="card bottom-card" type="button" id="openHealthFromHome">
@@ -80,7 +80,7 @@
                 <div class="simple-icon health-icon">♡</div>
                 <div class="compact-status" id="healthSummary">Weight / Calories</div>
               </div>
-              <span class="sub-button" style="display:block;text-align:center;">Open</span>
+              <span class="sub-button" style="display:block;width:100%;text-align:center;">Open</span>
             </button>
           </div>
         </section>
@@ -153,11 +153,26 @@
       renderHome();
     }
 
+    function uid(){ return 'id-' + Math.random().toString(36).slice(2,11); }
+
     function confirmMood(){
       if(!pendingMood) return;
+      const today = getTodayKey();
+      // Save mood
       const data = getMoodMap();
-      data[getTodayKey()] = pendingMood;
+      data[today] = pendingMood;
       saveJson(moodKey, data);
+      // Sync to diary
+      const diaries = loadJson(diaryKey, []);
+      const existing = diaries.find(e => e.day === today);
+      if(existing){
+        existing.mood = pendingMood;
+        existing.ts = Date.now();
+      } else {
+        diaries.unshift({ id:uid(), day:today, mood:pendingMood, text:'', image:'', imageName:'', ts:Date.now() });
+      }
+      diaries.sort((a,b)=>(b.ts||0)-(a.ts||0));
+      saveJson(diaryKey, diaries.slice(0,180));
       pendingMood = null;
       renderHome();
     }
