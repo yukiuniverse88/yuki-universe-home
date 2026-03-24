@@ -28,19 +28,19 @@
       --fab-bottom:calc(36px + env(safe-area-inset-bottom));
     }
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-    html,body{margin:0;height:100%;width:100%;max-width:100%;overflow-x:clip;background:#060405;overscroll-behavior:none;touch-action:pan-y;position:relative;}
+    html,body{margin:0;height:100%;width:100%;overflow-x:hidden;background:#060405;overscroll-behavior-x:none;}
     body{
       font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
       color:var(--text);
       background:
-        radial-gradient(90% 36% at 50% -8%, rgba(88,32,24,.10) 0%, rgba(88,32,24,.04) 28%, rgba(88,32,24,0) 60%),
-        radial-gradient(28% 18% at 82% 26%, rgba(106,70,198,.12) 0%, rgba(106,70,198,0) 72%),
-        linear-gradient(180deg,#080607 0%, #060405 68%, #050404 100%);
+        radial-gradient(140% 52% at 50% -8%, rgba(110,34,18,.14) 0%, rgba(110,34,18,.10) 18%, rgba(110,34,18,0) 58%),
+        radial-gradient(34% 22% at 82% 26%, rgba(106,70,198,.12) 0%, rgba(106,70,198,0) 70%),
+        linear-gradient(180deg,#090707 0%, #060405 72%, #050404 100%);
       overscroll-behavior-y:none;
       -webkit-text-size-adjust:100%;
     }
     body::before{
-      content:"";position:fixed;inset:0 0 auto 0;height:max(48px, env(safe-area-inset-top) + 14px);background:#060405;pointer-events:none;z-index:0;
+      content:"";position:fixed;inset:0 0 auto 0;height:max(18px, env(safe-area-inset-top));background:#060405;pointer-events:none;z-index:0;
     }
     .app{
       width:min(540px,100%);
@@ -50,9 +50,9 @@
       padding:0 18px calc(24px + env(safe-area-inset-bottom));
       position:relative;
       z-index:1;
-      overflow-x:clip; overscroll-behavior:none;
+      overflow-x:hidden;
     }
-    .view{display:none;min-height:100dvh;width:100%;max-width:100%;overflow-x:clip;}
+    .view{display:none;min-height:100dvh;}
     .view.active{display:block;}
     .nav{
       position:sticky; top:0; z-index:40;
@@ -208,7 +208,6 @@
 
     /* floating */
     .fab{
-      display:none;
       position:fixed;
       right:max(18px, calc((100vw - min(540px, 100vw))/2 + 18px));
       bottom:var(--fab-bottom);
@@ -230,12 +229,6 @@
     .menu-item.delete{background:rgba(241,100,100,.13);color:#ffb1b1;}
 
     .spacer{height:4px;}
-
-
-    .home-view,.home-wrap,.today-stack,.main-grid,.duo-grid,.hero,.card{max-width:100%;min-width:0;}
-    .brand{max-width:100%;}
-    .brand-title{max-width:100%;overflow:hidden;text-overflow:clip;}
-    .mood-line,.mood-symbols{min-width:0;max-width:100%;}
 
     @media (max-width:390px){
       :root{--row-h:84px; --action-w:78px;}
@@ -280,10 +273,9 @@
     .pill{width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.032);color:var(--text);font-size:22px;cursor:pointer;font-family:inherit;flex:0 0 auto;}
     .pill.active{border-color:rgba(232,163,178,.55);box-shadow:0 0 0 1px rgba(232,163,178,.18) inset;color:#ffd1dc;}
     .history-button,.sub-button{height:46px;border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);font-size:16px;font-weight:650;cursor:pointer;font-family:inherit;padding:0 16px;white-space:nowrap;}
-    .history-button{flex:0 0 auto;min-width:96px;max-width:42%;padding:0 14px;}
+    .history-button{flex:0 0 auto;min-width:106px;}
     .duo-grid{display:grid;gap:14px;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;}
     .bottom-card{min-height:186px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;}
-    .diary-card{cursor:pointer;}
     .simple-icon{font-size:40px;line-height:1;margin-top:8px;}
     .diary-icon{color:#8fc8ff;}
     .health-icon{color:#ffcc7a;}
@@ -296,25 +288,6 @@
     .simple-sheet textarea,.simple-sheet input{width:100%;border:none;outline:none;color:var(--text);background:rgba(255,255,255,.04);border-radius:18px;padding:14px 14px;font:inherit;margin-top:12px;}
     .simple-sheet .row{display:flex;gap:10px;margin-top:14px;}
     .simple-sheet .row .sub-button{flex:1;}
-    .diary-headline{font-size:13px;color:var(--muted);letter-spacing:.06em;margin-top:2px;}
-    .diary-mood-pills{display:flex;gap:10px;flex-wrap:nowrap;margin-top:14px;overflow-x:auto;padding-bottom:2px;}
-    .diary-mood-pills .pill{width:44px;height:44px;font-size:20px;}
-    .diary-body{min-height:210px;line-height:1.75;}
-    .diary-list-wrap{display:flex;flex-direction:column;gap:10px;margin-top:14px;max-height:58dvh;overflow:auto;padding-right:2px;}
-    .diary-item{width:100%;border:none;text-align:left;color:inherit;font-family:inherit;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:20px;padding:14px 14px 15px;cursor:pointer;}
-    .diary-item.mood-only{padding:12px 14px;border-radius:17px;background:rgba(255,255,255,.022);}
-    .diary-item-head{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-bottom:8px;}
-    .diary-item.mood-only .diary-item-head{margin-bottom:2px;}
-    .diary-date{font-size:14px;color:var(--sub);font-weight:640;}
-    .diary-symbol{font-size:20px;line-height:1;color:#ffd6de;flex:0 0 auto;}
-    .diary-preview{font-size:15px;line-height:1.6;color:var(--text);display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap;word-break:break-word;}
-    .diary-mood-only-label{font-size:12px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;}
-
-    .home-view,.home-wrap,.today-stack,.main-grid,.duo-grid,.hero,.card{max-width:100%;min-width:0;}
-    .brand{max-width:100%;}
-    .brand-title{max-width:100%;overflow:hidden;text-overflow:clip;}
-    .mood-line,.mood-symbols{min-width:0;max-width:100%;}
-
     @media (max-width:390px){
       .welcome{font-size:28px;}
       .pill{width:42px;height:42px;font-size:20px;}
@@ -367,6 +340,7 @@
         <section class="today-stack">
           <article class="card mood-card">
             <p class="small-title">TODAY'S MOOD</p>
+            <div class="compact-status" id="moodStatusText">未記録</div>
             <div class="mood-line">
               <div class="mood-symbols">
                 <button class="pill" type="button" data-mood="◎" onclick="saveMood('◎', this)">◎</button>
@@ -379,13 +353,13 @@
           </article>
 
           <div class="duo-grid">
-            <article class="card bottom-card diary-card" id="openDiaryWrite" role="button" tabindex="0">
+            <article class="card bottom-card">
               <div>
                 <p class="small-title">DIARY</p>
                 <div class="simple-icon diary-icon">✎</div>
                 <div class="compact-status" id="diaryBadge">Mood: —</div>
               </div>
-              <button class="sub-button" type="button" onclick="event.stopPropagation(); openDiaryList()">List</button>
+              <button class="sub-button" type="button" onclick="openDiarySheet()">Open</button>
             </article>
 
             <article class="card bottom-card">
@@ -402,7 +376,7 @@
       </main>
     </section>
 
-    <section id="view-folders" class="view">
+    <section id="view-folders" class="view active">
       <div class="nav">
         <div class="nav-row">
           <button class="icon-btn" id="backHomeFromFolders" aria-label="ホームへ戻る">‹</button>
@@ -524,6 +498,7 @@
 
     const dateText = document.getElementById('dateText');
     const welcomeText = document.getElementById('welcomeText');
+    const moodStatusText = document.getElementById('moodStatusText');
     const diaryBadge = document.getElementById('diaryBadge');
     const healthSummary = document.getElementById('healthSummary');
     const simpleSheetBackdrop = document.getElementById('simpleSheetBackdrop');
@@ -674,8 +649,9 @@
       const dayIndex = new Date().getDate() % welcomes.length;
       if(welcomeText) welcomeText.innerHTML = welcomes[dayIndex];
       const mood = currentMood();
+      moodStatusText.textContent = mood ? `今日の気分: ${mood}` : '未記録';
       document.querySelectorAll('.pill[data-mood]').forEach(btn => btn.classList.toggle('active', btn.dataset.mood === mood));
-      diaryBadge.textContent = diarySummaryText();
+      diaryBadge.textContent = `Mood: ${mood || '—'}`;
       const health = getHealthData();
       healthSummary.textContent = `${health.weight || 'Weight'} / ${health.calories || 'Calories'}`;
     }
@@ -691,122 +667,30 @@
         .map(([day,val]) => `${day}  ${val}`).join('\n') || 'まだ記録がないよ。';
       openSimpleSheet('Mood History', rows.replaceAll('-', '.'));
     }
-    function getDiaryEntries(){
-      const raw = loadJson(diaryKey, []);
-      const arr = Array.isArray(raw) ? raw : [];
-      const byDay = new Map();
-      arr.forEach(item => {
-        if(!item || !item.day) return;
-        const normalized = {
-          day: item.day,
-          mood: item.mood || '',
-          text: typeof item.text === 'string' ? item.text : '',
-          ts: item.ts || item.updatedAt || Date.now()
-        };
-        const prev = byDay.get(normalized.day);
-        if(!prev || normalized.ts >= prev.ts) byDay.set(normalized.day, normalized);
-      });
-      return Array.from(byDay.values()).sort((a,b) => a.day < b.day ? 1 : -1);
-    }
-    function getDiaryEntryByDay(day){
-      return getDiaryEntries().find(entry => entry.day === day) || null;
-    }
-    function saveDiaryEntry(entry){
-      const entries = getDiaryEntries().filter(item => item.day !== entry.day);
-      entries.push({ day:entry.day, mood:entry.mood || '', text:entry.text || '', ts:Date.now() });
-      entries.sort((a,b) => a.day < b.day ? 1 : -1);
-      saveJson(diaryKey, entries);
-    }
-    function removeDiaryEntry(day){
-      const entries = getDiaryEntries().filter(item => item.day !== day);
-      saveJson(diaryKey, entries);
-    }
-    function diarySummaryText(){
-      const today = getTodayKey();
-      const todayEntry = getDiaryEntryByDay(today);
-      const mood = currentMood() || todayEntry?.mood || '—';
-      if(todayEntry && (todayEntry.text || '').trim()) return `Mood: ${mood} / diary saved`;
-      return `Mood: ${mood}`;
-    }
-    function openDiarySheet(day = getTodayKey()){
-      const entry = getDiaryEntryByDay(day);
-      const moodMap = getMoodMap();
-      const selectedMood = entry?.mood || moodMap[day] || (day === getTodayKey() ? currentMood() : '') || '';
-      const body = entry?.text || '';
+    function openDiarySheet(){
+      const mood = currentMood() || '—';
+      const diaries = getDiaryList();
+      const latest = diaries[0]?.text || '';
       simpleSheetContent.innerHTML = `
         <h3>Diary</h3>
-        <p class="diary-headline">${escapeHtml(day.replaceAll('-', '.'))}</p>
-        <div class="diary-mood-pills" id="diaryMoodPills">
-          ${['◎','○','△','×'].map(symbol => `<button class="pill ${symbol===selectedMood ? 'active' : ''}" type="button" data-diary-mood="${symbol}">${symbol}</button>`).join('')}
-        </div>
-        <textarea id="diaryInput" class="diary-body" placeholder="気が向いた日に、ひとことでも。">${escapeHtml(body)}</textarea>
+        <p>今日の気分: ${mood}</p>
+        <textarea id="diaryInput" placeholder="気が向いた日に、ひとことでも。">${escapeHtml(latest)}</textarea>
         <div class="row">
           <button class="sub-button" type="button" onclick="closeSheet()">閉じる</button>
-          <button class="sub-button" type="button" onclick="saveDiary('${day}')">保存</button>
+          <button class="sub-button" type="button" onclick="saveDiary()">保存</button>
         </div>`;
       simpleSheetBackdrop.classList.add('show');
-      simpleSheetContent.querySelectorAll('[data-diary-mood]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          simpleSheetContent.querySelectorAll('[data-diary-mood]').forEach(other => other.classList.remove('active'));
-          btn.classList.add('active');
-        });
-      });
     }
-    function saveDiary(day = getTodayKey()){
+    function saveDiary(){
       const input = document.getElementById('diaryInput');
       if(!input) return;
-      const activeMoodBtn = simpleSheetContent.querySelector('[data-diary-mood].active');
-      const mood = activeMoodBtn?.dataset.diaryMood || '';
       const text = input.value.trim();
-      const moodMap = getMoodMap();
-      if(mood){
-        moodMap[day] = mood;
-        saveJson(moodKey, moodMap);
-      }
-      if(text){
-        saveDiaryEntry({ day, mood, text });
-      } else {
-        removeDiaryEntry(day);
-      }
-      renderHome();
+      if(!text){ closeSheet(); return; }
+      const diaries = getDiaryList();
+      diaries.unshift({ day:getTodayKey(), mood:currentMood() || '', text, ts:Date.now() });
+      saveJson(diaryKey, diaries.slice(0,60));
+      diaryBadge.textContent = `Mood: ${currentMood() || '—'}`;
       closeSheet();
-    }
-    function getDiaryTimeline(){
-      const moodMap = getMoodMap();
-      const diaryEntries = getDiaryEntries();
-      const diaryMap = new Map(diaryEntries.map(entry => [entry.day, entry]));
-      const days = Array.from(new Set([...Object.keys(moodMap), ...diaryEntries.map(entry => entry.day)])).sort((a,b) => a < b ? 1 : -1);
-      return days.map(day => {
-        const entry = diaryMap.get(day);
-        const mood = entry?.mood || moodMap[day] || '';
-        const text = (entry?.text || '').trim();
-        return { day, mood: mood || '—', text, moodOnly: !text };
-      });
-    }
-    function openDiaryList(){
-      const rows = getDiaryTimeline();
-      simpleSheetContent.innerHTML = `
-        <h3>Diary List</h3>
-        <p class="diary-headline">Moodの流れも、書いた日も一緒に見返す。</p>
-        <div class="diary-list-wrap" id="diaryListWrap">
-          ${rows.length ? rows.map(item => item.moodOnly
-            ? `<button class="diary-item mood-only" type="button" data-diary-day="${item.day}">
-                <div class="diary-item-head"><span class="diary-date">${item.day.replaceAll('-', '.')}</span><span class="diary-symbol">${item.mood}</span></div>
-                <div class="diary-mood-only-label">Mood only</div>
-              </button>`
-            : `<button class="diary-item" type="button" data-diary-day="${item.day}">
-                <div class="diary-item-head"><span class="diary-date">${item.day.replaceAll('-', '.')}</span><span class="diary-symbol">${item.mood}</span></div>
-                <div class="diary-preview">${escapeHtml(item.text)}</div>
-              </button>`).join('')
-            : `<div class="empty" style="padding:26px 10px 8px;">まだ記録がないよ。</div>`}
-        </div>
-        <div class="row">
-          <button class="sub-button" type="button" onclick="closeSheet()">閉じる</button>
-        </div>`;
-      simpleSheetBackdrop.classList.add('show');
-      simpleSheetContent.querySelectorAll('[data-diary-day]').forEach(btn => {
-        btn.addEventListener('click', () => openDiarySheet(btn.dataset.diaryDay));
-      });
     }
     function openHealthSheet(){
       const health = getHealthData();
@@ -1216,10 +1100,6 @@
     }
 
     document.getElementById('openMemoFromHome').addEventListener('click', () => { renderFolders(); showView('folders'); });
-    document.getElementById('openDiaryWrite').addEventListener('click', openDiarySheet);
-    document.getElementById('openDiaryWrite').addEventListener('keydown', (e) => {
-      if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDiarySheet(); }
-    });
     document.getElementById('openLivingFromHome').addEventListener('click', () => openSimpleSheet('Living','みんながいる共有のリビング。\nここは次の制作でつないでいく場所。'));
     document.getElementById('openRoomsFromHome').addEventListener('click', () => openSimpleSheet('Rooms','それぞれの部屋へ入る入口。\nRoomsはあとで本設計する予定。'));
     document.getElementById('openTreasuresFromHome').addEventListener('click', () => openSimpleSheet('Treasures','宝物や思い出の保管場所。\nここも次の制作で育てていく。'));
@@ -1248,8 +1128,6 @@
     renderFolders();
     renderNotes();
     showView('home');
-    window.scrollTo(0,0);
-    window.addEventListener('pageshow', ()=>window.scrollTo(0,0));
   </script>
 </body>
 </html>
