@@ -381,19 +381,16 @@ button.card{width:100%;text-align:left;color:inherit;cursor:pointer;border:none;
 .health-input[type="date"]{
   font-size:18px;
   font-weight:650;
-  -webkit-appearance:none;
-  appearance:none;
-  text-align:center;
-  padding-right:18px;
+  -webkit-appearance:auto;
+  appearance:auto;
+  text-align:left;
+  padding:0 16px;
+  line-height:normal;
+  color-scheme:dark;
 }
-.health-input[type="date"]::-webkit-calendar-picker-indicator{
-  opacity:0;
-  width:0;
-  min-width:0;
-  margin:0;
-  padding:0;
+.health-input[type="date"]::-webkit-date-and-time-value{
+  text-align:left;
 }
-.health-input[type="date"]::-webkit-date-and-time-value{text-align:center;}
 .health-input-wrap .health-input{padding-right:72px;}
 .health-suffix{position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--sub);pointer-events:none;}
 .health-actions{
