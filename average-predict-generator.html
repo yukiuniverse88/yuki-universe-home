@@ -147,8 +147,7 @@
     }
 
     input,
-    select,
-    textarea {
+    select {
       width: 100%;
       min-height: 76px;
       border-radius: 24px;
@@ -162,56 +161,17 @@
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
     }
 
-    input::placeholder,
-    textarea::placeholder {
+    input::placeholder {
       color: rgba(255, 255, 255, 0.28);
       font-weight: 600;
     }
 
     input:focus,
-    select:focus,
-    textarea:focus {
+    select:focus {
       border-color: rgba(142, 166, 255, 0.7);
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.03),
         0 0 0 4px rgba(142, 166, 255, 0.16);
-    }
-
-
-    textarea {
-      min-height: 170px;
-      resize: vertical;
-      line-height: 1.6;
-      font-size: 17px;
-      font-weight: 700;
-    }
-
-    .two-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 14px;
-    }
-
-    .status-note {
-      margin-top: 14px;
-      border-radius: 18px;
-      padding: 14px 16px;
-      border: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(18, 18, 25, 0.96), rgba(8, 8, 12, 0.98));
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.65;
-    }
-
-    .status-note.good {
-      color: var(--good);
-      border-color: rgba(158, 230, 168, 0.26);
-    }
-
-    .status-note.bad {
-      color: var(--danger);
-      border-color: rgba(255, 142, 166, 0.24);
     }
 
     .inline-note,
@@ -411,8 +371,7 @@
       }
 
       input,
-      select,
-      textarea {
+      select {
         min-height: 70px;
         border-radius: 22px;
       }
@@ -459,23 +418,6 @@
         </div>
       </div>
       <div class="inline-note">ここまでの合計カロリーは自動で計算するよ。</div>
-    </section>
-
-    <section class="card">
-      <p class="section-label">Import</p>
-      <h2 class="section-title">今月ぶんをまとめて入れる</h2>
-      <div class="field">
-        <label for="bulkInput">1行ずつ貼ってね</label>
-        <textarea id="bulkInput" placeholder="例：
-3/1 1577
-3/2 1614
-3/3 1568"></textarea>
-      </div>
-      <div class="two-actions">
-        <button class="btn btn-main" id="importBaseBtn" type="button">今の状態に反映</button>
-        <button class="btn btn-ghost" id="clearBulkBtn" type="button">貼り付け欄を空にする</button>
-      </div>
-      <div id="bulkStatus" class="status-note">3/1 1577 みたいに貼れば、件数と平均を自動で入れるよ。</div>
     </section>
 
     <section class="card">
@@ -534,14 +476,13 @@
   </div>
 
   <script>
-    const STORAGE_KEY = 'daily-average-generator-v3';
+    const STORAGE_KEY = 'daily-average-generator-v2';
 
     const monthEl = document.getElementById('month');
     const daysElapsedEl = document.getElementById('daysElapsed');
     const currentAverageEl = document.getElementById('currentAverage');
     const targetAverageEl = document.getElementById('targetAverage');
     const scenarioListEl = document.getElementById('scenarioList');
-    const bulkInputEl = document.getElementById('bulkInput');
 
     const baseTotalEl = document.getElementById('baseTotal');
     const addedTotalEl = document.getElementById('addedTotal');
@@ -553,9 +494,6 @@
     const addRowBtn = document.getElementById('addRowBtn');
     const resetBtn = document.getElementById('resetBtn');
     const exampleBtn = document.getElementById('exampleBtn');
-    const importBaseBtn = document.getElementById('importBaseBtn');
-    const clearBulkBtn = document.getElementById('clearBulkBtn');
-    const bulkStatusEl = document.getElementById('bulkStatus');
 
     function createMonthOptions() {
       for (let i = 1; i <= 12; i++) {
@@ -582,7 +520,6 @@
         daysElapsed: daysElapsedEl.value,
         currentAverage: currentAverageEl.value,
         targetAverage: targetAverageEl.value,
-        bulkInput: bulkInputEl.value,
         rows,
       };
     }
@@ -600,7 +537,6 @@
         if (state.daysElapsed) daysElapsedEl.value = state.daysElapsed;
         if (state.currentAverage) currentAverageEl.value = state.currentAverage;
         if (state.targetAverage) targetAverageEl.value = state.targetAverage;
-        if (state.bulkInput) bulkInputEl.value = state.bulkInput;
         scenarioListEl.innerHTML = '';
         if (Array.isArray(state.rows) && state.rows.length) {
           state.rows.forEach(row => addRow(row.day, row.calories));
@@ -648,86 +584,6 @@
         minimumFractionDigits: digits,
         maximumFractionDigits: digits,
       });
-    }
-
-    function parseBulkText(text) {
-      const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
-      const rows = [];
-      const errors = [];
-      const months = [];
-
-      lines.forEach((line, index) => {
-        const match = line.match(/^(?:(\d{1,2})\s*\/\s*)?(\d{1,2})[\s\t　,、:：-]+(\d+(?:\.\d+)?)$/);
-        if (!match) {
-          errors.push(`${index + 1}行目`);
-          return;
-        }
-        const [, month, day, calories] = match;
-        if (month) months.push(Number(month));
-        rows.push({
-          day: Number(day),
-          calories: Number(calories),
-        });
-      });
-
-      return { rows, errors, months };
-    }
-
-    function importBulkAsBase() {
-      const raw = bulkInputEl.value.trim();
-      if (!raw) {
-        bulkStatusEl.className = 'status-note bad';
-        bulkStatusEl.textContent = 'まずはカロリー記録を貼ってね。';
-        return;
-      }
-
-      const { rows, errors, months } = parseBulkText(raw);
-      if (errors.length) {
-        bulkStatusEl.className = 'status-note bad';
-        bulkStatusEl.textContent = `${errors.join('、')} の書き方が読めなかったよ。例：3/1 1577`;
-        return;
-      }
-      if (!rows.length) {
-        bulkStatusEl.className = 'status-note bad';
-        bulkStatusEl.textContent = '読み込めるデータが見つからなかったよ。';
-        return;
-      }
-
-      rows.sort((a, b) => a.day - b.day);
-      const daySet = new Set();
-      for (const row of rows) {
-        if (daySet.has(row.day)) {
-          bulkStatusEl.className = 'status-note bad';
-          bulkStatusEl.textContent = `${row.day}日が重複してるよ。`;
-          return;
-        }
-        daySet.add(row.day);
-      }
-
-      const uniqueMonths = [...new Set(months)].filter(Boolean);
-      if (uniqueMonths.length === 1) {
-        monthEl.value = String(uniqueMonths[0]);
-      }
-
-      const maxDay = rows[rows.length - 1].day;
-      const isContiguous = rows.every((row, index) => row.day === index + 1);
-      const daysElapsed = isContiguous ? maxDay : rows.length;
-      const total = rows.reduce((sum, row) => sum + row.calories, 0);
-      const average = total / daysElapsed;
-
-      daysElapsedEl.value = String(daysElapsed);
-      currentAverageEl.value = (Math.round(average * 10) / 10).toFixed(1);
-      scenarioListEl.innerHTML = '';
-      addRow();
-
-      bulkStatusEl.className = 'status-note good';
-      bulkStatusEl.textContent = `${rows.length}件読み込んだよ。${monthEl.value}/${maxDay} 時点の平均は ${(Math.round(average * 10) / 10).toFixed(1)}kcal。`;
-      if (!isContiguous) {
-        bulkStatusEl.textContent += ' 日付が飛んでいたから、件数ベースで平均を出してるよ。';
-      }
-
-      saveState();
-      render();
     }
 
     function render() {
@@ -845,9 +701,6 @@
       currentAverageEl.value = '';
       targetAverageEl.value = '';
       scenarioListEl.innerHTML = '';
-      bulkInputEl.value = '';
-      bulkStatusEl.className = 'status-note';
-      bulkStatusEl.textContent = '3/1 1577 みたいに貼れば、件数と平均を自動で入れるよ。';
       localStorage.removeItem(STORAGE_KEY);
       render();
     }
@@ -885,14 +738,6 @@
 
     resetBtn.addEventListener('click', resetAll);
     exampleBtn.addEventListener('click', fillExample);
-    importBaseBtn.addEventListener('click', importBulkAsBase);
-    clearBulkBtn.addEventListener('click', () => {
-      bulkInputEl.value = '';
-      bulkStatusEl.className = 'status-note';
-      bulkStatusEl.textContent = '3/1 1577 みたいに貼れば、件数と平均を自動で入れるよ。';
-      saveState();
-    });
-    bulkInputEl.addEventListener('input', saveState);
 
     createMonthOptions();
     loadState();
