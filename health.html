@@ -28,7 +28,7 @@
         <div class="health-form-grid">
           <label class="health-field health-field-full">
             <span class="health-field-label">Date</span>
-            <input id="healthDateInput" class="health-input" type="date" />
+            <input id="healthDateInput" class="health-input health-date-input" type="text" inputmode="numeric" placeholder="2026/03/24" autocomplete="off" spellcheck="false" />
           </label>
 
           <label class="health-field">
@@ -132,8 +132,15 @@
 
     function normalizeDay(value){
       if(!value) return '';
-      const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      return match ? match[0] : '';
+      const cleaned = String(value).trim().replace(/[./]/g, '-').replace(/\s+/g, '');
+      const match = cleaned.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      if(!match) return '';
+      const [, year, month, date] = match;
+      return `${year}-${String(month).padStart(2,'0')}-${String(date).padStart(2,'0')}`;
+    }
+
+    function formatInputDay(day){
+      return day ? day.replaceAll('-', '/') : '';
     }
 
     function parseNumber(value){
@@ -292,7 +299,7 @@
 
     function loadEntryForSelectedDate(){
       const day = normalizeDay(healthDateInput.value) || getTodayKey();
-      healthDateInput.value = day;
+      healthDateInput.value = formatInputDay(day);
       const record = getRecordByDay(day);
       weightInput.value = record?.weight || '';
       calInput.value = record?.calories || '';
@@ -428,7 +435,7 @@
       healthRecordList.innerHTML = rows;
       healthRecordList.querySelectorAll('[data-day]').forEach(button => {
         button.addEventListener('click', () => {
-          healthDateInput.value = button.dataset.day;
+          healthDateInput.value = formatInputDay(button.dataset.day);
           loadEntryForSelectedDate();
           window.scrollTo({ top: 0, behavior: 'smooth' });
         });
@@ -440,14 +447,20 @@
     });
 
     document.getElementById('todayBtn').addEventListener('click', () => {
-      healthDateInput.value = getTodayKey();
+      healthDateInput.value = formatInputDay(getTodayKey());
       loadEntryForSelectedDate();
     });
 
     document.getElementById('saveHealthBtn').addEventListener('click', saveHealth);
     healthDateInput.addEventListener('change', loadEntryForSelectedDate);
+    healthDateInput.addEventListener('blur', () => {
+      const day = normalizeDay(healthDateInput.value);
+      if(day){
+        healthDateInput.value = formatInputDay(day);
+      }
+    });
 
-    healthDateInput.value = getTodayKey();
+    healthDateInput.value = formatInputDay(getTodayKey());
     loadEntryForSelectedDate();
   </script>
 </body>

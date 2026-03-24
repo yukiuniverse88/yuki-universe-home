@@ -331,10 +331,11 @@ button.card{width:100%;text-align:left;color:inherit;cursor:pointer;border:none;
 
 /* health */
 .health-shell{
-  width:100%;
-  max-width:100%;
+  width:calc(100% - 2px);
+  max-width:calc(100% - 2px);
+  margin-right:2px;
   overflow:hidden;
-  padding:18px 14px 18px;
+  padding:18px 16px 18px;
 }
 .health-shell *{max-width:100%;}
 .health-form-grid{
@@ -365,6 +366,7 @@ button.card{width:100%;text-align:left;color:inherit;cursor:pointer;border:none;
   width:100%;
   max-width:100%;
   min-width:0;
+  min-height:62px;
   height:62px;
   border:none;
   outline:none;
@@ -378,20 +380,14 @@ button.card{width:100%;text-align:left;color:inherit;cursor:pointer;border:none;
   padding:0 18px;
 }
 .health-input::placeholder{color:rgba(255,255,255,.35);}
-.health-input[type="date"]{
+.health-date-input{
   font-size:18px;
-  font-weight:650;
-  -webkit-appearance:auto;
-  appearance:auto;
-  text-align:left;
-  padding:0 16px;
-  line-height:normal;
-  color-scheme:dark;
-}
-.health-input[type="date"]::-webkit-date-and-time-value{
-  text-align:left;
+  font-weight:700;
+  line-height:1.2;
+  padding:0 18px;
 }
 .health-input-wrap .health-input{padding-right:72px;}
+.health-date-input{padding-right:18px;}
 .health-suffix{position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--sub);pointer-events:none;}
 .health-actions{
   display:grid;
@@ -427,7 +423,7 @@ button.card{width:100%;text-align:left;color:inherit;cursor:pointer;border:none;
   .health-stat-card-wide{grid-column:auto;}
   .health-shell{padding:16px 12px 16px;}
   .health-input{height:58px;font-size:20px;}
-  .health-input[type="date"]{font-size:17px;}
+  .health-date-input{font-size:17px;}
   .health-stat-value{font-size:28px;}
 }
 
