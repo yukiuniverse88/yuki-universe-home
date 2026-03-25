@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f4f4f1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>Calories Editor｜祐紀ユニバース</title>
+  <style>
+    :root{
+      --bg:#f4f4f1;
+      --surface:#ffffff;
+      --line:rgba(0,0,0,.1);
+      --text:#2f2f31;
+      --sub:#68686d;
+      --shadow:0 10px 30px rgba(0,0,0,.08);
+      --radius:24px;
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;-webkit-text-size-adjust:100%;}
+    body{padding:0 18px calc(22px + env(safe-area-inset-bottom));}
+    .app{width:min(760px,100%);margin:0 auto;min-height:100dvh;}
+    .topbar{position:sticky;top:0;z-index:20;background:linear-gradient(180deg, rgba(244,244,241,.96) 0%, rgba(244,244,241,.88) 74%, rgba(244,244,241,0) 100%);padding-top:max(10px, env(safe-area-inset-top));padding-bottom:12px;backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+    .left-tools,.right-tools{display:flex;align-items:center;gap:10px;}
+    .icon-btn,.text-btn{border:none;background:rgba(255,255,255,.88);color:var(--text);box-shadow:var(--shadow);font-family:inherit;}
+    .icon-btn{width:56px;height:56px;border-radius:24px;font-size:34px;display:grid;place-items:center;line-height:1;cursor:pointer;border:1px solid rgba(0,0,0,.06);}
+    .text-btn{height:52px;padding:0 18px;border-radius:22px;font-size:16px;font-weight:700;cursor:pointer;border:1px solid rgba(0,0,0,.08);}
+    .text-btn.primary{background:#2f2f31;color:#fff;}
+    .screen{padding:6px 0 10px;}
+    h1{font-size:clamp(34px, 7vw, 56px);line-height:1.04;letter-spacing:-.05em;margin:12px 0 0;}
+    .sub{font-size:16px;line-height:1.7;color:var(--sub);margin:14px 0 0;}
+    .meta{font-size:15px;line-height:1.7;color:var(--sub);margin:14px 0 0;}
+    .editor-card{margin-top:22px;background:var(--surface);border-radius:var(--radius);border:1px solid rgba(0,0,0,.06);box-shadow:var(--shadow);padding:18px;}
+    .editor-label{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--sub);margin-bottom:12px;}
+    textarea{display:block;width:100%;min-height:62dvh;border:none;outline:none;resize:vertical;background:transparent;color:var(--text);font-family:inherit;font-size:22px;line-height:1.65;padding:0;margin:0;}
+    .helper{font-size:14px;color:var(--sub);line-height:1.7;margin-top:14px;}
+    .bottom-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px;}
+    .bottom-actions .text-btn{flex:1 1 180px;justify-content:center;}
+    .status{margin-top:16px;font-size:15px;line-height:1.7;color:var(--sub);}
+    .status strong{color:var(--text);font-weight:800;}
+    @media (max-width:520px){
+      textarea{min-height:58dvh;font-size:20px;}
+      .text-btn{height:48px;padding:0 16px;}
+      .icon-btn{width:52px;height:52px;border-radius:22px;font-size:30px;}
+      h1{font-size:clamp(28px, 11vw, 46px);}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="left-tools">
+        <button class="icon-btn" id="backBtn" aria-label="戻る">‹</button>
+      </div>
+      <div class="right-tools">
+        <button class="text-btn" id="clearBtn" type="button">空にする</button>
+        <button class="text-btn primary" id="saveBtn" type="button">保存</button>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h1 id="editorTitle">カロリー一覧</h1>
+      <p class="sub" id="editorSubtitle">1行ごとに編集してね。</p>
+      <p class="meta" id="editorMeta">平均を計算できる形で表示するよ。</p>
+
+      <section class="editor-card">
+        <div class="editor-label" id="editorLabel">Calories</div>
+        <textarea id="editorText" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+      </section>
+
+      <div class="bottom-actions">
+        <button class="text-btn" id="formatBtn" type="button">整える</button>
+        <button class="text-btn primary" id="saveBottomBtn" type="button">保存して戻る</button>
+      </div>
+
+      <div class="status" id="statusText">—</div>
+    </div>
+  </div>
+
+  <script>
+    const healthLegacyKey = 'yuki_home_health_v4';
+    const healthRecordsKey = 'yuki_home_health_records_v1';
+    const healthSeedVersionKey = 'yuki_home_health_seed_version';
+    const healthSeedVersion = '2026-03-25-seed-v5';
+    const healthSeedRecords = [{"day":"2026-01-20","weight":"","calories":"1587"},{"day":"2026-01-21","weight":"92.0","calories":"1563"},{"day":"2026-01-22","weight":"","calories":"1701"},{"day":"2026-01-23","weight":"","calories":"1505"},{"day":"2026-01-24","weight":"","calories":"1646"},{"day":"2026-01-25","weight":"89.5","calories":"1700"},{"day":"2026-01-26","weight":"89.3","calories":"1794"},{"day":"2026-01-27","weight":"","calories":"1722"},{"day":"2026-01-28","weight":"89.6","calories":"1782"},{"day":"2026-01-29","weight":"","calories":"1618"},{"day":"2026-01-30","weight":"89.7","calories":"1506"},{"day":"2026-01-31","weight":"","calories":"1714"},{"day":"2026-02-01","weight":"89.1","calories":"1994"},{"day":"2026-02-02","weight":"88.8","calories":"1577"},{"day":"2026-02-03","weight":"89.1","calories":"1558"},{"day":"2026-02-04","weight":"88.8","calories":"1581"},{"day":"2026-02-05","weight":"89.3","calories":"1752"},{"day":"2026-02-06","weight":"","calories":"1521"},{"day":"2026-02-07","weight":"88.9","calories":"1803"},{"day":"2026-02-08","weight":"89.2","calories":"1283"},{"day":"2026-02-09","weight":"","calories":"2549"},{"day":"2026-02-10","weight":"","calories":"1570"},{"day":"2026-02-11","weight":"89.2","calories":"2092"},{"day":"2026-02-12","weight":"89.2","calories":"1589"},{"day":"2026-02-13","weight":"88.5","calories":"1486"},{"day":"2026-02-14","weight":"","calories":"1616"},{"day":"2026-02-15","weight":"88.3","calories":"1575"},{"day":"2026-02-16","weight":"88.8","calories":"1687"},{"day":"2026-02-17","weight":"88.8","calories":"2075"},{"day":"2026-02-18","weight":"89.1","calories":"1412"},{"day":"2026-02-19","weight":"","calories":"2388"},{"day":"2026-02-20","weight":"","calories":"1967"},{"day":"2026-02-21","weight":"","calories":"2138"},{"day":"2026-02-22","weight":"","calories":"2028"},{"day":"2026-02-23","weight":"","calories":"2700"},{"day":"2026-02-24","weight":"","calories":"2023"},{"day":"2026-02-25","weight":"89.6","calories":"1556"},{"day":"2026-02-26","weight":"","calories":"1552"},{"day":"2026-02-27","weight":"","calories":"2055"},{"day":"2026-02-28","weight":"89.0","calories":"1619"},{"day":"2026-03-01","weight":"88.8","calories":"1577"},{"day":"2026-03-02","weight":"88.9","calories":"1614"},{"day":"2026-03-03","weight":"88.2","calories":"1568"},{"day":"2026-03-04","weight":"","calories":"1763"},{"day":"2026-03-05","weight":"88.0","calories":"1528"},{"day":"2026-03-06","weight":"88.3","calories":"1969"},{"day":"2026-03-07","weight":"88.3","calories":"1729"},{"day":"2026-03-08","weight":"88.4","calories":"1972"},{"day":"2026-03-09","weight":"88.5","calories":"2362"},{"day":"2026-03-10","weight":"88.6","calories":"1641"},{"day":"2026-03-11","weight":"87.8","calories":"1665"},{"day":"2026-03-12","weight":"","calories":"1531"},{"day":"2026-03-13","weight":"87.6","calories":"1804"},{"day":"2026-03-14","weight":"87.8","calories":"2005"},{"day":"2026-03-15","weight":"","calories":"2076"},{"day":"2026-03-16","weight":"88.0","calories":"2233"},{"day":"2026-03-17","weight":"","calories":"1576"},{"day":"2026-03-18","weight":"88.2","calories":"1576"},{"day":"2026-03-19","weight":"88.0","calories":"2285"},{"day":"2026-03-20","weight":"","calories":"1416"},{"day":"2026-03-21","weight":"88.1","calories":"2700"},{"day":"2026-03-22","weight":"","calories":"1496"},{"day":"2026-03-23","weight":"87.9","calories":"1505"},{"day":"2026-03-24","weight":"","calories":"1660"}];
+    const healthSeedCalorieCorrections = {"2026-03-01":"1577","2026-03-02":"1614","2026-03-03":"1568","2026-03-04":"1763","2026-03-05":"1528","2026-03-06":"1969","2026-03-07":"1729","2026-03-08":"1972","2026-03-09":"2362","2026-03-10":"1641","2026-03-11":"1665","2026-03-12":"1531","2026-03-13":"1804","2026-03-14":"2005","2026-03-15":"2076","2026-03-16":"2233","2026-03-17":"1576","2026-03-18":"1576","2026-03-19":"2285","2026-03-20":"1416","2026-03-21":"2700","2026-03-22":"1496","2026-03-23":"1505","2026-03-24":"1660"};
+
+    function loadJson(key, fallback){
+      try{
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      }catch{
+        return fallback;
+      }
+    }
+    function saveJson(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
+    function uid(){ return 'health-' + Math.random().toString(36).slice(2, 11); }
+    function parseNumber(value){
+      if(value == null) return null;
+      const cleaned = String(value).replace(/,/g,'').replace(/[^\d.\-]/g,'').trim();
+      if(!cleaned) return null;
+      const num = Number(cleaned);
+      return Number.isFinite(num) ? num : null;
+    }
+    function normalizeDay(value){
+      if(!value) return '';
+      const cleaned = String(value).trim().replace(/[./]/g, '-').replace(/\s+/g, '');
+      const match = cleaned.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      if(!match) return '';
+      const [, year, month, date] = match;
+      return `${year}-${String(month).padStart(2,'0')}-${String(date).padStart(2,'0')}`;
+    }
+    function sortRecords(records){ return [...records].sort((a,b) => (a.day < b.day ? 1 : -1)); }
+    function ensureMigrated(){
+      const current = loadJson(healthRecordsKey, null);
+      if(Array.isArray(current)) return;
+      const legacy = loadJson(healthLegacyKey, { weight:'', calories:'' });
+      const hasLegacyValue = legacy && (String(legacy.weight || '').trim() || String(legacy.calories || '').trim());
+      if(!hasLegacyValue){ saveJson(healthRecordsKey, []); return; }
+      const d = new Date();
+      const today = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      saveJson(healthRecordsKey, [{ id: uid(), day: today, weight: String(legacy.weight || '').trim(), calories: String(legacy.calories || '').trim(), ts: Date.now() }]);
+    }
+    function mergeSeedRecords(existing, incoming){
+      const map = new Map();
+      (Array.isArray(existing) ? existing : []).forEach(record => {
+        if(!record || !record.day) return;
+        map.set(record.day, { ...record });
+      });
+      incoming.forEach(seed => {
+        const current = map.get(seed.day);
+        if(current){
+          map.set(seed.day, { ...current, weight: String(current.weight || '').trim() || String(seed.weight || '').trim(), calories: String(current.calories || '').trim() || String(seed.calories || '').trim(), ts: current.ts || Date.now() });
+        }else{
+          map.set(seed.day, { id: uid(), day: seed.day, weight: String(seed.weight || '').trim(), calories: String(seed.calories || '').trim(), ts: Date.now() });
+        }
+      });
+      return Array.from(map.values());
+    }
+    function applySeedCorrections(records){
+      const map = new Map(records.map(record => [record.day, { ...record }]));
+      Object.entries(healthSeedCalorieCorrections).forEach(([day, calories]) => {
+        const current = map.get(day);
+        if(current){ current.calories = String(calories); current.ts = current.ts || Date.now(); map.set(day, current); }
+        else{ map.set(day, { id: uid(), day, weight:'', calories:String(calories), ts: Date.now() }); }
+      });
+      return Array.from(map.values());
+    }
+    function getLatestRecord(records){ return sortRecords(records).find(record => String(record.weight || '').trim() || String(record.calories || '').trim()) || null; }
+    function syncLegacyLatest(records){
+      const latest = getLatestRecord(records);
+      if(latest) saveJson(healthLegacyKey, { weight: latest.weight || '', calories: latest.calories || '' });
+      else saveJson(healthLegacyKey, { weight:'', calories:'' });
+    }
+    function ensureSeedData(){
+      if(localStorage.getItem(healthSeedVersionKey) === healthSeedVersion) return;
+      ensureMigrated();
+      const existing = loadJson(healthRecordsKey, []);
+      const merged = mergeSeedRecords(existing, healthSeedRecords);
+      const corrected = applySeedCorrections(merged);
+      saveJson(healthRecordsKey, sortRecords(corrected));
+      syncLegacyLatest(corrected);
+      localStorage.setItem(healthSeedVersionKey, healthSeedVersion);
+    }
+    function getHealthRecords(){ ensureMigrated(); ensureSeedData(); const records = loadJson(healthRecordsKey, []); return Array.isArray(records) ? sortRecords(records) : []; }
+    function saveHealthRecords(records){ saveJson(healthRecordsKey, sortRecords(records)); }
+
+    const params = new URLSearchParams(window.location.search);
+    const scope = params.get('scope') === 'all' ? 'all' : 'month';
+    const selectedDay = normalizeDay(params.get('day')) || '2026-03-24';
+    const selectedMonth = (params.get('month') && /^\d{4}-\d{2}$/.test(params.get('month'))) ? params.get('month') : selectedDay.slice(0, 7);
+    const returnUrl = `health.html?day=${encodeURIComponent(selectedDay)}`;
+
+    const editorTitle = document.getElementById('editorTitle');
+    const editorSubtitle = document.getElementById('editorSubtitle');
+    const editorMeta = document.getElementById('editorMeta');
+    const editorLabel = document.getElementById('editorLabel');
+    const editorText = document.getElementById('editorText');
+    const statusText = document.getElementById('statusText');
+
+    function formatMonthTitle(monthKey){
+      const [year, month] = monthKey.split('-');
+      return `${Number(year)}年${Number(month)}月`;
+    }
+    function formatShortDay(day){
+      const [, month, date] = day.split('-');
+      return `${Number(month)}/${Number(date)}`;
+    }
+    function formatAverage(value){
+      return Number.isFinite(value) ? `${value.toFixed(1)}kcal` : '—';
+    }
+    function getScopeRecords(records){
+      const calorieRecords = records.filter(record => parseNumber(record.calories) != null).sort((a,b) => (a.day > b.day ? 1 : -1));
+      return scope === 'all' ? calorieRecords : calorieRecords.filter(record => record.day.startsWith(selectedMonth));
+    }
+    function buildText(records){
+      return records.map(record => `${formatShortDay(record.day)} ${Math.round(parseNumber(record.calories)).toString()}`).join('\n');
+    }
+
+    function renderEditor(){
+      const records = getHealthRecords();
+      const scopeRecords = getScopeRecords(records);
+      const firstCalorieRecord = records.filter(record => parseNumber(record.calories) != null).sort((a,b) => (a.day > b.day ? 1 : -1))[0];
+      if(scope === 'all'){
+        const firstLabel = firstCalorieRecord ? formatShortDay(firstCalorieRecord.day) : '開始日';
+        editorTitle.textContent = `摂取カロリー${firstLabel}〜`; 
+        editorSubtitle.textContent = '1行ずつ編集してね。';
+        editorMeta.textContent = '月/日 kcal の形で並んでるよ。';
+        editorLabel.textContent = 'All calories';
+      }else{
+        editorTitle.textContent = `${formatMonthTitle(selectedMonth)}のカロリー一覧`;
+        editorSubtitle.textContent = '1行ずつ編集してね。';
+        editorMeta.textContent = 'この月だけを編集するよ。';
+        editorLabel.textContent = 'Monthly calories';
+      }
+      editorText.value = buildText(scopeRecords);
+      updateStatus();
+    }
+
+    function updateStatus(customMessage=''){
+      const entries = parseEditorText(true);
+      if(customMessage){ statusText.textContent = customMessage; return; }
+      if(!entries.length){
+        statusText.textContent = scope === 'all' ? 'まだカロリー行がないよ。' : `${formatMonthTitle(selectedMonth)}のカロリー行はまだないよ。`;
+        return;
+      }
+      const avg = entries.reduce((sum, entry) => sum + entry.calories, 0) / entries.length;
+      statusText.innerHTML = `<strong>${entries.length}件</strong>読めたよ。平均は <strong>${formatAverage(avg)}</strong>`;
+    }
+
+    function parseEditorText(silent=false){
+      const lines = editorText.value.split(/\r?\n/);
+      const results = [];
+      const currentYear = (scope === 'month' ? selectedMonth.slice(0,4) : ((getHealthRecords().slice(-1)[0]?.day || selectedDay).slice(0,4)));
+      for(let i=0;i<lines.length;i++){
+        const raw = lines[i].trim();
+        if(!raw) continue;
+        const match = raw.match(/^(?:(\d{4})[\/.-])?(\d{1,2})[\/.-](\d{1,2})\s+(\d+(?:\.\d+)?)\s*(?:kcal)?$/i);
+        if(!match){
+          if(!silent){ alert(`${i+1}行目が読めなかったよ。\n「3/24 1660」みたいに書いてね。`); }
+          return [];
+        }
+        let [, year, month, date, calories] = match;
+        year = year || currentYear;
+        month = String(Number(month)).padStart(2,'0');
+        date = String(Number(date)).padStart(2,'0');
+        const day = `${year}-${month}-${date}`;
+        if(scope === 'month' && !day.startsWith(selectedMonth)){
+          if(!silent){ alert(`${i+1}行目は${formatMonthTitle(selectedMonth)}の外の日付になってるよ。`); }
+          return [];
+        }
+        results.push({ day, calories: Math.round(Number(calories)) });
+      }
+      return results.sort((a,b) => (a.day > b.day ? 1 : -1));
+    }
+
+    function saveEditor(shouldReturn=false){
+      const parsed = parseEditorText(false);
+      if(editorText.value.trim() && !parsed.length) return;
+
+      const records = getHealthRecords();
+      const map = new Map(records.map(record => [record.day, { ...record }]));
+      const targetDays = Array.from(map.keys()).filter(day => scope === 'all' ? true : day.startsWith(selectedMonth));
+
+      targetDays.forEach(day => {
+        const current = map.get(day);
+        if(!current) return;
+        current.calories = '';
+        if(!String(current.weight || '').trim()){
+          map.delete(day);
+        }else{
+          map.set(day, current);
+        }
+      });
+
+      parsed.forEach(entry => {
+        const current = map.get(entry.day) || { id: uid(), day: entry.day, weight:'', calories:'', ts: Date.now() };
+        current.calories = String(entry.calories);
+        current.ts = Date.now();
+        map.set(entry.day, current);
+      });
+
+      const next = Array.from(map.values()).filter(record => String(record.weight || '').trim() || String(record.calories || '').trim());
+      saveHealthRecords(next);
+      syncLegacyLatest(next);
+      updateStatus('保存したよ。');
+      if(shouldReturn){
+        setTimeout(() => { window.location.href = returnUrl; }, 120);
+      }
+    }
+
+    document.getElementById('backBtn').addEventListener('click', () => {
+      window.location.href = returnUrl;
+    });
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      editorText.value = '';
+      updateStatus();
+    });
+    document.getElementById('formatBtn').addEventListener('click', () => {
+      const parsed = parseEditorText(false);
+      if(editorText.value.trim() && !parsed.length) return;
+      editorText.value = parsed.map(entry => `${formatShortDay(entry.day)} ${entry.calories}`).join('\n');
+      updateStatus();
+    });
+    document.getElementById('saveBtn').addEventListener('click', () => saveEditor(false));
+    document.getElementById('saveBottomBtn').addEventListener('click', () => saveEditor(true));
+    editorText.addEventListener('input', () => updateStatus());
+
+    renderEditor();
+  </script>
+</body>
+</html>
