@@ -2,30 +2,42 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>VRM Viewer - Three.js + three-vrm</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>VRM Viewer</title>
   <style>
     :root {
       color-scheme: dark;
-      --bg: #0b1020;
-      --panel: rgba(16, 22, 42, 0.82);
-      --line: rgba(255, 255, 255, 0.12);
-      --text: #f5f7ff;
-      --muted: #aab4d6;
-      --accent: #82aaff;
-      --danger: #ff8a8a;
-      --ok: #8ef0b5;
+      --bg1: #0b1020;
+      --bg2: #131c38;
+      --panel: rgba(10, 15, 30, 0.74);
+      --panel-strong: rgba(10, 15, 30, 0.9);
+      --line: rgba(255, 255, 255, 0.14);
+      --text: #f7f9ff;
+      --muted: #b8c2e2;
+      --accent: #86a9ff;
+      --ok: #90f2b6;
+      --error: #ff9d9d;
+      --shadow: 0 12px 32px rgba(0,0,0,0.28);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
     }
 
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
     html, body {
-      margin: 0;
       width: 100%;
       height: 100%;
-      background: radial-gradient(circle at top, #162042 0%, var(--bg) 55%);
+      margin: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at top, var(--bg2) 0%, var(--bg1) 58%);
       color: var(--text);
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      overflow: hidden;
+    }
+
+    body {
+      touch-action: none;
     }
 
     canvas {
@@ -34,117 +46,221 @@
       height: 100%;
     }
 
-    .ui {
+    .topbar {
       position: fixed;
-      inset: 16px 16px auto 16px;
+      top: calc(12px + var(--safe-top));
+      left: calc(12px + var(--safe-left));
+      right: calc(12px + var(--safe-right));
       z-index: 10;
-      display: grid;
-      gap: 12px;
-      max-width: min(720px, calc(100vw - 32px));
-      padding: 14px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: var(--panel);
-      backdrop-filter: blur(12px);
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      pointer-events: none;
     }
 
-    .title {
-      font-size: 18px;
+    .chip,
+    .menu,
+    .guide,
+    .status,
+    .button,
+    .mini {
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
+    }
+
+    .chip {
+      pointer-events: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel);
+      font-size: 14px;
       font-weight: 700;
       letter-spacing: 0.02em;
     }
 
-    .hint {
+    .chip small {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .menu {
+      pointer-events: auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+      max-width: min(70vw, 420px);
+    }
+
+    .button,
+    .mini,
+    .file-label {
+      appearance: none;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel);
+      color: var(--text);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .button,
+    .file-label {
+      min-height: 42px;
+      padding: 10px 16px;
+    }
+
+    .mini {
+      min-height: 38px;
+      padding: 8px 14px;
       font-size: 13px;
+    }
+
+    .button:hover,
+    .mini:hover,
+    .file-label:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.2);
+    }
+
+    .button:active,
+    .mini:active,
+    .file-label:active {
+      transform: translateY(1px);
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    .status {
+      position: fixed;
+      left: calc(12px + var(--safe-left));
+      right: calc(12px + var(--safe-right));
+      bottom: calc(12px + var(--safe-bottom));
+      z-index: 10;
+      padding: 12px 14px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      font-size: 14px;
+      line-height: 1.45;
+      color: var(--text);
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status.ok { color: var(--ok); }
+    .status.error { color: var(--error); }
+
+    .guide {
+      position: fixed;
+      inset: auto calc(12px + var(--safe-right)) calc(74px + var(--safe-bottom)) auto;
+      z-index: 20;
+      width: min(380px, calc(100vw - 24px - var(--safe-left) - var(--safe-right)));
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: var(--panel-strong);
+      display: none;
+    }
+
+    .guide.visible {
+      display: block;
+    }
+
+    .guide h2 {
+      margin: 0 0 10px;
+      font-size: 17px;
+    }
+
+    .guide p {
+      margin: 0 0 8px;
+      font-size: 14px;
       line-height: 1.55;
       color: var(--muted);
     }
 
-    .row {
+    .guide .actions {
       display: flex;
-      gap: 8px;
       flex-wrap: wrap;
-      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
     }
-
-    input[type="text"],
-    input[type="file"],
-    button {
-      min-height: 40px;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--text);
-      padding: 10px 12px;
-      font: inherit;
-    }
-
-    input[type="text"] {
-      flex: 1 1 320px;
-      min-width: 220px;
-    }
-
-    input[type="file"] {
-      max-width: 100%;
-      flex: 1 1 260px;
-    }
-
-    button {
-      cursor: pointer;
-      font-weight: 600;
-      transition: transform 120ms ease, background 120ms ease;
-    }
-
-    button:hover { background: rgba(255, 255, 255, 0.1); }
-    button:active { transform: translateY(1px); }
-
-    .status {
-      font-size: 13px;
-      line-height: 1.5;
-      white-space: pre-wrap;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.04);
-    }
-
-    .status.ok { color: var(--ok); }
-    .status.error { color: var(--danger); }
 
     .drop {
       position: fixed;
       inset: 0;
+      z-index: 30;
       display: none;
       place-items: center;
-      z-index: 20;
-      background: rgba(11, 16, 32, 0.72);
-      border: 3px dashed rgba(130, 170, 255, 0.55);
+      padding: 24px;
+      background: rgba(7, 10, 20, 0.7);
+      border: 3px dashed rgba(134, 169, 255, 0.45);
     }
 
-    .drop.visible { display: grid; }
+    .drop.visible {
+      display: grid;
+    }
 
-    .drop > div {
-      padding: 22px 28px;
-      border-radius: 16px;
-      background: rgba(10, 14, 28, 0.92);
+    .drop-card {
+      width: min(420px, 100%);
+      padding: 20px 18px;
+      border-radius: 20px;
       border: 1px solid var(--line);
+      background: rgba(11, 16, 32, 0.95);
+      text-align: center;
       font-size: 18px;
       font-weight: 700;
-      text-align: center;
+      box-shadow: var(--shadow);
     }
 
-    .footer-note {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    @media (max-width: 700px) {
-      .ui {
-        inset: 10px 10px auto 10px;
-        max-width: calc(100vw - 20px);
+    @media (max-width: 720px) {
+      .topbar {
+        flex-direction: column;
+        align-items: stretch;
       }
-      .title { font-size: 16px; }
+
+      .menu {
+        justify-content: flex-start;
+        max-width: 100%;
+      }
+
+      .chip {
+        width: fit-content;
+        max-width: 100%;
+      }
+
+      .button,
+      .file-label,
+      .mini {
+        font-size: 14px;
+      }
+
+      .guide {
+        left: calc(12px + var(--safe-left));
+        right: calc(12px + var(--safe-right));
+        bottom: calc(74px + var(--safe-bottom));
+        width: auto;
+      }
+
+      .status {
+        font-size: 13px;
+      }
     }
   </style>
 
@@ -159,31 +275,33 @@
   </script>
 </head>
 <body>
-  <div class="ui">
-    <div class="title">VRM Viewer</div>
-    <div class="hint">
-      同じリポジトリ内の VRM を読み込むなら、たとえば <code>./models/avatar.vrm</code> を指定。<br>
-      もしくはローカルの <code>.vrm</code> ファイルを選択 / ドラッグ＆ドロップでも表示できます。<br>
-      GitHub Pages 公開後は <code>?model=./models/avatar.vrm</code> のような URL でも読み込めます。
-    </div>
+  <div class="topbar">
+    <div class="chip">VRM Viewer <small id="modelName">自動読み込み待機中</small></div>
 
-    <div class="row">
-      <input id="urlInput" type="text" value="./model.vrm" spellcheck="false" />
-      <button id="loadUrlBtn" type="button">URL/パスから読む</button>
-      <button id="resetViewBtn" type="button">視点リセット</button>
+    <div class="menu">
+      <button id="resetViewBtn" class="button" type="button">視点リセット</button>
+      <label for="fileInput" class="file-label">別のVRMを開く</label>
+      <button id="guideBtn" class="mini" type="button">案内</button>
     </div>
-
-    <div class="row">
-      <input id="fileInput" type="file" accept=".vrm,model/vrm" />
-      <button id="clearBtn" type="button">モデルを外す</button>
-    </div>
-
-    <div id="status" class="status">準備中…</div>
-    <div class="footer-note">操作: 左ドラッグ=回転 / 右ドラッグ=平行移動 / ホイール=ズーム</div>
   </div>
 
+  <input id="fileInput" type="file" accept=".vrm,model/vrm" />
+
+  <div id="guide" class="guide">
+    <h2>見えない時はここだけ試してね</h2>
+    <p>このページは最初に <code>./KYOMA.vrm</code> を自動で開く設定にしてあるよ。</p>
+    <p>1本指で回転、2本指でズームや移動。見失ったら <strong>視点リセット</strong> を押してね。</p>
+    <p>別のモデルを見たい時は <strong>別のVRMを開く</strong> で .vrm を選べばOK。</p>
+    <div class="actions">
+      <button id="reloadDefaultBtn" class="mini" type="button">KYOMAを再読込</button>
+      <button id="closeGuideBtn" class="mini" type="button">閉じる</button>
+    </div>
+  </div>
+
+  <div id="status" class="status">準備中…</div>
+
   <div id="dropOverlay" class="drop">
-    <div>ここに VRM ファイルをドロップ</div>
+    <div class="drop-card">ここに VRM ファイルをドロップ</div>
   </div>
 
   <script type="module">
@@ -192,12 +310,16 @@
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
 
+    const DEFAULT_MODEL = './KYOMA.vrm';
+
     const statusEl = document.getElementById('status');
-    const urlInput = document.getElementById('urlInput');
+    const modelNameEl = document.getElementById('modelName');
     const fileInput = document.getElementById('fileInput');
-    const loadUrlBtn = document.getElementById('loadUrlBtn');
     const resetViewBtn = document.getElementById('resetViewBtn');
-    const clearBtn = document.getElementById('clearBtn');
+    const guideBtn = document.getElementById('guideBtn');
+    const guide = document.getElementById('guide');
+    const closeGuideBtn = document.getElementById('closeGuideBtn');
+    const reloadDefaultBtn = document.getElementById('reloadDefaultBtn');
     const dropOverlay = document.getElementById('dropOverlay');
 
     const scene = new THREE.Scene();
@@ -207,6 +329,8 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.body.appendChild(renderer.domElement);
 
     const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 100);
@@ -215,29 +339,45 @@
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.target.set(0, 1.2, 0);
     controls.enableDamping = true;
+    controls.enablePan = true;
     controls.screenSpacePanning = true;
+    controls.minDistance = 0.5;
+    controls.maxDistance = 8;
     controls.update();
 
     const hemiLight = new THREE.HemisphereLight(0xffffff, 0x223355, 1.5);
     scene.add(hemiLight);
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, Math.PI * 0.8);
-    dirLight.position.set(1, 1.5, 2);
+    const dirLight = new THREE.DirectionalLight(0xffffff, Math.PI * 0.85);
+    dirLight.position.set(1.1, 1.8, 2.3);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.set(1024, 1024);
     scene.add(dirLight);
 
-    const fillLight = new THREE.DirectionalLight(0xffffff, Math.PI * 0.3);
-    fillLight.position.set(-1.5, 1.2, -1.5);
+    const fillLight = new THREE.DirectionalLight(0xffffff, Math.PI * 0.28);
+    fillLight.position.set(-1.4, 1.25, -1.5);
     scene.add(fillLight);
 
-    const gridHelper = new THREE.GridHelper(10, 10, 0x4c6fff, 0x304266);
+    const ambient = new THREE.AmbientLight(0xffffff, 0.45);
+    scene.add(ambient);
+
+    const floor = new THREE.Mesh(
+      new THREE.CircleGeometry(6, 64),
+      new THREE.ShadowMaterial({ opacity: 0.18 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = -0.001;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    const gridHelper = new THREE.GridHelper(8, 16, 0x4c6fff, 0x2d3f66);
     gridHelper.position.y = 0;
+    gridHelper.material.opacity = 0.35;
+    gridHelper.material.transparent = true;
     scene.add(gridHelper);
 
-    const axesHelper = new THREE.AxesHelper(0.7);
-    axesHelper.position.set(0, 0.01, 0);
-    scene.add(axesHelper);
-
     const clock = new THREE.Clock();
+
     const loader = new GLTFLoader();
     loader.crossOrigin = 'anonymous';
     loader.register((parser) => new VRMLoaderPlugin(parser));
@@ -245,10 +385,35 @@
     let currentVrm = null;
     let currentRoot = null;
     let currentObjectUrl = null;
+    let statusTimer = null;
 
-    function setStatus(message, type = '') {
+    function setStatus(message, type = '', autoFade = false) {
       statusEl.textContent = message;
       statusEl.className = 'status' + (type ? ` ${type}` : '');
+
+      if (statusTimer) {
+        clearTimeout(statusTimer);
+        statusTimer = null;
+      }
+
+      if (autoFade) {
+        statusTimer = setTimeout(() => {
+          if (statusEl.textContent === message) {
+            statusEl.textContent = '表示中。見えない時は「視点リセット」を押してね。';
+            statusEl.className = 'status';
+          }
+        }, 2600);
+      }
+    }
+
+    function showGuide(force) {
+      if (force === true) {
+        guide.classList.add('visible');
+      } else if (force === false) {
+        guide.classList.remove('visible');
+      } else {
+        guide.classList.toggle('visible');
+      }
     }
 
     function disposeCurrentModel() {
@@ -270,18 +435,25 @@
       if (box.isEmpty()) {
         camera.position.set(0.0, 1.35, 3.2);
         controls.target.set(0, 1.2, 0);
+        controls.minDistance = 0.5;
+        controls.maxDistance = 8;
         controls.update();
         return;
       }
 
       const size = box.getSize(new THREE.Vector3());
       const center = box.getCenter(new THREE.Vector3());
-      const maxSize = Math.max(size.x, size.y, size.z);
+      const height = Math.max(size.y, 1.4);
+      const width = Math.max(size.x, 0.5);
+      const maxSize = Math.max(width, height, size.z);
       const fov = THREE.MathUtils.degToRad(camera.fov);
-      const distance = (maxSize / 2) / Math.tan(fov / 2) * 1.35;
+      const distance = ((maxSize * 0.58) / Math.tan(fov / 2)) * 1.2;
 
-      controls.target.copy(center);
-      camera.position.set(center.x, center.y + Math.max(size.y * 0.1, 0.15), center.z + distance);
+      const target = new THREE.Vector3(center.x, box.min.y + height * 0.52, center.z);
+      controls.target.copy(target);
+      camera.position.set(target.x, target.y + height * 0.06, target.z + distance);
+      controls.minDistance = Math.max(distance * 0.35, 0.35);
+      controls.maxDistance = Math.max(distance * 3.5, 4);
       camera.near = Math.max(distance / 100, 0.01);
       camera.far = Math.max(distance * 20, 100);
       camera.updateProjectionMatrix();
@@ -298,6 +470,10 @@
 
       root.traverse((obj) => {
         obj.frustumCulled = false;
+        if (obj.isMesh) {
+          obj.castShadow = true;
+          obj.receiveShadow = true;
+        }
       });
 
       disposeCurrentModel();
@@ -305,27 +481,37 @@
       currentRoot = root;
       scene.add(root);
       fitCameraToObject(root);
-      setStatus(`読み込み完了: ${sourceLabel}`, 'ok');
+      modelNameEl.textContent = sourceLabel.split('/').pop();
+      setStatus(`読み込み完了: ${sourceLabel}`, 'ok', true);
+
+      if (window.innerWidth <= 720) {
+        showGuide(false);
+      }
     }
 
     function handleLoadError(error) {
       console.error(error);
+      modelNameEl.textContent = '読み込み失敗';
       setStatus(`読み込み失敗: ${error?.message ?? error}`, 'error');
+      showGuide(true);
     }
 
     function loadVrmFromUrl(url) {
       if (!url) {
-        setStatus('URL/パスを入力してね。', 'error');
+        setStatus('読み込むパスが空だったよ。', 'error');
+        showGuide(true);
         return;
       }
 
+      modelNameEl.textContent = '読み込み中…';
       setStatus(`読み込み中: ${url}`);
       loader.load(
         url,
         (gltf) => {
           const vrm = gltf.userData.vrm;
           if (!vrm) {
-            setStatus('VRMとして認識できなかったよ。ファイル形式を確認してね。', 'error');
+            setStatus('VRMとして認識できなかったよ。', 'error');
+            showGuide(true);
             return;
           }
           prepareVrm(vrm, url);
@@ -343,6 +529,7 @@
       if (!file) return;
       if (!file.name.toLowerCase().endsWith('.vrm')) {
         setStatus('`.vrm` ファイルを選んでね。', 'error');
+        showGuide(true);
         return;
       }
 
@@ -352,6 +539,7 @@
       }
 
       currentObjectUrl = URL.createObjectURL(file);
+      modelNameEl.textContent = file.name;
       setStatus(`読み込み中: ${file.name}`);
 
       loader.load(
@@ -359,7 +547,8 @@
         (gltf) => {
           const vrm = gltf.userData.vrm;
           if (!vrm) {
-            setStatus('VRMとして認識できなかったよ。ファイル形式を確認してね。', 'error');
+            setStatus('VRMとして認識できなかったよ。', 'error');
+            showGuide(true);
             return;
           }
           prepareVrm(vrm, file.name);
@@ -376,6 +565,7 @@
     function resetView() {
       if (currentRoot) {
         fitCameraToObject(currentRoot);
+        setStatus('視点を整えたよ。', 'ok', true);
       } else {
         camera.position.set(0.0, 1.35, 3.2);
         controls.target.set(0, 1.2, 0);
@@ -383,27 +573,18 @@
         camera.far = 100;
         camera.updateProjectionMatrix();
         controls.update();
+        setStatus('視点を初期位置に戻したよ。', 'ok', true);
       }
-      setStatus(currentRoot ? '視点をリセットしたよ。' : '視点を初期位置に戻したよ。', 'ok');
     }
 
-    loadUrlBtn.addEventListener('click', () => loadVrmFromUrl(urlInput.value.trim()));
     resetViewBtn.addEventListener('click', resetView);
-    clearBtn.addEventListener('click', () => {
-      disposeCurrentModel();
-      fileInput.value = '';
-      setStatus('モデルを外したよ。');
-    });
+    guideBtn.addEventListener('click', () => showGuide());
+    closeGuideBtn.addEventListener('click', () => showGuide(false));
+    reloadDefaultBtn.addEventListener('click', () => loadVrmFromUrl(DEFAULT_MODEL));
 
     fileInput.addEventListener('change', (event) => {
       const file = event.target.files?.[0];
       if (file) loadVrmFromFile(file);
-    });
-
-    urlInput.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') {
-        loadVrmFromUrl(urlInput.value.trim());
-      }
     });
 
     window.addEventListener('resize', () => {
@@ -447,13 +628,15 @@
     animate();
 
     const params = new URLSearchParams(window.location.search);
-    const initialModel = params.get('model');
-    if (initialModel) {
-      urlInput.value = initialModel;
-      loadVrmFromUrl(initialModel);
+    const initialModel = params.get('model') || DEFAULT_MODEL;
+
+    setStatus('準備できたよ。自動で読み込むね。');
+    if (window.innerWidth <= 720) {
+      showGuide(false);
     } else {
-      setStatus('準備できたよ。`./model.vrm` を置くか、パス入力 / ファイル選択で読み込んでね。');
+      showGuide(true);
     }
+    loadVrmFromUrl(initialModel);
   </script>
 </body>
 </html>
