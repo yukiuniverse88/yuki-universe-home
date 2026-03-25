@@ -8,32 +8,39 @@
     :root {
       color-scheme: dark;
       --bg1: #0b1020;
-      --bg2: #131c38;
-      --panel: rgba(10, 15, 30, 0.74);
-      --panel-strong: rgba(10, 15, 30, 0.9);
-      --line: rgba(255, 255, 255, 0.14);
+      --bg2: #172447;
+      --panel: rgba(11, 16, 32, 0.72);
+      --panel-strong: rgba(11, 16, 32, 0.9);
+      --line: rgba(255,255,255,0.14);
       --text: #f7f9ff;
-      --muted: #b8c2e2;
-      --accent: #86a9ff;
-      --ok: #90f2b6;
-      --error: #ff9d9d;
-      --shadow: 0 12px 32px rgba(0,0,0,0.28);
+      --muted: #b7c3e9;
+      --accent: #91b1ff;
+      --accent-2: #c9a9ff;
+      --ok: #96f2b6;
+      --error: #ff9e9e;
+      --shadow: 0 16px 40px rgba(0,0,0,0.28);
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-right: env(safe-area-inset-right, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --safe-left: env(safe-area-inset-left, 0px);
     }
 
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
 
     html, body {
+      margin: 0;
       width: 100%;
       height: 100%;
-      margin: 0;
       overflow: hidden;
-      background: radial-gradient(circle at top, var(--bg2) 0%, var(--bg1) 58%);
       color: var(--text);
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 50% 14%, rgba(168, 194, 255, 0.16), transparent 26%),
+        radial-gradient(circle at 80% 18%, rgba(201, 169, 255, 0.12), transparent 20%),
+        linear-gradient(180deg, var(--bg2) 0%, var(--bg1) 58%);
     }
 
     body {
@@ -51,7 +58,7 @@
       top: calc(12px + var(--safe-top));
       left: calc(12px + var(--safe-left));
       right: calc(12px + var(--safe-right));
-      z-index: 10;
+      z-index: 20;
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
@@ -59,86 +66,102 @@
       pointer-events: none;
     }
 
-    .chip,
-    .menu,
-    .guide,
+    .brand,
+    .controls,
     .status,
-    .button,
-    .mini {
+    .advanced,
+    .drop,
+    .hint-badge {
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
       box-shadow: var(--shadow);
     }
 
-    .chip {
+    .brand {
       pointer-events: auto;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      min-height: 40px;
-      padding: 10px 14px;
+      padding: 12px 14px;
+      border-radius: 18px;
       border: 1px solid var(--line);
-      border-radius: 999px;
       background: var(--panel);
-      font-size: 14px;
-      font-weight: 700;
+      min-width: 152px;
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 800;
       letter-spacing: 0.02em;
+      margin-bottom: 2px;
     }
 
-    .chip small {
+    .brand-sub {
       font-size: 12px;
-      font-weight: 600;
       color: var(--muted);
+      line-height: 1.4;
     }
 
-    .menu {
+    .controls {
       pointer-events: auto;
       display: flex;
       flex-wrap: wrap;
       justify-content: flex-end;
       gap: 8px;
-      max-width: min(70vw, 420px);
+      padding: 8px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      max-width: min(72vw, 560px);
     }
 
-    .button,
-    .mini,
-    .file-label {
+    .btn,
+    .file-label,
+    .mode {
       appearance: none;
       border: 1px solid var(--line);
       border-radius: 999px;
-      background: var(--panel);
+      background: rgba(255,255,255,0.06);
       color: var(--text);
       font: inherit;
-      font-weight: 700;
       cursor: pointer;
       transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
-      text-decoration: none;
       white-space: nowrap;
     }
 
-    .button,
+    .btn,
     .file-label {
-      min-height: 42px;
-      padding: 10px 16px;
-    }
-
-    .mini {
-      min-height: 38px;
-      padding: 8px 14px;
+      min-height: 40px;
+      padding: 10px 14px;
+      font-weight: 700;
       font-size: 13px;
     }
 
-    .button:hover,
-    .mini:hover,
-    .file-label:hover {
-      background: rgba(255,255,255,0.12);
-      border-color: rgba(255,255,255,0.2);
+    .mode {
+      min-height: 40px;
+      padding: 10px 14px;
+      font-weight: 800;
+      font-size: 13px;
     }
 
-    .button:active,
-    .mini:active,
-    .file-label:active {
+    .btn:hover,
+    .file-label:hover,
+    .mode:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.22);
+    }
+
+    .btn:active,
+    .file-label:active,
+    .mode:active {
       transform: translateY(1px);
+    }
+
+    .mode.active {
+      background: linear-gradient(180deg, rgba(145,177,255,0.32), rgba(145,177,255,0.18));
+      border-color: rgba(145,177,255,0.5);
+    }
+
+    .btn.toggle-on {
+      background: linear-gradient(180deg, rgba(201,169,255,0.3), rgba(201,169,255,0.16));
+      border-color: rgba(201,169,255,0.46);
     }
 
     #fileInput {
@@ -150,67 +173,105 @@
       left: calc(12px + var(--safe-left));
       right: calc(12px + var(--safe-right));
       bottom: calc(12px + var(--safe-bottom));
-      z-index: 10;
+      z-index: 18;
+      display: flex;
+      align-items: center;
+      gap: 10px;
       padding: 12px 14px;
       border-radius: 18px;
       border: 1px solid var(--line);
       background: var(--panel);
       font-size: 14px;
       line-height: 1.45;
-      color: var(--text);
       min-height: 52px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
     }
 
     .status.ok { color: var(--ok); }
     .status.error { color: var(--error); }
 
-    .guide {
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.9;
+      flex: 0 0 auto;
+    }
+
+    .advanced {
       position: fixed;
-      inset: auto calc(12px + var(--safe-right)) calc(74px + var(--safe-bottom)) auto;
-      z-index: 20;
-      width: min(380px, calc(100vw - 24px - var(--safe-left) - var(--safe-right)));
+      left: calc(12px + var(--safe-left));
+      right: calc(12px + var(--safe-right));
+      bottom: calc(74px + var(--safe-bottom));
+      z-index: 19;
       padding: 14px;
       border-radius: 18px;
       border: 1px solid var(--line);
       background: var(--panel-strong);
       display: none;
+      gap: 10px;
+      max-width: min(720px, calc(100vw - 24px));
     }
 
-    .guide.visible {
-      display: block;
+    .advanced.visible {
+      display: grid;
     }
 
-    .guide h2 {
-      margin: 0 0 10px;
-      font-size: 17px;
-    }
-
-    .guide p {
-      margin: 0 0 8px;
+    .advanced-title {
       font-size: 14px;
-      line-height: 1.55;
-      color: var(--muted);
+      font-weight: 800;
     }
 
-    .guide .actions {
+    .advanced-row {
       display: flex;
-      flex-wrap: wrap;
       gap: 8px;
-      margin-top: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .advanced input[type="text"] {
+      flex: 1 1 240px;
+      min-width: 0;
+      min-height: 42px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      padding: 10px 12px;
+      font: inherit;
+    }
+
+    .advanced-note {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .hint-badge {
+      position: fixed;
+      right: calc(12px + var(--safe-right));
+      bottom: calc(138px + var(--safe-bottom));
+      z-index: 17;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(11,16,32,0.58);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      max-width: min(280px, calc(100vw - 24px));
+      pointer-events: none;
     }
 
     .drop {
       position: fixed;
       inset: 0;
-      z-index: 30;
+      z-index: 40;
       display: none;
       place-items: center;
       padding: 24px;
-      background: rgba(7, 10, 20, 0.7);
-      border: 3px dashed rgba(134, 169, 255, 0.45);
+      background: rgba(7, 10, 20, 0.72);
+      border: 3px dashed rgba(145,177,255,0.45);
     }
 
     .drop.visible {
@@ -222,44 +283,25 @@
       padding: 20px 18px;
       border-radius: 20px;
       border: 1px solid var(--line);
-      background: rgba(11, 16, 32, 0.95);
+      background: rgba(11, 16, 32, 0.94);
       text-align: center;
       font-size: 18px;
-      font-weight: 700;
-      box-shadow: var(--shadow);
+      font-weight: 800;
     }
 
-    @media (max-width: 720px) {
+    @media (max-width: 760px) {
       .topbar {
         flex-direction: column;
         align-items: stretch;
       }
 
-      .menu {
+      .controls {
         justify-content: flex-start;
         max-width: 100%;
       }
 
-      .chip {
-        width: fit-content;
-        max-width: 100%;
-      }
-
-      .button,
-      .file-label,
-      .mini {
-        font-size: 14px;
-      }
-
-      .guide {
-        left: calc(12px + var(--safe-left));
-        right: calc(12px + var(--safe-right));
-        bottom: calc(74px + var(--safe-bottom));
-        width: auto;
-      }
-
-      .status {
-        font-size: 13px;
+      .hint-badge {
+        display: none;
       }
     }
   </style>
@@ -276,29 +318,42 @@
 </head>
 <body>
   <div class="topbar">
-    <div class="chip">VRM Viewer <small id="modelName">自動読み込み待機中</small></div>
+    <div class="brand">
+      <div class="brand-title">VRM Viewer</div>
+      <div class="brand-sub">その場で足踏み / ふわっと待機 / くるっと鑑賞</div>
+    </div>
 
-    <div class="menu">
-      <button id="resetViewBtn" class="button" type="button">視点リセット</button>
-      <label for="fileInput" class="file-label">別のVRMを開く</label>
-      <button id="guideBtn" class="mini" type="button">案内</button>
+    <div class="controls">
+      <button class="mode" type="button" data-mode="idle">ふわふわ</button>
+      <button class="mode active" type="button" data-mode="walk">足踏み</button>
+      <button class="mode" type="button" data-mode="pose">すっと立つ</button>
+      <button id="turntableBtn" class="btn" type="button">くるっと回す</button>
+      <button id="resetViewBtn" class="btn" type="button">視点リセット</button>
+      <button id="toggleAdvancedBtn" class="btn" type="button">ファイル変更</button>
     </div>
   </div>
 
-  <input id="fileInput" type="file" accept=".vrm,model/vrm" />
-
-  <div id="guide" class="guide">
-    <h2>見えない時はここだけ試してね</h2>
-    <p>このページは最初に <code>./KYOMA.vrm</code> を自動で開く設定にしてあるよ。</p>
-    <p>1本指で回転、2本指でズームや移動。見失ったら <strong>視点リセット</strong> を押してね。</p>
-    <p>別のモデルを見たい時は <strong>別のVRMを開く</strong> で .vrm を選べばOK。</p>
-    <div class="actions">
-      <button id="reloadDefaultBtn" class="mini" type="button">KYOMAを再読込</button>
-      <button id="closeGuideBtn" class="mini" type="button">閉じる</button>
+  <div id="advanced" class="advanced" aria-hidden="true">
+    <div class="advanced-title">別ファイルを読む</div>
+    <div class="advanced-row">
+      <input id="urlInput" type="text" value="./KYOMA.vrm" spellcheck="false" />
+      <button id="loadUrlBtn" class="btn" type="button">URL/パスから読む</button>
     </div>
+    <div class="advanced-row">
+      <label class="file-label" for="fileInput">VRMファイルを選ぶ</label>
+      <input id="fileInput" type="file" accept=".vrm,model/vrm" />
+      <button id="clearBtn" class="btn" type="button">モデルを外す</button>
+      <button id="closeAdvancedBtn" class="btn" type="button">閉じる</button>
+    </div>
+    <div class="advanced-note">同じ場所に置いた <code>KYOMA.vrm</code> は自動で読むよ。別のVRMに変えたい時だけここを使ってね。</div>
   </div>
 
-  <div id="status" class="status">準備中…</div>
+  <div id="hintBadge" class="hint-badge">操作: 1本指で回転 / 2本指で移動・ズーム</div>
+
+  <div id="status" class="status">
+    <span class="status-dot"></span>
+    <span id="statusText">準備中…</span>
+  </div>
 
   <div id="dropOverlay" class="drop">
     <div class="drop-card">ここに VRM ファイルをドロップ</div>
@@ -310,110 +365,158 @@
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
 
-    const DEFAULT_MODEL = './KYOMA.vrm';
-
     const statusEl = document.getElementById('status');
-    const modelNameEl = document.getElementById('modelName');
+    const statusTextEl = document.getElementById('statusText');
+    const advancedEl = document.getElementById('advanced');
+    const hintBadgeEl = document.getElementById('hintBadge');
+    const urlInput = document.getElementById('urlInput');
     const fileInput = document.getElementById('fileInput');
+    const loadUrlBtn = document.getElementById('loadUrlBtn');
     const resetViewBtn = document.getElementById('resetViewBtn');
-    const guideBtn = document.getElementById('guideBtn');
-    const guide = document.getElementById('guide');
-    const closeGuideBtn = document.getElementById('closeGuideBtn');
-    const reloadDefaultBtn = document.getElementById('reloadDefaultBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const toggleAdvancedBtn = document.getElementById('toggleAdvancedBtn');
+    const closeAdvancedBtn = document.getElementById('closeAdvancedBtn');
+    const turntableBtn = document.getElementById('turntableBtn');
+    const modeButtons = [...document.querySelectorAll('[data-mode]')];
     const dropOverlay = document.getElementById('dropOverlay');
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0b1020);
+    scene.fog = new THREE.Fog(0x0b1020, 7.5, 14.5);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.enabled = false;
     document.body.appendChild(renderer.domElement);
 
     const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 100);
-    camera.position.set(0.0, 1.35, 3.2);
+    camera.position.set(0.0, 1.38, 3.0);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.target.set(0, 1.2, 0);
     controls.enableDamping = true;
-    controls.enablePan = true;
+    controls.dampingFactor = 0.08;
     controls.screenSpacePanning = true;
-    controls.minDistance = 0.5;
-    controls.maxDistance = 8;
+    controls.minDistance = 0.8;
+    controls.maxDistance = 7.5;
+    controls.maxPolarAngle = Math.PI * 0.53;
     controls.update();
 
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x223355, 1.5);
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x1b2748, 1.65);
     scene.add(hemiLight);
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, Math.PI * 0.85);
-    dirLight.position.set(1.1, 1.8, 2.3);
-    dirLight.castShadow = true;
-    dirLight.shadow.mapSize.set(1024, 1024);
-    scene.add(dirLight);
+    const keyLight = new THREE.DirectionalLight(0xffffff, Math.PI * 0.8);
+    keyLight.position.set(1.8, 2.4, 2.8);
+    scene.add(keyLight);
 
-    const fillLight = new THREE.DirectionalLight(0xffffff, Math.PI * 0.28);
-    fillLight.position.set(-1.4, 1.25, -1.5);
+    const rimLight = new THREE.DirectionalLight(0xc8d7ff, Math.PI * 0.34);
+    rimLight.position.set(-2.4, 1.6, -2.0);
+    scene.add(rimLight);
+
+    const fillLight = new THREE.PointLight(0xd6c4ff, 8, 10, 2);
+    fillLight.position.set(0, 2.1, -1.6);
     scene.add(fillLight);
 
-    const ambient = new THREE.AmbientLight(0xffffff, 0.45);
-    scene.add(ambient);
-
     const floor = new THREE.Mesh(
-      new THREE.CircleGeometry(6, 64),
-      new THREE.ShadowMaterial({ opacity: 0.18 })
+      new THREE.CircleGeometry(2.6, 64),
+      new THREE.MeshBasicMaterial({ color: 0x91b1ff, transparent: true, opacity: 0.06 })
     );
     floor.rotation.x = -Math.PI / 2;
-    floor.position.y = -0.001;
-    floor.receiveShadow = true;
+    floor.position.y = 0.001;
     scene.add(floor);
 
-    const gridHelper = new THREE.GridHelper(8, 16, 0x4c6fff, 0x2d3f66);
-    gridHelper.position.y = 0;
-    gridHelper.material.opacity = 0.35;
-    gridHelper.material.transparent = true;
-    scene.add(gridHelper);
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(1.95, 2.08, 64),
+      new THREE.MeshBasicMaterial({ color: 0xc3b0ff, transparent: true, opacity: 0.15, side: THREE.DoubleSide })
+    );
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = 0.002;
+    scene.add(ring);
+
+    const shadow = new THREE.Mesh(
+      new THREE.CircleGeometry(0.75, 48),
+      new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.18 })
+    );
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.position.y = 0.003;
+    scene.add(shadow);
 
     const clock = new THREE.Clock();
-
     const loader = new GLTFLoader();
     loader.crossOrigin = 'anonymous';
     loader.register((parser) => new VRMLoaderPlugin(parser));
 
+    const tempQuat = new THREE.Quaternion();
+    const tempEuler = new THREE.Euler(0, 0, 0, 'XYZ');
+    const box = new THREE.Box3();
+    const sizeVec = new THREE.Vector3();
+    const centerVec = new THREE.Vector3();
+
     let currentVrm = null;
     let currentRoot = null;
     let currentObjectUrl = null;
-    let statusTimer = null;
+    let currentMode = 'walk';
+    let turntableOn = false;
+    let rootBaseQuat = null;
+    let rootBasePos = null;
+    let rootYOffset = 0;
+    let autoLoaded = false;
 
-    function setStatus(message, type = '', autoFade = false) {
-      statusEl.textContent = message;
+    const rig = {
+      bones: {},
+      baseQuats: {},
+      basePositions: {},
+    };
+
+    const rigBoneNames = [
+      'hips',
+      'spine',
+      'chest',
+      'upperChest',
+      'neck',
+      'head',
+      'leftShoulder',
+      'rightShoulder',
+      'leftUpperArm',
+      'rightUpperArm',
+      'leftLowerArm',
+      'rightLowerArm',
+      'leftHand',
+      'rightHand',
+      'leftUpperLeg',
+      'rightUpperLeg',
+      'leftLowerLeg',
+      'rightLowerLeg',
+      'leftFoot',
+      'rightFoot'
+    ];
+
+    function setStatus(message, type = '') {
+      statusTextEl.textContent = message;
       statusEl.className = 'status' + (type ? ` ${type}` : '');
-
-      if (statusTimer) {
-        clearTimeout(statusTimer);
-        statusTimer = null;
-      }
-
-      if (autoFade) {
-        statusTimer = setTimeout(() => {
-          if (statusEl.textContent === message) {
-            statusEl.textContent = '表示中。見えない時は「視点リセット」を押してね。';
-            statusEl.className = 'status';
-          }
-        }, 2600);
-      }
     }
 
-    function showGuide(force) {
-      if (force === true) {
-        guide.classList.add('visible');
-      } else if (force === false) {
-        guide.classList.remove('visible');
-      } else {
-        guide.classList.toggle('visible');
-      }
+    function setMode(mode) {
+      currentMode = mode;
+      modeButtons.forEach((button) => {
+        button.classList.toggle('active', button.dataset.mode === mode);
+      });
+    }
+
+    function setTurntable(value) {
+      turntableOn = value;
+      turntableBtn.classList.toggle('toggle-on', turntableOn);
+      turntableBtn.textContent = turntableOn ? '回転中' : 'くるっと回す';
+    }
+
+    function resetRig() {
+      rig.bones = {};
+      rig.baseQuats = {};
+      rig.basePositions = {};
+      rootBaseQuat = null;
+      rootBasePos = null;
+      rootYOffset = 0;
     }
 
     function disposeCurrentModel() {
@@ -422,7 +525,9 @@
         VRMUtils.deepDispose(currentRoot);
         currentRoot = null;
       }
+
       currentVrm = null;
+      resetRig();
 
       if (currentObjectUrl) {
         URL.revokeObjectURL(currentObjectUrl);
@@ -430,30 +535,186 @@
       }
     }
 
+    function captureRig(vrm) {
+      resetRig();
+      const humanoid = vrm.humanoid;
+      if (!humanoid?.getNormalizedBoneNode) return;
+
+      for (const name of rigBoneNames) {
+        const bone = humanoid.getNormalizedBoneNode(name);
+        if (!bone) continue;
+        rig.bones[name] = bone;
+        rig.baseQuats[name] = bone.quaternion.clone();
+        rig.basePositions[name] = bone.position.clone();
+      }
+
+      rootBaseQuat = vrm.scene.quaternion.clone();
+      rootBasePos = vrm.scene.position.clone();
+
+      const hips = rig.bones.hips;
+      if (hips) {
+        rootYOffset = -(hips.getWorldPosition(new THREE.Vector3()).y) + 0.01;
+      } else {
+        rootYOffset = 0;
+      }
+    }
+
+    function setBoneRotation(name, x = 0, y = 0, z = 0) {
+      const bone = rig.bones[name];
+      const baseQuat = rig.baseQuats[name];
+      if (!bone || !baseQuat) return;
+      bone.quaternion.copy(baseQuat);
+      tempEuler.set(x, y, z);
+      tempQuat.setFromEuler(tempEuler);
+      bone.quaternion.multiply(tempQuat);
+    }
+
+    function setBonePosition(name, x = 0, y = 0, z = 0) {
+      const bone = rig.bones[name];
+      const basePos = rig.basePositions[name];
+      if (!bone || !basePos) return;
+      bone.position.set(basePos.x + x, basePos.y + y, basePos.z + z);
+    }
+
+    function resetAllBones() {
+      for (const name of Object.keys(rig.bones)) {
+        const bone = rig.bones[name];
+        const baseQuat = rig.baseQuats[name];
+        const basePos = rig.basePositions[name];
+        if (bone && baseQuat) bone.quaternion.copy(baseQuat);
+        if (bone && basePos) bone.position.copy(basePos);
+      }
+
+      if (currentRoot && rootBaseQuat && rootBasePos) {
+        currentRoot.quaternion.copy(rootBaseQuat);
+        currentRoot.position.copy(rootBasePos);
+        currentRoot.position.y += rootYOffset;
+      }
+    }
+
+    function applyAnimation(elapsed) {
+      if (!currentVrm || !currentRoot) return;
+      resetAllBones();
+
+      const s = Math.sin(elapsed * 4.0);
+      const c = Math.cos(elapsed * 2.6);
+      const sway = Math.sin(elapsed * 1.5);
+
+      let bodyBob = 0;
+      let rootRotate = 0;
+
+      if (currentMode === 'idle') {
+        bodyBob = Math.sin(elapsed * 2.2) * 0.015;
+        rootRotate = Math.sin(elapsed * 0.8) * 0.08;
+
+        setBoneRotation('hips', 0.02 * s, rootRotate * 0.35, 0.03 * sway);
+        setBoneRotation('spine', 0.02 * c, rootRotate * 0.22, 0.02 * sway);
+        setBoneRotation('chest', -0.01 * s, rootRotate * 0.3, -0.02 * sway);
+        setBoneRotation('upperChest', -0.015 * s, rootRotate * 0.2, -0.04 * sway);
+        setBoneRotation('neck', 0.02 * c, -rootRotate * 0.16, -0.03 * sway);
+        setBoneRotation('head', -0.02 * c, -rootRotate * 0.2, -0.04 * sway);
+
+        setBoneRotation('leftShoulder', 0.02, 0, -0.06);
+        setBoneRotation('rightShoulder', 0.02, 0, 0.06);
+        setBoneRotation('leftUpperArm', 0.14 + 0.03 * sway, 0.05, -0.12);
+        setBoneRotation('rightUpperArm', 0.14 - 0.03 * sway, -0.05, 0.12);
+        setBoneRotation('leftLowerArm', -0.16, 0, -0.02);
+        setBoneRotation('rightLowerArm', -0.16, 0, 0.02);
+        setBoneRotation('leftUpperLeg', -0.05, 0.01, 0.015);
+        setBoneRotation('rightUpperLeg', 0.05, -0.01, -0.015);
+        setBoneRotation('leftLowerLeg', 0.06, 0, 0);
+        setBoneRotation('rightLowerLeg', 0.02, 0, 0);
+      } else if (currentMode === 'pose') {
+        bodyBob = Math.sin(elapsed * 2.0) * 0.008;
+        rootRotate = 0.06;
+
+        setBoneRotation('hips', -0.03, rootRotate * 0.32, 0.02);
+        setBoneRotation('spine', 0.02, rootRotate * 0.2, -0.03);
+        setBoneRotation('chest', 0.02, rootRotate * 0.15, -0.04);
+        setBoneRotation('upperChest', 0.02, rootRotate * 0.15, -0.05);
+        setBoneRotation('neck', 0.01, -0.05, -0.02);
+        setBoneRotation('head', -0.03, -0.08, -0.04);
+
+        setBoneRotation('leftShoulder', 0.04, 0.02, -0.1);
+        setBoneRotation('rightShoulder', 0.04, -0.02, 0.1);
+        setBoneRotation('leftUpperArm', 0.22, 0.14, -0.26);
+        setBoneRotation('rightUpperArm', 0.12, -0.12, 0.18);
+        setBoneRotation('leftLowerArm', -0.26, 0.08, -0.06);
+        setBoneRotation('rightLowerArm', -0.18, -0.02, 0.02);
+        setBoneRotation('leftHand', 0.02, 0, -0.08);
+        setBoneRotation('rightHand', 0.02, 0, 0.06);
+        setBoneRotation('leftUpperLeg', -0.12, 0.03, 0.1);
+        setBoneRotation('rightUpperLeg', 0.08, -0.04, -0.04);
+        setBoneRotation('leftLowerLeg', 0.12, 0, 0.02);
+        setBoneRotation('rightLowerLeg', 0.03, 0, 0);
+        setBoneRotation('leftFoot', 0.04, 0, 0);
+        setBoneRotation('rightFoot', -0.02, 0, 0);
+      } else {
+        const step = Math.sin(elapsed * 5.1);
+        const step2 = Math.sin(elapsed * 10.2);
+        const liftL = Math.max(0, Math.sin(elapsed * 5.1));
+        const liftR = Math.max(0, Math.sin(elapsed * 5.1 + Math.PI));
+        bodyBob = Math.abs(step2) * 0.02;
+        rootRotate = Math.sin(elapsed * 2.55) * 0.05;
+
+        setBoneRotation('hips', 0.04 * step2, rootRotate * 0.25, 0.03 * step);
+        setBoneRotation('spine', -0.03 * step2, -rootRotate * 0.12, -0.02 * step);
+        setBoneRotation('chest', -0.02 * step2, -rootRotate * 0.18, -0.03 * step);
+        setBoneRotation('upperChest', -0.015 * step2, -rootRotate * 0.2, -0.03 * step);
+        setBoneRotation('neck', 0.02 * step2, 0.02 * step, 0.01 * step);
+        setBoneRotation('head', -0.015 * step2, 0.03 * step, 0.01 * step);
+
+        setBoneRotation('leftShoulder', 0.02, 0, -0.04);
+        setBoneRotation('rightShoulder', 0.02, 0, 0.04);
+        setBoneRotation('leftUpperArm', -0.55 * step, 0.05, -0.08);
+        setBoneRotation('rightUpperArm', 0.55 * step, -0.05, 0.08);
+        setBoneRotation('leftLowerArm', -0.15 + 0.12 * liftL, 0, -0.02);
+        setBoneRotation('rightLowerArm', -0.15 + 0.12 * liftR, 0, 0.02);
+        setBoneRotation('leftHand', 0.06 * step, 0, -0.02);
+        setBoneRotation('rightHand', -0.06 * step, 0, 0.02);
+
+        setBoneRotation('leftUpperLeg', 0.78 * step, 0.02, 0.04);
+        setBoneRotation('rightUpperLeg', -0.78 * step, -0.02, -0.04);
+        setBoneRotation('leftLowerLeg', 0.22 * liftL, 0, 0);
+        setBoneRotation('rightLowerLeg', 0.22 * liftR, 0, 0);
+        setBoneRotation('leftFoot', -0.12 * liftL, 0, 0);
+        setBoneRotation('rightFoot', -0.12 * liftR, 0, 0);
+      }
+
+      if (currentRoot && rootBaseQuat && rootBasePos) {
+        currentRoot.position.y = rootBasePos.y + rootYOffset + bodyBob;
+        currentRoot.quaternion.copy(rootBaseQuat);
+        tempEuler.set(0, turntableOn ? elapsed * 0.35 : rootRotate, 0);
+        tempQuat.setFromEuler(tempEuler);
+        currentRoot.quaternion.multiply(tempQuat);
+      }
+
+      shadow.scale.setScalar(1 + bodyBob * 10);
+      ring.rotation.z += 0.0022;
+    }
+
     function fitCameraToObject(object3D) {
-      const box = new THREE.Box3().setFromObject(object3D);
+      box.setFromObject(object3D);
       if (box.isEmpty()) {
-        camera.position.set(0.0, 1.35, 3.2);
+        camera.position.set(0.0, 1.38, 3.0);
         controls.target.set(0, 1.2, 0);
-        controls.minDistance = 0.5;
-        controls.maxDistance = 8;
         controls.update();
         return;
       }
 
-      const size = box.getSize(new THREE.Vector3());
-      const center = box.getCenter(new THREE.Vector3());
-      const height = Math.max(size.y, 1.4);
-      const width = Math.max(size.x, 0.5);
-      const maxSize = Math.max(width, height, size.z);
+      box.getSize(sizeVec);
+      box.getCenter(centerVec);
+      const maxSize = Math.max(sizeVec.x, sizeVec.y, sizeVec.z);
       const fov = THREE.MathUtils.degToRad(camera.fov);
-      const distance = ((maxSize * 0.58) / Math.tan(fov / 2)) * 1.2;
+      const distance = ((maxSize / 2) / Math.tan(fov / 2)) * 1.2;
 
-      const target = new THREE.Vector3(center.x, box.min.y + height * 0.52, center.z);
-      controls.target.copy(target);
-      camera.position.set(target.x, target.y + height * 0.06, target.z + distance);
-      controls.minDistance = Math.max(distance * 0.35, 0.35);
-      controls.maxDistance = Math.max(distance * 3.5, 4);
+      controls.target.set(centerVec.x, centerVec.y + sizeVec.y * 0.06, centerVec.z);
+      camera.position.set(
+        centerVec.x,
+        centerVec.y + Math.max(sizeVec.y * 0.08, 0.1),
+        centerVec.z + distance + Math.max(sizeVec.x * 0.1, 0.05)
+      );
+
       camera.near = Math.max(distance / 100, 0.01);
       camera.far = Math.max(distance * 20, 100);
       camera.updateProjectionMatrix();
@@ -470,48 +731,38 @@
 
       root.traverse((obj) => {
         obj.frustumCulled = false;
-        if (obj.isMesh) {
-          obj.castShadow = true;
-          obj.receiveShadow = true;
-        }
       });
 
       disposeCurrentModel();
       currentVrm = vrm;
       currentRoot = root;
       scene.add(root);
+      captureRig(vrm);
       fitCameraToObject(root);
-      modelNameEl.textContent = sourceLabel.split('/').pop();
-      setStatus(`読み込み完了: ${sourceLabel}`, 'ok', true);
-
-      if (window.innerWidth <= 720) {
-        showGuide(false);
-      }
+      advancedEl.classList.remove('visible');
+      advancedEl.setAttribute('aria-hidden', 'true');
+      setStatus(`読み込み完了: ${sourceLabel}`, 'ok');
+      autoLoaded = true;
     }
 
     function handleLoadError(error) {
       console.error(error);
-      modelNameEl.textContent = '読み込み失敗';
       setStatus(`読み込み失敗: ${error?.message ?? error}`, 'error');
-      showGuide(true);
     }
 
     function loadVrmFromUrl(url) {
       if (!url) {
-        setStatus('読み込むパスが空だったよ。', 'error');
-        showGuide(true);
+        setStatus('URLかパスを入れてね。', 'error');
         return;
       }
 
-      modelNameEl.textContent = '読み込み中…';
       setStatus(`読み込み中: ${url}`);
       loader.load(
         url,
         (gltf) => {
           const vrm = gltf.userData.vrm;
           if (!vrm) {
-            setStatus('VRMとして認識できなかったよ。', 'error');
-            showGuide(true);
+            setStatus('VRMとして認識できなかったよ。ファイル形式を確認してね。', 'error');
             return;
           }
           prepareVrm(vrm, url);
@@ -529,7 +780,6 @@
       if (!file) return;
       if (!file.name.toLowerCase().endsWith('.vrm')) {
         setStatus('`.vrm` ファイルを選んでね。', 'error');
-        showGuide(true);
         return;
       }
 
@@ -539,7 +789,6 @@
       }
 
       currentObjectUrl = URL.createObjectURL(file);
-      modelNameEl.textContent = file.name;
       setStatus(`読み込み中: ${file.name}`);
 
       loader.load(
@@ -547,8 +796,7 @@
         (gltf) => {
           const vrm = gltf.userData.vrm;
           if (!vrm) {
-            setStatus('VRMとして認識できなかったよ。', 'error');
-            showGuide(true);
+            setStatus('VRMとして認識できなかったよ。ファイル形式を確認してね。', 'error');
             return;
           }
           prepareVrm(vrm, file.name);
@@ -565,26 +813,46 @@
     function resetView() {
       if (currentRoot) {
         fitCameraToObject(currentRoot);
-        setStatus('視点を整えたよ。', 'ok', true);
+        setStatus('視点をリセットしたよ。', 'ok');
       } else {
-        camera.position.set(0.0, 1.35, 3.2);
+        camera.position.set(0.0, 1.38, 3.0);
         controls.target.set(0, 1.2, 0);
         camera.near = 0.1;
         camera.far = 100;
         camera.updateProjectionMatrix();
         controls.update();
-        setStatus('視点を初期位置に戻したよ。', 'ok', true);
+        setStatus('視点を初期位置に戻したよ。', 'ok');
       }
     }
 
+    function toggleAdvanced(force) {
+      const visible = typeof force === 'boolean' ? force : !advancedEl.classList.contains('visible');
+      advancedEl.classList.toggle('visible', visible);
+      advancedEl.setAttribute('aria-hidden', visible ? 'false' : 'true');
+    }
+
+    loadUrlBtn.addEventListener('click', () => loadVrmFromUrl(urlInput.value.trim()));
     resetViewBtn.addEventListener('click', resetView);
-    guideBtn.addEventListener('click', () => showGuide());
-    closeGuideBtn.addEventListener('click', () => showGuide(false));
-    reloadDefaultBtn.addEventListener('click', () => loadVrmFromUrl(DEFAULT_MODEL));
+    clearBtn.addEventListener('click', () => {
+      disposeCurrentModel();
+      fileInput.value = '';
+      setStatus('モデルを外したよ。', '');
+    });
+    toggleAdvancedBtn.addEventListener('click', () => toggleAdvanced());
+    closeAdvancedBtn.addEventListener('click', () => toggleAdvanced(false));
+    turntableBtn.addEventListener('click', () => setTurntable(!turntableOn));
 
     fileInput.addEventListener('change', (event) => {
       const file = event.target.files?.[0];
       if (file) loadVrmFromFile(file);
+    });
+
+    urlInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') loadVrmFromUrl(urlInput.value.trim());
+    });
+
+    modeButtons.forEach((button) => {
+      button.addEventListener('click', () => setMode(button.dataset.mode));
     });
 
     window.addEventListener('resize', () => {
@@ -617,9 +885,28 @@
       if (file) loadVrmFromFile(file);
     });
 
+    let hintTimer = window.setTimeout(() => {
+      hintBadgeEl.style.opacity = '0';
+      hintBadgeEl.style.transition = 'opacity 400ms ease';
+      window.setTimeout(() => { hintBadgeEl.style.display = 'none'; }, 450);
+    }, 5200);
+
+    renderer.domElement.addEventListener('pointerdown', () => {
+      if (hintTimer) {
+        clearTimeout(hintTimer);
+        hintTimer = null;
+      }
+      hintBadgeEl.style.opacity = '0';
+      hintBadgeEl.style.transition = 'opacity 200ms ease';
+      window.setTimeout(() => { hintBadgeEl.style.display = 'none'; }, 220);
+    }, { once: true });
+
     function animate() {
       requestAnimationFrame(animate);
       const delta = clock.getDelta();
+      const elapsed = clock.getElapsedTime();
+
+      applyAnimation(elapsed);
       if (currentVrm) currentVrm.update(delta);
       controls.update();
       renderer.render(scene, camera);
@@ -628,15 +915,15 @@
     animate();
 
     const params = new URLSearchParams(window.location.search);
-    const initialModel = params.get('model') || DEFAULT_MODEL;
-
-    setStatus('準備できたよ。自動で読み込むね。');
-    if (window.innerWidth <= 720) {
-      showGuide(false);
-    } else {
-      showGuide(true);
-    }
+    const initialModel = params.get('model') || './KYOMA.vrm';
+    urlInput.value = initialModel;
     loadVrmFromUrl(initialModel);
+
+    window.addEventListener('error', (event) => {
+      if (!autoLoaded) {
+        setStatus(`エラー: ${event.message}`, 'error');
+      }
+    });
   </script>
 </body>
 </html>
