@@ -15,14 +15,12 @@
       <div class="nav">
         <div class="nav-row">
           <button class="icon-btn" id="backHome" aria-label="ホームへ戻る">‹</button>
-          <div class="nav-title" aria-hidden="true"></div>
-          <div class="nav-actions">
-            <a class="text-btn quiet health-link-btn" href="average-predict-generator-daily.html" aria-label="平均予測ジェネレーターを開く" title="平均予測ジェネレーター">予測</a>
-          </div>
+          <div class="nav-title">Health</div>
+          <div class="nav-actions"></div>
         </div>
       </div>
 
-      <div class="screen-head health-screen-head">
+      <div class="screen-head">
         <h1 class="screen-title">Health</h1>
       </div>
 
@@ -30,7 +28,7 @@
         <div class="health-form-grid">
           <label class="health-field health-field-full">
             <span class="health-field-label">Date</span>
-            <input id="healthDateInput" class="health-input" type="text" inputmode="numeric" placeholder="2026/03/24" autocomplete="off" spellcheck="false" />
+            <input id="healthDateInput" class="health-input health-date-input" type="text" inputmode="numeric" placeholder="2026/03/24" autocomplete="off" spellcheck="false" />
           </label>
 
           <label class="health-field">
@@ -73,16 +71,16 @@
 
           <div class="health-focus-arrow">→</div>
 
-          <div class="health-focus-point health-focus-point-latest">
+          <div class="health-focus-point">
             <div class="health-focus-label" id="weightLatestDay">—</div>
             <div class="health-focus-weight" id="weightLatestValue">—</div>
           </div>
         </div>
 
-        <div class="health-stat-note" id="weightChangeNote">8/24 95kg → 今日の体重 をここに出すよ。</div>
+        <div class="health-stat-note" id="weightChangeNote">体重を記録すると、ここに変化が出るよ。</div>
       </section>
 
-      <section class="health-stats-grid health-stats-grid-two">
+      <section class="health-stats-grid">
         <article class="sheet-card health-stat-card">
           <div class="health-stat-eyebrow">その月の平均カロリー</div>
           <div class="health-stat-value" id="monthAvgCalories">—</div>
@@ -107,324 +105,361 @@
     const healthLegacyKey = 'yuki_home_health_v4';
     const healthRecordsKey = 'yuki_home_health_records_v1';
     const healthSeedVersionKey = 'yuki_home_health_seed_version';
-    const healthSeedVersion = '2026-03-24-seed-v2';
-    const healthSeedRecords = [
-      { day:'2026-01-20', weight:'', calories:'1587' },
-      { day:'2026-01-21', weight:'92.0', calories:'1563' },
-      { day:'2026-01-22', weight:'', calories:'1701' },
-      { day:'2026-01-23', weight:'', calories:'1505' },
-      { day:'2026-01-24', weight:'', calories:'1646' },
-      { day:'2026-01-25', weight:'89.5', calories:'1700' },
-      { day:'2026-01-26', weight:'89.3', calories:'1794' },
-      { day:'2026-01-27', weight:'', calories:'1722' },
-      { day:'2026-01-28', weight:'89.6', calories:'1782' },
-      { day:'2026-01-29', weight:'', calories:'1618' },
-      { day:'2026-01-30', weight:'89.7', calories:'1506' },
-      { day:'2026-01-31', weight:'', calories:'1714' },
-      { day:'2026-02-01', weight:'89.1', calories:'1994' },
-      { day:'2026-02-02', weight:'88.8', calories:'1577' },
-      { day:'2026-02-03', weight:'89.1', calories:'1558' },
-      { day:'2026-02-04', weight:'88.8', calories:'1581' },
-      { day:'2026-02-05', weight:'89.3', calories:'1752' },
-      { day:'2026-02-06', weight:'', calories:'1521' },
-      { day:'2026-02-07', weight:'88.9', calories:'1803' },
-      { day:'2026-02-08', weight:'89.2', calories:'1283' },
-      { day:'2026-02-09', weight:'', calories:'2549' },
-      { day:'2026-02-10', weight:'', calories:'1570' },
-      { day:'2026-02-11', weight:'89.2', calories:'2092' },
-      { day:'2026-02-12', weight:'89.2', calories:'1589' },
-      { day:'2026-02-13', weight:'88.5', calories:'1486' },
-      { day:'2026-02-14', weight:'', calories:'1616' },
-      { day:'2026-02-15', weight:'88.3', calories:'1575' },
-      { day:'2026-02-16', weight:'88.8', calories:'1687' },
-      { day:'2026-02-17', weight:'88.8', calories:'2075' },
-      { day:'2026-02-18', weight:'89.1', calories:'1412' },
-      { day:'2026-02-19', weight:'', calories:'2388' },
-      { day:'2026-02-20', weight:'', calories:'1967' },
-      { day:'2026-02-21', weight:'', calories:'2138' },
-      { day:'2026-02-22', weight:'', calories:'2028' },
-      { day:'2026-02-23', weight:'', calories:'2700' },
-      { day:'2026-02-24', weight:'', calories:'2023' },
-      { day:'2026-02-25', weight:'89.6', calories:'1556' },
-      { day:'2026-02-26', weight:'', calories:'1552' },
-      { day:'2026-02-27', weight:'', calories:'2055' },
-      { day:'2026-02-28', weight:'89.0', calories:'1619' },
-      { day:'2026-03-01', weight:'88.8', calories:'1577' },
-      { day:'2026-03-02', weight:'88.9', calories:'1614' },
-      { day:'2026-03-03', weight:'88.2', calories:'1568' },
-      { day:'2026-03-04', weight:'', calories:'1763' },
-      { day:'2026-03-05', weight:'88.0', calories:'1528' },
-      { day:'2026-03-06', weight:'88.3', calories:'1969' },
-      { day:'2026-03-07', weight:'88.3', calories:'1729' },
-      { day:'2026-03-08', weight:'88.4', calories:'1972' },
-      { day:'2026-03-09', weight:'88.5', calories:'2362' },
-      { day:'2026-03-10', weight:'88.6', calories:'1641' },
-      { day:'2026-03-11', weight:'87.8', calories:'1665' },
-      { day:'2026-03-12', weight:'', calories:'1531' },
-      { day:'2026-03-13', weight:'87.6', calories:'1804' },
-      { day:'2026-03-14', weight:'87.8', calories:'2005' },
-      { day:'2026-03-15', weight:'', calories:'2076' },
-      { day:'2026-03-16', weight:'88.0', calories:'2233' },
-      { day:'2026-03-17', weight:'', calories:'1576' },
-      { day:'2026-03-18', weight:'88.2', calories:'1579' },
-      { day:'2026-03-19', weight:'88.0', calories:'2285' },
-      { day:'2026-03-20', weight:'', calories:'1416' },
-      { day:'2026-03-21', weight:'88.1', calories:'2616' },
-      { day:'2026-03-22', weight:'', calories:'1496' },
-      { day:'2026-03-23', weight:'87.9', calories:'1505' }
-    ];
-    const baselineWeight = 95.0;
-    const baselineLabel = '8/24 95kg';
+    const healthSeedVersion = '2026-03-24-seed-v1';
+    const healthSeedRecords = [{"day":"2026-01-20","weight":"","calories":"1587"},{"day":"2026-01-21","weight":"92.0","calories":"1563"},{"day":"2026-01-22","weight":"","calories":"1701"},{"day":"2026-01-23","weight":"","calories":"1505"},{"day":"2026-01-24","weight":"","calories":"1646"},{"day":"2026-01-25","weight":"89.5","calories":"1700"},{"day":"2026-01-26","weight":"89.3","calories":"1794"},{"day":"2026-01-27","weight":"","calories":"1722"},{"day":"2026-01-28","weight":"89.6","calories":"1782"},{"day":"2026-01-29","weight":"","calories":"1618"},{"day":"2026-01-30","weight":"89.7","calories":"1506"},{"day":"2026-01-31","weight":"","calories":"1714"},{"day":"2026-02-01","weight":"89.1","calories":"1994"},{"day":"2026-02-02","weight":"88.8","calories":"1577"},{"day":"2026-02-03","weight":"89.1","calories":"1558"},{"day":"2026-02-04","weight":"88.8","calories":"1581"},{"day":"2026-02-05","weight":"89.3","calories":"1752"},{"day":"2026-02-06","weight":"","calories":"1521"},{"day":"2026-02-07","weight":"88.9","calories":"1803"},{"day":"2026-02-08","weight":"89.2","calories":"1283"},{"day":"2026-02-09","weight":"","calories":"2549"},{"day":"2026-02-10","weight":"","calories":"1570"},{"day":"2026-02-11","weight":"89.2","calories":"2092"},{"day":"2026-02-12","weight":"89.2","calories":"1589"},{"day":"2026-02-13","weight":"88.5","calories":"1486"},{"day":"2026-02-14","weight":"","calories":"1616"},{"day":"2026-02-15","weight":"88.3","calories":"1575"},{"day":"2026-02-16","weight":"88.8","calories":"1687"},{"day":"2026-02-17","weight":"88.8","calories":"2075"},{"day":"2026-02-18","weight":"89.1","calories":"1412"},{"day":"2026-02-19","weight":"","calories":"2388"},{"day":"2026-02-20","weight":"","calories":"1967"},{"day":"2026-02-21","weight":"","calories":"2138"},{"day":"2026-02-22","weight":"","calories":"2028"},{"day":"2026-02-23","weight":"","calories":"2700"},{"day":"2026-02-24","weight":"","calories":"2023"},{"day":"2026-02-25","weight":"89.6","calories":"1556"},{"day":"2026-02-26","weight":"","calories":"1552"},{"day":"2026-02-27","weight":"","calories":"2055"},{"day":"2026-02-28","weight":"89.0","calories":"1619"},{"day":"2026-03-01","weight":"88.8","calories":"1577"},{"day":"2026-03-02","weight":"88.9","calories":"1614"},{"day":"2026-03-03","weight":"88.2","calories":"1568"},{"day":"2026-03-04","weight":"","calories":"1763"},{"day":"2026-03-05","weight":"88.0","calories":"1528"},{"day":"2026-03-06","weight":"88.3","calories":"1969"},{"day":"2026-03-07","weight":"88.3","calories":"1729"},{"day":"2026-03-08","weight":"88.4","calories":"1972"},{"day":"2026-03-09","weight":"88.5","calories":"2362"},{"day":"2026-03-10","weight":"88.6","calories":"1641"},{"day":"2026-03-11","weight":"87.8","calories":"1665"},{"day":"2026-03-12","weight":"","calories":"1531"},{"day":"2026-03-13","weight":"87.6","calories":"1804"},{"day":"2026-03-14","weight":"87.8","calories":"2005"},{"day":"2026-03-15","weight":"","calories":"2076"},{"day":"2026-03-16","weight":"88.0","calories":"2233"},{"day":"2026-03-17","weight":"","calories":"1576"},{"day":"2026-03-18","weight":"88.2","calories":"1579"},{"day":"2026-03-19","weight":"88.0","calories":"2285"},{"day":"2026-03-20","weight":"","calories":"1416"},{"day":"2026-03-21","weight":"88.1","calories":"2616"},{"day":"2026-03-22","weight":"","calories":"1496"},{"day":"2026-03-23","weight":"87.9","calories":"1505"}];
 
     function loadJson(key, fallback){
-      try {
+      try{
         const raw = localStorage.getItem(key);
         return raw ? JSON.parse(raw) : fallback;
-      } catch {
+      }catch{
         return fallback;
       }
     }
+
     function saveJson(key, value){
       localStorage.setItem(key, JSON.stringify(value));
     }
-    function toNumber(value){
-      if(value === null || value === undefined) return NaN;
-      const num = parseFloat(String(value).replace(/[^\d.-]/g, ''));
-      return Number.isFinite(num) ? num : NaN;
+
+    function uid(){
+      return 'health-' + Math.random().toString(36).slice(2, 11);
     }
-    function normalizeDay(value){
-      if(!value) return '';
-      const text = String(value).trim().replace(/\./g,'/').replace(/-/g,'/');
-      const match = text.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
-      if(!match) return '';
-      const y = match[1];
-      const m = String(Number(match[2])).padStart(2,'0');
-      const d = String(Number(match[3])).padStart(2,'0');
-      return `${y}-${m}-${d}`;
-    }
-    function formatInputDay(day){
-      if(!day) return '';
-      const [y,m,d] = day.split('-');
-      return `${y}/${m}/${d}`;
-    }
-    function formatShortDay(day){
-      if(!day) return '—';
-      const [,m,d] = day.split('-');
-      return `${Number(m)}/${Number(d)}`;
-    }
+
     function getTodayKey(){
       const d = new Date();
       return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
+
+    function normalizeDay(value){
+      if(!value) return '';
+      const cleaned = String(value).trim().replace(/[./]/g, '-').replace(/\s+/g, '');
+      const match = cleaned.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      if(!match) return '';
+      const [, year, month, date] = match;
+      return `${year}-${String(month).padStart(2,'0')}-${String(date).padStart(2,'0')}`;
+    }
+
+    function formatInputDay(day){
+      return day ? day.replaceAll('-', '/') : '';
+    }
+
+    function parseNumber(value){
+      if(value == null) return null;
+      const cleaned = String(value).replace(/,/g,'').replace(/[^\d.\-]/g,'').trim();
+      if(!cleaned) return null;
+      const num = Number(cleaned);
+      return Number.isFinite(num) ? num : null;
+    }
+
+    function formatDay(day){
+      return day ? day.replaceAll('-', '.') : '—';
+    }
+
+    function formatShortDay(day){
+      if(!day) return '—';
+      const [year, month, date] = day.split('-');
+      return `${Number(month)}/${Number(date)}`;
+    }
+
     function formatWeight(value){
-      return Number.isFinite(value) ? `${value.toFixed(1)}kg` : '—';
+      if(value == null || value === '') return '—';
+      return `${Number(value).toFixed(1)}kg`;
     }
+
     function formatCalories(value){
-      return Number.isFinite(value) ? `${Math.round(value).toLocaleString('ja-JP')}kcal` : '—';
-    }
-    function formatDelta(value){
-      if(!Number.isFinite(value)) return '—';
-      const rounded = Math.round(value * 10) / 10;
-      if(rounded === 0) return '±0.0kg';
-      return `${rounded > 0 ? '+' : ''}${rounded.toFixed(1)}kg`;
+      if(value == null || value === '') return '—';
+      return `${Math.round(Number(value)).toLocaleString('ja-JP')}kcal`;
     }
 
-    function ensureHealthSeedData(){
-      const currentVersion = localStorage.getItem(healthSeedVersionKey);
-      let records = loadJson(healthRecordsKey, []);
-      if(!Array.isArray(records)) records = [];
+    function formatWeightDelta(value){
+      if(value == null || !Number.isFinite(value)) return '—';
+      const abs = Math.abs(value).toFixed(1);
+      if(value < 0) return `-${abs}kg`;
+      if(value > 0) return `+${abs}kg`;
+      return '±0.0kg';
+    }
 
+    function formatAverageCalories(value){
+      if(value == null || !Number.isFinite(value)) return '—';
+      return `${Math.round(value).toLocaleString('ja-JP')}kcal`;
+    }
+
+    function sortRecords(records){
+      return [...records].sort((a,b) => (a.day < b.day ? 1 : -1));
+    }
+
+    function ensureMigrated(){
+      const current = loadJson(healthRecordsKey, null);
+      if(Array.isArray(current)) return;
+
+      const legacy = loadJson(healthLegacyKey, { weight:'', calories:'' });
+      const hasLegacyValue = (legacy && (String(legacy.weight || '').trim() || String(legacy.calories || '').trim()));
+      if(!hasLegacyValue){
+        saveJson(healthRecordsKey, []);
+        return;
+      }
+
+      const today = getTodayKey();
+      const migrated = [{
+        id: uid(),
+        day: today,
+        weight: String(legacy.weight || '').trim(),
+        calories: String(legacy.calories || '').trim(),
+        ts: Date.now()
+      }];
+      saveJson(healthRecordsKey, migrated);
+    }
+
+    function mergeSeedRecords(existing, incoming){
       const map = new Map();
-      records.forEach(entry => {
-        if(entry && entry.day) {
-          map.set(entry.day, {
-            day: entry.day,
-            weight: entry.weight || '',
-            calories: entry.calories || ''
+      (Array.isArray(existing) ? existing : []).forEach(record => {
+        if(!record || !record.day) return;
+        map.set(record.day, { ...record });
+      });
+
+      incoming.forEach(seed => {
+        const current = map.get(seed.day);
+        if(current){
+          map.set(seed.day, {
+            ...current,
+            weight: String(current.weight || '').trim() || String(seed.weight || '').trim(),
+            calories: String(current.calories || '').trim() || String(seed.calories || '').trim(),
+            ts: current.ts || Date.now()
+          });
+        }else{
+          map.set(seed.day, {
+            id: uid(),
+            day: seed.day,
+            weight: String(seed.weight || '').trim(),
+            calories: String(seed.calories || '').trim(),
+            ts: Date.now()
           });
         }
       });
 
-      if(currentVersion !== healthSeedVersion){
-        healthSeedRecords.forEach(entry => {
-          const prev = map.get(entry.day) || { day: entry.day, weight:'', calories:'' };
-          map.set(entry.day, {
-            day: entry.day,
-            weight: prev.weight || entry.weight || '',
-            calories: prev.calories || entry.calories || ''
-          });
-        });
-        localStorage.setItem(healthSeedVersionKey, healthSeedVersion);
-      }
+      return Array.from(map.values());
+    }
 
-      const legacy = loadJson(healthLegacyKey, null);
-      if(legacy && (legacy.weight || legacy.calories)) {
-        const today = getTodayKey();
-        const prev = map.get(today) || { day: today, weight:'', calories:'' };
-        map.set(today, {
-          day: today,
-          weight: prev.weight || legacy.weight || '',
-          calories: prev.calories || legacy.calories || ''
-        });
-      }
+    function getLatestRecord(records){
+      return sortRecords(records).find(record => (record.weight || '').trim() || (record.calories || '').trim()) || null;
+    }
 
-      const merged = [...map.values()].sort((a,b) => a.day.localeCompare(b.day));
-      saveJson(healthRecordsKey, merged);
-      return merged;
+    function syncLegacyLatest(records){
+      const latest = getLatestRecord(records);
+      if(latest){
+        saveJson(healthLegacyKey, {
+          weight: latest.weight || '',
+          calories: latest.calories || ''
+        });
+      }else{
+        saveJson(healthLegacyKey, { weight:'', calories:'' });
+      }
+    }
+
+    function ensureSeedData(){
+      if(localStorage.getItem(healthSeedVersionKey) === healthSeedVersion) return;
+      ensureMigrated();
+      const existing = loadJson(healthRecordsKey, []);
+      const merged = mergeSeedRecords(existing, healthSeedRecords);
+      saveJson(healthRecordsKey, sortRecords(merged));
+      syncLegacyLatest(merged);
+      localStorage.setItem(healthSeedVersionKey, healthSeedVersion);
     }
 
     function getHealthRecords(){
-      return ensureHealthSeedData();
+      ensureMigrated();
+      ensureSeedData();
+      const records = loadJson(healthRecordsKey, []);
+      return Array.isArray(records) ? sortRecords(records) : [];
+    }
+
+    function saveHealthRecords(records){
+      saveJson(healthRecordsKey, sortRecords(records));
+    }
+
+    function getRecordByDay(day){
+      return getHealthRecords().find(record => record.day === day) || null;
     }
 
     const healthDateInput = document.getElementById('healthDateInput');
     const weightInput = document.getElementById('weightInput');
     const calInput = document.getElementById('calInput');
-    const recordPeriod = document.getElementById('recordPeriod');
+    const healthRecordList = document.getElementById('healthRecordList');
+    const overallAvgCalories = document.getElementById('overallAvgCalories');
+    const overallAvgCaloriesNote = document.getElementById('overallAvgCaloriesNote');
+    const monthAvgCalories = document.getElementById('monthAvgCalories');
+    const monthAvgCaloriesNote = document.getElementById('monthAvgCaloriesNote');
     const weightChange = document.getElementById('weightChange');
+    const weightChangeNote = document.getElementById('weightChangeNote');
+    const recordPeriod = document.getElementById('recordPeriod');
     const weightStartDay = document.getElementById('weightStartDay');
     const weightStartValue = document.getElementById('weightStartValue');
     const weightLatestDay = document.getElementById('weightLatestDay');
     const weightLatestValue = document.getElementById('weightLatestValue');
-    const weightChangeNote = document.getElementById('weightChangeNote');
-    const monthAvgCalories = document.getElementById('monthAvgCalories');
-    const monthAvgCaloriesNote = document.getElementById('monthAvgCaloriesNote');
-    const overallAvgCalories = document.getElementById('overallAvgCalories');
-    const overallAvgCaloriesNote = document.getElementById('overallAvgCaloriesNote');
-    const healthRecordList = document.getElementById('healthRecordList');
 
     function loadEntryForSelectedDate(){
       const day = normalizeDay(healthDateInput.value) || getTodayKey();
       healthDateInput.value = formatInputDay(day);
-      const records = getHealthRecords();
-      const entry = records.find(item => item.day === day);
-      weightInput.value = entry?.weight || '';
-      calInput.value = entry?.calories || '';
-      renderHealth();
+      const record = getRecordByDay(day);
+      weightInput.value = record?.weight || '';
+      calInput.value = record?.calories || '';
+      renderStats();
+      renderRecordList();
     }
 
     function saveHealth(){
       const day = normalizeDay(healthDateInput.value) || getTodayKey();
       const weight = weightInput.value.trim();
       const calories = calInput.value.trim();
-      const records = getHealthRecords().filter(item => item.day !== day);
+      const records = getHealthRecords();
+      const index = records.findIndex(record => record.day === day);
+      const isEmpty = !weight && !calories;
 
-      if(weight || calories){
-        records.push({ day, weight, calories });
+      if(index >= 0 && isEmpty){
+        records.splice(index, 1);
+      }else if(index >= 0){
+        records[index] = { ...records[index], weight, calories, ts: Date.now() };
+      }else if(!isEmpty){
+        records.push({ id: uid(), day, weight, calories, ts: Date.now() });
       }
 
-      records.sort((a,b) => a.day.localeCompare(b.day));
-      saveJson(healthRecordsKey, records);
-      saveJson(healthLegacyKey, { weight, calories });
-      healthDateInput.value = formatInputDay(day);
-      renderHealth();
-      alert('保存したよ。');
+      saveHealthRecords(records);
+      syncLegacyLatest(records);
+      renderStats();
+      renderRecordList();
+      alert(isEmpty ? 'この日の記録を消したよ。' : '保存したよ。');
     }
 
-    function renderHealth(){
-      const selectedDay = normalizeDay(healthDateInput.value) || getTodayKey();
+    function renderStats(){
       const records = getHealthRecords();
-      const calorieRecords = records.filter(item => Number.isFinite(toNumber(item.calories)));
-      const weightRecords = records.filter(item => Number.isFinite(toNumber(item.weight)));
-      const allCount = calorieRecords.length;
-      const firstRecord = records[0];
+      const selectedDay = normalizeDay(healthDateInput.value) || getTodayKey();
+      const selectedMonth = selectedDay.slice(0, 7);
 
-      if(firstRecord && allCount){
-        recordPeriod.textContent = `${formatShortDay(firstRecord.day)}から ${allCount}日分`;
-      } else {
+      const filledRecordsAsc = [...records]
+        .filter(record => String(record.weight || '').trim() || String(record.calories || '').trim())
+        .sort((a,b) => (a.day > b.day ? 1 : -1));
+
+      if(filledRecordsAsc.length){
+        const first = filledRecordsAsc[0];
+        recordPeriod.textContent = `${formatShortDay(first.day)}から ${filledRecordsAsc.length}日分`;
+      }else{
         recordPeriod.textContent = 'まだ記録なし';
       }
 
-      if(weightRecords.length >= 2){
-        const start = weightRecords[0];
-        const latest = weightRecords[weightRecords.length - 1];
-        const startWeight = toNumber(start.weight);
-        const latestWeight = toNumber(latest.weight);
-        const delta = latestWeight - startWeight;
-        weightChange.textContent = formatDelta(delta);
-        weightChange.classList.toggle('is-good', delta < 0);
-        weightStartDay.textContent = formatShortDay(start.day);
-        weightStartValue.textContent = formatWeight(startWeight);
-        weightLatestDay.textContent = formatShortDay(latest.day);
-        weightLatestValue.textContent = formatWeight(latestWeight);
+      const calorieRecords = records
+        .map(record => ({ ...record, caloriesNum: parseNumber(record.calories) }))
+        .filter(record => record.caloriesNum != null);
 
-        const baselineDelta = latestWeight - baselineWeight;
-        const baselineText = Number.isFinite(baselineDelta)
-          ? `${baselineLabel} → 今日 ${latestWeight.toFixed(1)}kg（${baselineDelta > 0 ? '+' : ''}${baselineDelta.toFixed(1)}kg）`
-          : `${baselineLabel} → 今日の体重`;
-        weightChangeNote.textContent = baselineText;
-      } else {
+      if(calorieRecords.length){
+        const avg = calorieRecords.reduce((sum, record) => sum + record.caloriesNum, 0) / calorieRecords.length;
+        overallAvgCalories.textContent = formatAverageCalories(avg);
+        overallAvgCaloriesNote.textContent = `${calorieRecords.length}件のカロリー記録で計算`;
+      }else{
+        overallAvgCalories.textContent = '—';
+        overallAvgCaloriesNote.textContent = 'カロリーを記録するとここに出るよ。';
+      }
+
+      const monthCalories = calorieRecords.filter(record => record.day.startsWith(selectedMonth));
+      if(monthCalories.length){
+        const avg = monthCalories.reduce((sum, record) => sum + record.caloriesNum, 0) / monthCalories.length;
+        monthAvgCalories.textContent = formatAverageCalories(avg);
+        monthAvgCaloriesNote.textContent = `${selectedMonth.replace('-', '.')} の ${monthCalories.length}件で計算`;
+      }else{
+        monthAvgCalories.textContent = '—';
+        monthAvgCaloriesNote.textContent = `${selectedMonth.replace('-', '.')} のカロリー記録はまだないよ。`;
+      }
+
+      const weightRecordsAsc = [...records]
+        .map(record => ({ ...record, weightNum: parseNumber(record.weight) }))
+        .filter(record => record.weightNum != null)
+        .sort((a,b) => (a.day > b.day ? 1 : -1));
+
+      if(weightRecordsAsc.length >= 2){
+        const first = weightRecordsAsc[0];
+        const latest = weightRecordsAsc[weightRecordsAsc.length - 1];
+        const delta = latest.weightNum - first.weightNum;
+
+        weightChange.textContent = formatWeightDelta(delta);
+        weightChange.classList.toggle('is-loss', delta < 0);
+        weightChange.classList.toggle('is-gain', delta > 0);
+
+        weightStartDay.textContent = formatShortDay(first.day);
+        weightStartValue.textContent = formatWeight(first.weightNum);
+        weightLatestDay.textContent = formatShortDay(latest.day);
+        weightLatestValue.textContent = formatWeight(latest.weightNum);
+        const sinceAugust = latest.weightNum - 95;
+        weightChangeNote.textContent = `8/24 95kg → 今日 ${formatWeight(latest.weightNum)}（${formatWeightDelta(sinceAugust)}）`; 
+      }else if(weightRecordsAsc.length === 1){
+        const only = weightRecordsAsc[0];
+        weightChange.textContent = '±0.0kg';
+        weightChange.classList.remove('is-loss', 'is-gain');
+        weightStartDay.textContent = formatShortDay(only.day);
+        weightStartValue.textContent = formatWeight(only.weightNum);
+        weightLatestDay.textContent = formatShortDay(only.day);
+        weightLatestValue.textContent = formatWeight(only.weightNum);
+        const sinceAugust = only.weightNum - 95;
+        weightChangeNote.textContent = `8/24 95kg → 今日 ${formatWeight(only.weightNum)}（${formatWeightDelta(sinceAugust)}）`; 
+      }else{
         weightChange.textContent = '—';
-        weightChange.classList.remove('is-good');
+        weightChange.classList.remove('is-loss', 'is-gain');
         weightStartDay.textContent = '—';
         weightStartValue.textContent = '—';
         weightLatestDay.textContent = '—';
         weightLatestValue.textContent = '—';
-        weightChangeNote.textContent = `${baselineLabel} → 今日の体重 をここに出すよ。`;
+        weightChangeNote.textContent = '8/24 95kg → 今日の体重';
       }
 
-      if(calorieRecords.length){
-        const total = calorieRecords.reduce((sum, item) => sum + toNumber(item.calories), 0);
-        const avg = total / calorieRecords.length;
-        overallAvgCalories.textContent = formatCalories(avg);
-        overallAvgCaloriesNote.textContent = `${calorieRecords.length}件のカロリー記録で計算`;
-      } else {
-        overallAvgCalories.textContent = '—';
-        overallAvgCaloriesNote.textContent = '記録を増やすとここに出るよ。';
+    }
+
+    function renderRecordList(){
+      const records = getHealthRecords();
+      if(!records.length){
+        healthRecordList.innerHTML = '<div class="empty">まだ記録がないよ。<br>日付・体重・カロリーを入れて保存してみてね。</div>';
+        return;
       }
 
-      const selectedMonth = selectedDay.slice(0, 7);
-      const monthRecords = calorieRecords.filter(item => item.day.startsWith(selectedMonth));
-      if(monthRecords.length){
-        const total = monthRecords.reduce((sum, item) => sum + toNumber(item.calories), 0);
-        const avg = total / monthRecords.length;
-        monthAvgCalories.textContent = formatCalories(avg);
-        monthAvgCaloriesNote.textContent = `${selectedMonth.replace('-', '.')} の ${monthRecords.length}件で計算`;
-      } else {
-        monthAvgCalories.textContent = '—';
-        monthAvgCaloriesNote.textContent = '選んだ日付の月で計算するよ。';
-      }
+      const rows = records.slice(0, 16).map(record => {
+        const weightNum = parseNumber(record.weight);
+        const caloriesNum = parseNumber(record.calories);
+        return `
+          <button class="health-record-row" type="button" data-day="${record.day}">
+            <div class="health-record-main">
+              <div class="health-record-day">${formatDay(record.day)}</div>
+              <div class="health-record-meta">${weightNum != null ? formatWeight(weightNum) : '体重 —'}<span class="health-record-dot">•</span>${caloriesNum != null ? formatCalories(caloriesNum) : 'カロリー —'}</div>
+            </div>
+            <span class="health-record-arrow">›</span>
+          </button>
+        `;
+      }).join('');
 
-      const recent = [...records].sort((a,b) => b.day.localeCompare(a.day)).slice(0, 14);
-      if(!recent.length){
-        healthRecordList.innerHTML = '<div class="empty">まだ記録がないよ。</div>';
-      } else {
-        healthRecordList.innerHTML = recent.map(item => {
-          const weight = Number.isFinite(toNumber(item.weight)) ? `${toNumber(item.weight).toFixed(1)}kg` : '—';
-          const calories = Number.isFinite(toNumber(item.calories)) ? `${Math.round(toNumber(item.calories)).toLocaleString('ja-JP')}kcal` : '—';
-          return `
-            <button class="health-record-row" type="button" data-day="${item.day}">
-              <div class="health-record-main">
-                <div class="health-record-day">${item.day.replaceAll('-', '.')}</div>
-                <div class="health-record-meta">${weight} / ${calories}</div>
-              </div>
-              <span class="health-record-arrow">›</span>
-            </button>
-          `;
-        }).join('');
-
-        healthRecordList.querySelectorAll('.health-record-row').forEach(button => {
-          button.addEventListener('click', () => {
-            healthDateInput.value = formatInputDay(button.dataset.day);
-            loadEntryForSelectedDate();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          });
+      healthRecordList.innerHTML = rows;
+      healthRecordList.querySelectorAll('[data-day]').forEach(button => {
+        button.addEventListener('click', () => {
+          healthDateInput.value = formatInputDay(button.dataset.day);
+          loadEntryForSelectedDate();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         });
-      }
+      });
     }
 
     document.getElementById('backHome').addEventListener('click', () => {
       window.location.href = 'index.html';
     });
+
     document.getElementById('todayBtn').addEventListener('click', () => {
       healthDateInput.value = formatInputDay(getTodayKey());
       loadEntryForSelectedDate();
     });
+
     document.getElementById('saveHealthBtn').addEventListener('click', saveHealth);
     healthDateInput.addEventListener('change', loadEntryForSelectedDate);
-    healthDateInput.addEventListener('blur', loadEntryForSelectedDate);
+    healthDateInput.addEventListener('blur', () => {
+      const day = normalizeDay(healthDateInput.value);
+      if(day){
+        healthDateInput.value = formatInputDay(day);
+      }
+    });
 
-    ensureHealthSeedData();
     healthDateInput.value = formatInputDay(getTodayKey());
     loadEntryForSelectedDate();
   </script>

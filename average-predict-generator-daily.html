@@ -7,30 +7,20 @@
   <style>
     :root {
       --bg: #050507;
-      --bg-2: #0a0a10;
-      --card: rgba(16, 16, 22, 0.9);
-      --card-2: rgba(20, 20, 28, 0.92);
-      --line: rgba(255, 255, 255, 0.09);
-      --line-soft: rgba(255, 255, 255, 0.05);
       --text: #f6f3f0;
-      --muted: rgba(255, 255, 255, 0.62);
+      --muted: rgba(255, 255, 255, 0.66);
       --muted-2: rgba(255, 255, 255, 0.42);
-      --accent: #8ea6ff;
-      --accent-2: #cf7cff;
-      --danger: #ff8ea6;
+      --line: rgba(255, 255, 255, 0.09);
+      --card: rgba(14, 14, 20, 0.96);
       --good: #9ee6a8;
+      --danger: #ff98ae;
       --shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
-      --radius-xl: 30px;
-      --radius-lg: 24px;
-      --radius-md: 18px;
       --safe-bottom: max(28px, env(safe-area-inset-bottom));
     }
 
     * { box-sizing: border-box; }
 
-    html {
-      background: var(--bg);
-    }
+    html { background: var(--bg); }
 
     body {
       margin: 0;
@@ -54,41 +44,50 @@
     .topbar {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
 
     .back-chip {
+      display: grid;
+      place-items: center;
       width: 52px;
       height: 52px;
       border-radius: 20px;
       border: 1px solid var(--line);
+      color: var(--text);
+      text-decoration: none;
       background: linear-gradient(180deg, rgba(16, 16, 24, 0.95), rgba(8, 8, 12, 0.98));
-      display: grid;
-      place-items: center;
+      box-shadow: var(--shadow);
       font-size: 34px;
       line-height: 1;
-      color: var(--text);
-      box-shadow: var(--shadow);
-      user-select: none;
-      text-decoration: none;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
     }
 
     .page-title {
       margin: 0;
-      font-weight: 800;
-      font-size: clamp(30px, 6vw, 56px);
-      letter-spacing: -0.03em;
-      line-height: 1.05;
+      font-size: clamp(30px, 7vw, 56px);
+      line-height: 1.04;
+      font-weight: 850;
+      letter-spacing: -0.04em;
     }
 
     .page-sub {
-      margin: 8px 0 0;
-      font-size: 13px;
-      line-height: 1.6;
+      margin: 12px 0 0;
+      font-size: 14px;
+      line-height: 1.75;
       color: var(--muted);
+    }
+
+    .card {
+      position: relative;
+      margin-top: 26px;
+      padding: 24px 18px 18px;
+      border-radius: 30px;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 82% 20%, rgba(124, 89, 255, 0.14), transparent 24%),
+        linear-gradient(180deg, rgba(22, 22, 30, 0.95), rgba(8, 8, 12, 0.97));
     }
 
     .section-label {
@@ -99,112 +98,82 @@
       text-transform: uppercase;
     }
 
-    .card {
-      position: relative;
-      background:
-        radial-gradient(circle at 82% 20%, rgba(124, 89, 255, 0.14), transparent 24%),
-        linear-gradient(180deg, rgba(22, 22, 30, 0.95), rgba(8, 8, 12, 0.97));
-      border: 1px solid var(--line);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow);
-      padding: 22px 18px;
-      margin-bottom: 18px;
-      overflow: hidden;
-    }
-
-    .card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      pointer-events: none;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    }
-
     .section-title {
-      margin: 0 0 16px;
-      font-size: clamp(24px, 5vw, 34px);
-      letter-spacing: -0.03em;
-      line-height: 1.15;
-      font-weight: 800;
+      margin: 0 0 12px;
+      font-size: clamp(26px, 6vw, 42px);
+      line-height: 1.12;
+      font-weight: 850;
+      letter-spacing: -0.04em;
     }
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      min-width: 0;
-    }
-
-    .field label {
+    .field-label {
+      margin: 0 0 10px;
       font-size: 13px;
-      color: var(--muted);
       font-weight: 700;
-      letter-spacing: 0.02em;
+      color: var(--muted);
     }
 
-    input,
-    select,
     textarea {
       width: 100%;
-      min-height: 76px;
+      min-height: 190px;
+      resize: vertical;
       border-radius: 24px;
       border: 1px solid var(--line);
       background: linear-gradient(180deg, rgba(18, 18, 25, 0.98), rgba(9, 9, 13, 1));
       color: var(--text);
-      font-size: clamp(18px, 4vw, 22px);
-      font-weight: 700;
       padding: 18px 20px;
+      font-size: 17px;
+      line-height: 1.65;
+      font-weight: 700;
       outline: none;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
     }
 
-    input::placeholder,
     textarea::placeholder {
       color: rgba(255, 255, 255, 0.28);
       font-weight: 600;
     }
 
-    input:focus,
-    select:focus,
     textarea:focus {
       border-color: rgba(142, 166, 255, 0.7);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.03),
-        0 0 0 4px rgba(142, 166, 255, 0.16);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 0 0 4px rgba(142, 166, 255, 0.16);
     }
 
-
-    textarea {
-      min-height: 170px;
-      resize: vertical;
-      line-height: 1.6;
-      font-size: 17px;
-      font-weight: 700;
+    .actions {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
     }
 
-    .two-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 14px;
+    .btn {
+      appearance: none;
+      width: 100%;
+      min-height: 72px;
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(14, 14, 20, 0.98), rgba(6, 6, 10, 1));
+      color: var(--text);
+      font-size: clamp(18px, 4.7vw, 22px);
+      font-weight: 850;
+      cursor: pointer;
+      padding: 0 20px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    .btn-main {
+      background: linear-gradient(180deg, rgba(28, 29, 46, 0.98), rgba(11, 12, 20, 1));
+      border-color: rgba(142, 166, 255, 0.28);
     }
 
     .status-note {
-      margin-top: 14px;
-      border-radius: 18px;
-      padding: 14px 16px;
+      margin-top: 16px;
+      border-radius: 22px;
+      padding: 16px 18px;
       border: 1px solid var(--line);
       background: linear-gradient(180deg, rgba(18, 18, 25, 0.96), rgba(8, 8, 12, 0.98));
       color: var(--muted);
-      font-size: 14px;
-      line-height: 1.65;
+      font-size: 15px;
+      line-height: 1.7;
     }
 
     .status-note.good {
@@ -214,173 +183,7 @@
 
     .status-note.bad {
       color: var(--danger);
-      border-color: rgba(255, 142, 166, 0.24);
-    }
-
-    .inline-note,
-    .empty {
-      margin-top: 14px;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.65;
-    }
-
-    .row-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 14px;
-    }
-
-    .btn,
-    .delete-btn {
-      appearance: none;
-      border: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(14, 14, 20, 0.98), rgba(6, 6, 10, 1));
-      color: var(--text);
-      border-radius: 22px;
-      min-height: 62px;
-      padding: 0 22px;
-      font-size: 17px;
-      font-weight: 800;
-      cursor: pointer;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-    }
-
-    .btn-main {
-      background: linear-gradient(180deg, rgba(28, 29, 46, 0.98), rgba(11, 12, 20, 1));
-      border-color: rgba(142, 166, 255, 0.28);
-    }
-
-    .btn-sub {
-      border-color: rgba(207, 124, 255, 0.24);
-    }
-
-    .btn-ghost {
-      color: rgba(255, 255, 255, 0.84);
-    }
-
-    .scenario-list {
-      display: grid;
-      gap: 12px;
-    }
-
-    .scenario-item {
-      padding: 14px;
-      border-radius: 26px;
-      border: 1px solid var(--line-soft);
-      background: linear-gradient(180deg, rgba(18, 18, 25, 0.96), rgba(8, 8, 12, 0.98));
-    }
-
-    .scenario-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 76px;
-      gap: 12px;
-      align-items: end;
-    }
-
-    .delete-btn {
-      padding: 0;
-      width: 76px;
-      color: var(--danger);
-      font-size: 26px;
-      border-radius: 24px;
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .stat {
-      padding: 18px;
-      border-radius: 26px;
-      border: 1px solid var(--line-soft);
-      background: linear-gradient(180deg, rgba(18, 18, 25, 0.96), rgba(8, 8, 12, 0.98));
-      min-width: 0;
-    }
-
-    .stat .label {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.5;
-      margin-bottom: 10px;
-      letter-spacing: 0.02em;
-    }
-
-    .stat .value {
-      font-size: clamp(28px, 6vw, 42px);
-      line-height: 1.08;
-      font-weight: 850;
-      letter-spacing: -0.03em;
-      word-break: break-word;
-    }
-
-    .hint {
-      margin-top: 14px;
-      padding: 16px 18px;
-      border-radius: 22px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: linear-gradient(180deg, rgba(18, 18, 25, 0.94), rgba(8, 8, 12, 0.98));
-      font-size: 15px;
-      line-height: 1.7;
-      color: rgba(255, 255, 255, 0.9);
-    }
-
-    .hint.good {
-      border-color: rgba(158, 230, 168, 0.18);
-      color: var(--good);
-    }
-
-    .table-wrap {
-      overflow-x: auto;
-      border-radius: 24px;
-      border: 1px solid var(--line-soft);
-      background: linear-gradient(180deg, rgba(18, 18, 25, 0.96), rgba(8, 8, 12, 0.98));
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 540px;
-    }
-
-    th,
-    td {
-      padding: 14px 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      text-align: left;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    th {
-      color: var(--muted);
-      font-size: 12px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      font-weight: 800;
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    tr:last-child td {
-      border-bottom: none;
-    }
-
-    .mono {
-      font-variant-numeric: tabular-nums;
-      font-feature-settings: "tnum";
-    }
-
-    .footer-note {
-      margin-top: -2px;
-      color: var(--muted-2);
-      font-size: 12px;
-      line-height: 1.6;
-      text-align: center;
+      border-color: rgba(255, 152, 174, 0.24);
     }
 
     @media (max-width: 700px) {
@@ -389,209 +192,60 @@
         padding-right: 12px;
       }
 
-      .grid,
-      .stats,
-      .scenario-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .delete-btn,
-      .btn {
-        width: 100%;
-      }
-
-      .topbar {
-        margin-bottom: 14px;
-      }
-
       .card {
-        padding: 18px 16px;
+        padding: 20px 16px 16px;
         border-radius: 28px;
       }
 
-      .section-title {
-        font-size: 22px;
-      }
-
-      input,
-      select,
       textarea {
-        min-height: 70px;
-        border-radius: 22px;
-      }
-
-      .scenario-item,
-      .stat,
-      .hint,
-      .table-wrap {
-        border-radius: 22px;
+        min-height: 168px;
       }
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="topbar" aria-hidden="true">
+    <div class="topbar">
       <a class="back-chip" href="health.html" aria-label="Healthへ戻る">‹</a>
     </div>
 
-    <header style="margin-bottom: 22px;">
+    <header>
       <h1 class="page-title">平均予測<br>ジェネレーター</h1>
-      <p class="page-sub">日ごとに予定カロリーを追加して、その時点の平均を見られる版。</p>
+      <p class="page-sub">今月ぶんをまとめて貼って、その時点の平均だけをさっと見られる版。</p>
     </header>
-
-    <section class="card">
-      <p class="section-label">Current</p>
-      <h2 class="section-title">今の状態を入れる</h2>
-      <div class="grid">
-        <div class="field">
-          <label for="month">月</label>
-          <select id="month"></select>
-        </div>
-        <div class="field">
-          <label for="daysElapsed">ここまで何日分ある？</label>
-          <input id="daysElapsed" type="number" min="1" max="31" inputmode="numeric" placeholder="例：23" />
-        </div>
-        <div class="field">
-          <label for="currentAverage">その時点の平均カロリー</label>
-          <input id="currentAverage" type="number" min="0" step="1" inputmode="decimal" placeholder="例：1850" />
-        </div>
-        <div class="field">
-          <label for="targetAverage">目標平均（任意）</label>
-          <input id="targetAverage" type="number" min="0" step="1" inputmode="decimal" placeholder="例：1800" />
-        </div>
-      </div>
-      <div class="inline-note">ここまでの合計カロリーは自動で計算するよ。</div>
-    </section>
 
     <section class="card">
       <p class="section-label">Import</p>
       <h2 class="section-title">今月ぶんをまとめて入れる</h2>
-      <div class="field">
-        <label for="bulkInput">1行ずつ貼ってね</label>
-        <textarea id="bulkInput" placeholder="例：
+      <p class="field-label">1行ずつ貼ってね</p>
+      <textarea id="bulkInput" placeholder="例：
 3/1 1577
 3/2 1614
 3/3 1568"></textarea>
-      </div>
-      <div class="two-actions">
+
+      <div class="actions">
         <button class="btn btn-main" id="importBaseBtn" type="button">今の状態に反映</button>
-        <button class="btn btn-ghost" id="clearBulkBtn" type="button">貼り付け欄を空にする</button>
+        <button class="btn" id="clearBulkBtn" type="button">貼り付け欄を空にする</button>
       </div>
-      <div id="bulkStatus" class="status-note">3/1 1577 みたいに貼れば、件数と平均を自動で入れるよ。</div>
-    </section>
 
-    <section class="card">
-      <p class="section-label">Input</p>
-      <div class="row-head">
-        <h2 class="section-title" style="margin:0;">追加したい日を入れる</h2>
-        <button class="btn btn-main" id="addRowBtn" type="button">＋ 日を追加</button>
-      </div>
-      <div id="scenarioList" class="scenario-list"></div>
-      <div class="inline-note">例：24日 1500、25日 1600、26日 2600…みたいに追加していけるよ。</div>
+      <div id="bulkStatus" class="status-note">3/1 1577 みたいに貼れば、件数と平均を自動で出すよ。</div>
     </section>
-
-    <section class="card">
-      <p class="section-label">Summary</p>
-      <h2 class="section-title">結果</h2>
-      <div class="stats">
-        <div class="stat">
-          <div class="label">ここまでの合計カロリー</div>
-          <div class="value mono" id="baseTotal">-</div>
-        </div>
-        <div class="stat">
-          <div class="label">追加ぶん合計カロリー</div>
-          <div class="value mono" id="addedTotal">-</div>
-        </div>
-        <div class="stat">
-          <div class="label">最後に入力した日までの平均</div>
-          <div class="value mono" id="finalAverage">-</div>
-        </div>
-        <div class="stat">
-          <div class="label">最後に入力した日</div>
-          <div class="value mono" id="finalDay">-</div>
-        </div>
-      </div>
-      <div class="hint" id="paceHint">今の状態を入れると、ここにメッセージが出るよ。</div>
-    </section>
-
-    <section class="card">
-      <p class="section-label">History</p>
-      <h2 class="section-title">日ごとの変化</h2>
-      <div id="tableWrap"></div>
-    </section>
-
-    <section class="card">
-      <p class="section-label">Actions</p>
-      <div class="row-head">
-        <h2 class="section-title" style="margin:0;">操作</h2>
-        <div style="display:flex; gap:10px; flex-wrap:wrap; width:100%; max-width: 390px;">
-          <button class="btn btn-sub" id="exampleBtn" type="button">例を入れる</button>
-          <button class="btn btn-ghost" id="resetBtn" type="button">リセット</button>
-        </div>
-      </div>
-      <div class="inline-note">入力内容はこの端末に保存されるよ。</div>
-    </section>
-
-    <div class="footer-note">GitHubに上げるときは、このまま <span class="mono">average-predict-generator.html</span> でOK。</div>
   </div>
 
   <script>
-    const STORAGE_KEY = 'daily-average-generator-v3';
+    const STORAGE_KEY = 'daily-average-generator-simple-v1';
 
-    const monthEl = document.getElementById('month');
-    const daysElapsedEl = document.getElementById('daysElapsed');
-    const currentAverageEl = document.getElementById('currentAverage');
-    const targetAverageEl = document.getElementById('targetAverage');
-    const scenarioListEl = document.getElementById('scenarioList');
     const bulkInputEl = document.getElementById('bulkInput');
-
-    const baseTotalEl = document.getElementById('baseTotal');
-    const addedTotalEl = document.getElementById('addedTotal');
-    const finalAverageEl = document.getElementById('finalAverage');
-    const finalDayEl = document.getElementById('finalDay');
-    const paceHintEl = document.getElementById('paceHint');
-    const tableWrapEl = document.getElementById('tableWrap');
-
-    const addRowBtn = document.getElementById('addRowBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const exampleBtn = document.getElementById('exampleBtn');
     const importBaseBtn = document.getElementById('importBaseBtn');
     const clearBulkBtn = document.getElementById('clearBulkBtn');
     const bulkStatusEl = document.getElementById('bulkStatus');
 
-    function createMonthOptions() {
-      for (let i = 1; i <= 12; i++) {
-        const option = document.createElement('option');
-        option.value = String(i);
-        option.textContent = `${i}月`;
-        monthEl.appendChild(option);
-      }
-      monthEl.value = String(new Date().getMonth() + 1);
-    }
-
-    function getMonthDays(month) {
-      return new Date(2026, Number(month), 0).getDate();
-    }
-
-    function getState() {
-      const rows = [...scenarioListEl.querySelectorAll('.scenario-item')].map(item => ({
-        day: item.querySelector('.day-input').value,
-        calories: item.querySelector('.cal-input').value,
-      }));
-
-      return {
-        month: monthEl.value,
-        daysElapsed: daysElapsedEl.value,
-        currentAverage: currentAverageEl.value,
-        targetAverage: targetAverageEl.value,
-        bulkInput: bulkInputEl.value,
-        rows,
-      };
-    }
-
     function saveState() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(getState()));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        bulkInput: bulkInputEl.value,
+        statusClass: bulkStatusEl.className,
+        statusText: bulkStatusEl.textContent,
+      }));
     }
 
     function loadState() {
@@ -599,58 +253,12 @@
       if (!raw) return;
       try {
         const state = JSON.parse(raw);
-        if (state.month) monthEl.value = state.month;
-        if (state.daysElapsed) daysElapsedEl.value = state.daysElapsed;
-        if (state.currentAverage) currentAverageEl.value = state.currentAverage;
-        if (state.targetAverage) targetAverageEl.value = state.targetAverage;
-        if (state.bulkInput) bulkInputEl.value = state.bulkInput;
-        scenarioListEl.innerHTML = '';
-        if (Array.isArray(state.rows) && state.rows.length) {
-          state.rows.forEach(row => addRow(row.day, row.calories));
-        }
-      } catch (e) {
-        console.error(e);
+        if (typeof state.bulkInput === 'string') bulkInputEl.value = state.bulkInput;
+        if (typeof state.statusClass === 'string') bulkStatusEl.className = state.statusClass;
+        if (typeof state.statusText === 'string') bulkStatusEl.textContent = state.statusText;
+      } catch (error) {
+        console.error(error);
       }
-    }
-
-    function addRow(day = '', calories = '') {
-      const item = document.createElement('div');
-      item.className = 'scenario-item';
-      item.innerHTML = `
-        <div class="scenario-grid">
-          <div class="field">
-            <label>日付</label>
-            <input class="day-input" type="number" min="1" max="31" inputmode="numeric" placeholder="例：24" value="${day}" />
-          </div>
-          <div class="field">
-            <label>カロリー</label>
-            <input class="cal-input" type="number" min="0" step="1" inputmode="decimal" placeholder="例：1500" value="${calories}" />
-          </div>
-          <button class="delete-btn" type="button" aria-label="削除">×</button>
-        </div>
-      `;
-
-      item.querySelectorAll('input').forEach(input => {
-        input.addEventListener('input', () => {
-          saveState();
-          render();
-        });
-      });
-
-      item.querySelector('.delete-btn').addEventListener('click', () => {
-        item.remove();
-        saveState();
-        render();
-      });
-
-      scenarioListEl.appendChild(item);
-    }
-
-    function formatNumber(value, digits = 0) {
-      return Number(value).toLocaleString('ja-JP', {
-        minimumFractionDigits: digits,
-        maximumFractionDigits: digits,
-      });
     }
 
     function parseBulkText(text) {
@@ -665,9 +273,11 @@
           errors.push(`${index + 1}行目`);
           return;
         }
+
         const [, month, day, calories] = match;
         if (month) months.push(Number(month));
         rows.push({
+          month: month ? Number(month) : null,
           day: Number(day),
           calories: Number(calories),
         });
@@ -676,231 +286,70 @@
       return { rows, errors, months };
     }
 
-    function importBulkAsBase() {
+    function importBulk() {
       const raw = bulkInputEl.value.trim();
       if (!raw) {
         bulkStatusEl.className = 'status-note bad';
         bulkStatusEl.textContent = 'まずはカロリー記録を貼ってね。';
+        saveState();
         return;
       }
 
       const { rows, errors, months } = parseBulkText(raw);
+
       if (errors.length) {
         bulkStatusEl.className = 'status-note bad';
         bulkStatusEl.textContent = `${errors.join('、')} の書き方が読めなかったよ。例：3/1 1577`;
+        saveState();
         return;
       }
+
       if (!rows.length) {
         bulkStatusEl.className = 'status-note bad';
         bulkStatusEl.textContent = '読み込めるデータが見つからなかったよ。';
+        saveState();
         return;
       }
 
       rows.sort((a, b) => a.day - b.day);
-      const daySet = new Set();
+
+      const seenDays = new Set();
       for (const row of rows) {
-        if (daySet.has(row.day)) {
+        if (seenDays.has(row.day)) {
           bulkStatusEl.className = 'status-note bad';
           bulkStatusEl.textContent = `${row.day}日が重複してるよ。`;
+          saveState();
           return;
         }
-        daySet.add(row.day);
+        seenDays.add(row.day);
       }
 
       const uniqueMonths = [...new Set(months)].filter(Boolean);
-      if (uniqueMonths.length === 1) {
-        monthEl.value = String(uniqueMonths[0]);
-      }
-
+      const monthLabel = uniqueMonths.length === 1 ? `${uniqueMonths[0]}` : 'この';
       const maxDay = rows[rows.length - 1].day;
       const isContiguous = rows.every((row, index) => row.day === index + 1);
-      const daysElapsed = isContiguous ? maxDay : rows.length;
+      const divisor = isContiguous ? maxDay : rows.length;
       const total = rows.reduce((sum, row) => sum + row.calories, 0);
-      const average = total / daysElapsed;
-
-      daysElapsedEl.value = String(daysElapsed);
-      currentAverageEl.value = (Math.round(average * 10) / 10).toFixed(1);
-      scenarioListEl.innerHTML = '';
-      addRow();
+      const average = total / divisor;
 
       bulkStatusEl.className = 'status-note good';
-      bulkStatusEl.textContent = `${rows.length}件読み込んだよ。${monthEl.value}/${maxDay} 時点の平均は ${(Math.round(average * 10) / 10).toFixed(1)}kcal。`;
+      bulkStatusEl.textContent = `${rows.length}件読み込んだよ。${monthLabel}/${maxDay} 時点の平均は ${average.toFixed(1)}kcal。`;
       if (!isContiguous) {
         bulkStatusEl.textContent += ' 日付が飛んでいたから、件数ベースで平均を出してるよ。';
       }
-
       saveState();
-      render();
     }
 
-    function render() {
-      const month = Number(monthEl.value || 0);
-      const daysElapsed = Number(daysElapsedEl.value || 0);
-      const currentAverage = Number(currentAverageEl.value || 0);
-      const targetAverage = Number(targetAverageEl.value || 0);
-      const monthDays = getMonthDays(month || 1);
-
-      const baseTotal = daysElapsed > 0 ? currentAverage * daysElapsed : 0;
-      const rows = [...scenarioListEl.querySelectorAll('.scenario-item')].map(item => ({
-        day: Number(item.querySelector('.day-input').value || 0),
-        calories: Number(item.querySelector('.cal-input').value || 0),
-      })).filter(row => row.day > 0 && row.calories >= 0)
-        .sort((a, b) => a.day - b.day);
-
-      const duplicateDays = new Set();
-      const seenDays = new Set();
-      rows.forEach(row => {
-        if (seenDays.has(row.day)) duplicateDays.add(row.day);
-        seenDays.add(row.day);
-      });
-
-      const invalidBefore = rows.some(row => row.day <= daysElapsed);
-      const invalidAfter = rows.some(row => row.day > monthDays);
-
-      let runningTotal = baseTotal;
-      let addedTotal = 0;
-      const tableRows = [];
-
-      rows.forEach(row => {
-        runningTotal += row.calories;
-        addedTotal += row.calories;
-        const average = runningTotal / row.day;
-        tableRows.push({
-          day: row.day,
-          calories: row.calories,
-          total: runningTotal,
-          average,
-        });
-      });
-
-      baseTotalEl.textContent = baseTotal > 0 ? `${formatNumber(baseTotal)}kcal` : '-';
-      addedTotalEl.textContent = rows.length ? `${formatNumber(addedTotal)}kcal` : '-';
-
-      const lastRow = tableRows[tableRows.length - 1];
-      finalAverageEl.textContent = lastRow ? `${formatNumber(lastRow.average, 1)}kcal` : '-';
-      finalDayEl.textContent = lastRow ? `${month}/${lastRow.day}` : '-';
-
-      let hint = '';
-      let hintClass = 'hint';
-
-      if (!daysElapsed || !currentAverage) {
-        hint = 'まず「ここまで何日分あるか」と「その時点の平均カロリー」を入れてね。';
-      } else if (duplicateDays.size) {
-        hint = `同じ日付が重複してるよ：${[...duplicateDays].join('日, ')}日`;
-      } else if (invalidBefore) {
-        hint = `追加する日付は ${daysElapsed + 1}日以降にしてね。`;
-      } else if (invalidAfter) {
-        hint = `${month}月は ${monthDays}日までだよ。`;
-      } else if (!rows.length) {
-        hint = `いまの合計は ${formatNumber(baseTotal)}kcal。追加したい日を入れると、その日までの平均が出るよ。`;
-        hintClass = 'hint good';
-      } else {
-        hintClass = 'hint good';
-        hint = `${month}/${lastRow.day} 時点の平均は ${formatNumber(lastRow.average, 1)}kcal だよ。`;
-        if (targetAverage > 0) {
-          const diff = lastRow.average - targetAverage;
-          if (diff > 0) {
-            hint += ` 目標より ${formatNumber(diff, 1)}kcal 高め。`;
-          } else if (diff < 0) {
-            hint += ` 目標より ${formatNumber(Math.abs(diff), 1)}kcal 低め。`;
-          } else {
-            hint += ' 目標ぴったり！';
-          }
-        }
-      }
-
-      paceHintEl.className = hintClass;
-      paceHintEl.textContent = hint;
-
-      if (!tableRows.length) {
-        tableWrapEl.innerHTML = '<div class="empty">まだ日別入力がないよ。上の「＋ 日を追加」から入れてみてね。</div>';
-      } else {
-        const rowsHtml = tableRows.map(row => `
-          <tr>
-            <td>${month}/${row.day}</td>
-            <td class="mono">${formatNumber(row.calories)}kcal</td>
-            <td class="mono">${formatNumber(row.total)}kcal</td>
-            <td class="mono">${formatNumber(row.average, 1)}kcal</td>
-          </tr>
-        `).join('');
-
-        tableWrapEl.innerHTML = `
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>日付</th>
-                  <th>その日の摂取</th>
-                  <th>ここまでの合計</th>
-                  <th>その時点の平均</th>
-                </tr>
-              </thead>
-              <tbody>${rowsHtml}</tbody>
-            </table>
-          </div>
-        `;
-      }
-    }
-
-    function resetAll() {
-      monthEl.value = String(new Date().getMonth() + 1);
-      daysElapsedEl.value = '';
-      currentAverageEl.value = '';
-      targetAverageEl.value = '';
-      scenarioListEl.innerHTML = '';
-      bulkInputEl.value = '';
-      bulkStatusEl.className = 'status-note';
-      bulkStatusEl.textContent = '3/1 1577 みたいに貼れば、件数と平均を自動で入れるよ。';
-      localStorage.removeItem(STORAGE_KEY);
-      render();
-    }
-
-    function fillExample() {
-      monthEl.value = '3';
-      daysElapsedEl.value = '23';
-      currentAverageEl.value = '1850';
-      targetAverageEl.value = '1800';
-      scenarioListEl.innerHTML = '';
-      addRow('24', '1500');
-      addRow('25', '1600');
-      addRow('26', '2600');
-      addRow('27', '2700');
-      saveState();
-      render();
-    }
-
-    [monthEl, daysElapsedEl, currentAverageEl, targetAverageEl].forEach(el => {
-      el.addEventListener('input', () => {
-        saveState();
-        render();
-      });
-      el.addEventListener('change', () => {
-        saveState();
-        render();
-      });
-    });
-
-    addRowBtn.addEventListener('click', () => {
-      addRow();
-      saveState();
-      render();
-    });
-
-    resetBtn.addEventListener('click', resetAll);
-    exampleBtn.addEventListener('click', fillExample);
-    importBaseBtn.addEventListener('click', importBulkAsBase);
+    importBaseBtn.addEventListener('click', importBulk);
     clearBulkBtn.addEventListener('click', () => {
       bulkInputEl.value = '';
       bulkStatusEl.className = 'status-note';
-      bulkStatusEl.textContent = '3/1 1577 みたいに貼れば、件数と平均を自動で入れるよ。';
+      bulkStatusEl.textContent = '3/1 1577 みたいに貼れば、件数と平均を自動で出すよ。';
       saveState();
     });
     bulkInputEl.addEventListener('input', saveState);
 
-    createMonthOptions();
     loadState();
-    if (!scenarioListEl.children.length) addRow();
-    render();
   </script>
 </body>
 </html>
