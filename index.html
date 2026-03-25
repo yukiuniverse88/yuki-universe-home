@@ -78,7 +78,7 @@
               <div class="duo-badge health-badge">♡</div>
               <div class="duo-info">
                 <div class="duo-label">Health</div>
-                
+                <div class="duo-sub" id="healthSummary">Weight / Calories</div>
               </div>
               <span class="duo-arrow">›</span>
             </button>
@@ -122,7 +122,8 @@
     const welcomeText = document.getElementById('welcomeText');
     const moodStatusText = document.getElementById('moodStatusText');
     const diaryBadge = document.getElementById('diaryBadge');
-        const simpleSheetBackdrop = document.getElementById('simpleSheetBackdrop');
+    const healthSummary = document.getElementById('healthSummary');
+    const simpleSheetBackdrop = document.getElementById('simpleSheetBackdrop');
     const simpleSheetContent = document.getElementById('simpleSheetContent');
 
     let pendingMood = null;
@@ -141,6 +142,8 @@
       if(moodStatusText) moodStatusText.textContent = display ? `今日の気分: ${display}` : '未記録';
       document.querySelectorAll('.pill[data-mood]').forEach(btn => btn.classList.toggle('active', btn.dataset.mood === display));
       if(diaryBadge) diaryBadge.textContent = `Mood: ${mood || '—'}`;
+      const health = getHealthData();
+      if(healthSummary) healthSummary.textContent = `${health.weight || 'Weight'} / ${health.calories || 'Calories'}`;
       const saveBtn = document.getElementById('moodSaveBtn');
       if(saveBtn) saveBtn.style.display = pendingMood ? '' : 'none';
     }
@@ -191,7 +194,7 @@
     }
 
     document.getElementById('openMemoFromHome').addEventListener('click', () => { window.location.href = 'memo.html'; });
-    document.getElementById('openDiaryFromHome').addEventListener('click', () => { window.location.href = 'diary.html'; });
+    document.getElementById('openDiaryFromHome').addEventListener('click', () => { window.location.href = 'diary.html?view=list'; });
     document.getElementById('openHealthFromHome').addEventListener('click', () => { window.location.href = 'health.html'; });
     document.getElementById('openLivingFromHome').addEventListener('click', () => openSimpleSheet('Living','みんながいる共有のリビング。\nここは次の制作でつないでいく場所。'));
     document.getElementById('openRoomsFromHome').addEventListener('click', () => openSimpleSheet('Rooms','それぞれの部屋へ入る入口。\nRoomsはあとで本設計する予定。'));

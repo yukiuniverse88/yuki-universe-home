@@ -44,9 +44,10 @@
     <section id="view-list" class="view">
       <div class="nav">
         <div class="nav-row">
-          <button class="icon-btn" id="backToWrite" aria-label="記入へ戻る">‹</button>
+          <button class="icon-btn" id="backToWrite" aria-label="戻る">‹</button>
           <div class="nav-title">Diary List</div>
           <div class="nav-actions">
+            <button class="icon-btn" id="newEntryBtn" aria-label="新規日記">＋</button>
             <button class="icon-btn" id="listMenuBtn" aria-label="メニュー">…</button>
           </div>
         </div>
@@ -116,7 +117,9 @@
           byDay.set(next.day, next);
         } else { changed = true; }
       });
-      const normalized = Array.from(byDay.values()).sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0, 180);
+      const normalized = Array.from(byDay.values())
+        .sort((a,b)=> (a.day === b.day ? ((b.ts||0)-(a.ts||0)) : (a.day < b.day ? 1 : -1)))
+        .slice(0, 180);
       if(changed){ try{ saveJson(diaryKey, normalized); }catch{} }
       return normalized;
     }
@@ -189,8 +192,21 @@
     function showView(name){
       currentView = name;
       Object.entries(views).forEach(([k,el]) => el.classList.toggle('active', k===name));
+      updateUrlView(name);
     }
     function closeMenu(){ menuWrap.classList.remove('show'); }
+    function getViewParam(){
+      const params = new URLSearchParams(window.location.search);
+      return params.get('view') || '';
+    }
+    function updateUrlView(view){
+      const params = new URLSearchParams(window.location.search);
+      if(view === 'list') params.set('view', 'list');
+      else params.delete('view');
+      const query = params.toString();
+      const next = `${window.location.pathname}${query ? '?' + query : ''}`;
+      history.replaceState(null, '', next);
+    }
 
     /* === Write View === */
     function initWriteView(entryId){
@@ -346,7 +362,7 @@
         ts: draft.ts || Date.now()
       };
       diaries.unshift(entry);
-      diaries.sort((a,b)=>(b.ts||0)-(a.ts||0));
+      diaries.sort((a,b)=> (a.day === b.day ? ((b.ts||0)-(a.ts||0)) : (a.day < b.day ? 1 : -1)));
       if(!persistDiaryList(diaries)) return;
 
       const moods = getMoodMap();
@@ -384,7 +400,7 @@
           diaries.push({ id:'mood-'+day, day, mood, text:'', image:'', imageName:'', ts: new Date(day+'T12:00:00').getTime() });
         }
       });
-      return diaries.sort((a,b)=>(b.ts||0)-(a.ts||0));
+      return diaries.sort((a,b)=> (a.day === b.day ? ((b.ts||0)-(a.ts||0)) : (a.day < b.day ? 1 : -1)));
     }
 
     function renderList(){
@@ -497,12 +513,24 @@
     /* === Event Listeners === */
     document.getElementById('backHome').addEventListener('click', () => { window.location.href = 'index.html'; });
     document.getElementById('openListBtn').addEventListener('click', () => { renderList(); showView('list'); });
-    document.getElementById('backToWrite').addEventListener('click', () => { initWriteView(); });
+    document.getElementById('backToWrite').addEventListener('click', () => {
+      if(getViewParam() === 'list') {
+        window.location.href = 'index.html';
+        return;
+      }
+      initWriteView();
+    });
+    document.getElementById('newEntryBtn').addEventListener('click', () => { initWriteView(); });
     document.getElementById('listMenuBtn').addEventListener('click', openListMenu);
     document.getElementById('closeMenuBackdrop').addEventListener('click', closeMenu);
 
     /* === Init === */
-    initWriteView();
+    if(getViewParam() === 'list'){
+      renderList();
+      showView('list');
+    } else {
+      initWriteView();
+    }
   </script>
 </body>
 </html>
