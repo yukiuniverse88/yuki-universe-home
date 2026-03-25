@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VRM Viewer - Three.js + three-vrm</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1020;
+      --panel: rgba(16, 22, 42, 0.82);
+      --line: rgba(255, 255, 255, 0.12);
+      --text: #f5f7ff;
+      --muted: #aab4d6;
+      --accent: #82aaff;
+      --danger: #ff8a8a;
+      --ok: #8ef0b5;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at top, #162042 0%, var(--bg) 55%);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .ui {
+      position: fixed;
+      inset: 16px 16px auto 16px;
+      z-index: 10;
+      display: grid;
+      gap: 12px;
+      max-width: min(720px, calc(100vw - 32px));
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .hint {
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    input[type="text"],
+    input[type="file"],
+    button {
+      min-height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      padding: 10px 12px;
+      font: inherit;
+    }
+
+    input[type="text"] {
+      flex: 1 1 320px;
+      min-width: 220px;
+    }
+
+    input[type="file"] {
+      max-width: 100%;
+      flex: 1 1 260px;
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform 120ms ease, background 120ms ease;
+    }
+
+    button:hover { background: rgba(255, 255, 255, 0.1); }
+    button:active { transform: translateY(1px); }
+
+    .status {
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .status.ok { color: var(--ok); }
+    .status.error { color: var(--danger); }
+
+    .drop {
+      position: fixed;
+      inset: 0;
+      display: none;
+      place-items: center;
+      z-index: 20;
+      background: rgba(11, 16, 32, 0.72);
+      border: 3px dashed rgba(130, 170, 255, 0.55);
+    }
+
+    .drop.visible { display: grid; }
+
+    .drop > div {
+      padding: 22px 28px;
+      border-radius: 16px;
+      background: rgba(10, 14, 28, 0.92);
+      border: 1px solid var(--line);
+      font-size: 18px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .footer-note {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 700px) {
+      .ui {
+        inset: 10px 10px auto 10px;
+        max-width: calc(100vw - 20px);
+      }
+      .title { font-size: 16px; }
+    }
+  </style>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.183.2/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.183.2/examples/jsm/",
+      "@pixiv/three-vrm": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.1/lib/three-vrm.module.min.js"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div class="ui">
+    <div class="title">VRM Viewer</div>
+    <div class="hint">
+      同じリポジトリ内の VRM を読み込むなら、たとえば <code>./models/avatar.vrm</code> を指定。<br>
+      もしくはローカルの <code>.vrm</code> ファイルを選択 / ドラッグ＆ドロップでも表示できます。<br>
+      GitHub Pages 公開後は <code>?model=./models/avatar.vrm</code> のような URL でも読み込めます。
+    </div>
+
+    <div class="row">
+      <input id="urlInput" type="text" value="./model.vrm" spellcheck="false" />
+      <button id="loadUrlBtn" type="button">URL/パスから読む</button>
+      <button id="resetViewBtn" type="button">視点リセット</button>
+    </div>
+
+    <div class="row">
+      <input id="fileInput" type="file" accept=".vrm,model/vrm" />
+      <button id="clearBtn" type="button">モデルを外す</button>
+    </div>
+
+    <div id="status" class="status">準備中…</div>
+    <div class="footer-note">操作: 左ドラッグ=回転 / 右ドラッグ=平行移動 / ホイール=ズーム</div>
+  </div>
+
+  <div id="dropOverlay" class="drop">
+    <div>ここに VRM ファイルをドロップ</div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
+
+    const statusEl = document.getElementById('status');
+    const urlInput = document.getElementById('urlInput');
+    const fileInput = document.getElementById('fileInput');
+    const loadUrlBtn = document.getElementById('loadUrlBtn');
+    const resetViewBtn = document.getElementById('resetViewBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const dropOverlay = document.getElementById('dropOverlay');
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0b1020);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    document.body.appendChild(renderer.domElement);
+
+    const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0.0, 1.35, 3.2);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 1.2, 0);
+    controls.enableDamping = true;
+    controls.screenSpacePanning = true;
+    controls.update();
+
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x223355, 1.5);
+    scene.add(hemiLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, Math.PI * 0.8);
+    dirLight.position.set(1, 1.5, 2);
+    scene.add(dirLight);
+
+    const fillLight = new THREE.DirectionalLight(0xffffff, Math.PI * 0.3);
+    fillLight.position.set(-1.5, 1.2, -1.5);
+    scene.add(fillLight);
+
+    const gridHelper = new THREE.GridHelper(10, 10, 0x4c6fff, 0x304266);
+    gridHelper.position.y = 0;
+    scene.add(gridHelper);
+
+    const axesHelper = new THREE.AxesHelper(0.7);
+    axesHelper.position.set(0, 0.01, 0);
+    scene.add(axesHelper);
+
+    const clock = new THREE.Clock();
+    const loader = new GLTFLoader();
+    loader.crossOrigin = 'anonymous';
+    loader.register((parser) => new VRMLoaderPlugin(parser));
+
+    let currentVrm = null;
+    let currentRoot = null;
+    let currentObjectUrl = null;
+
+    function setStatus(message, type = '') {
+      statusEl.textContent = message;
+      statusEl.className = 'status' + (type ? ` ${type}` : '');
+    }
+
+    function disposeCurrentModel() {
+      if (currentRoot) {
+        scene.remove(currentRoot);
+        VRMUtils.deepDispose(currentRoot);
+        currentRoot = null;
+      }
+      currentVrm = null;
+
+      if (currentObjectUrl) {
+        URL.revokeObjectURL(currentObjectUrl);
+        currentObjectUrl = null;
+      }
+    }
+
+    function fitCameraToObject(object3D) {
+      const box = new THREE.Box3().setFromObject(object3D);
+      if (box.isEmpty()) {
+        camera.position.set(0.0, 1.35, 3.2);
+        controls.target.set(0, 1.2, 0);
+        controls.update();
+        return;
+      }
+
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+      const maxSize = Math.max(size.x, size.y, size.z);
+      const fov = THREE.MathUtils.degToRad(camera.fov);
+      const distance = (maxSize / 2) / Math.tan(fov / 2) * 1.35;
+
+      controls.target.copy(center);
+      camera.position.set(center.x, center.y + Math.max(size.y * 0.1, 0.15), center.z + distance);
+      camera.near = Math.max(distance / 100, 0.01);
+      camera.far = Math.max(distance * 20, 100);
+      camera.updateProjectionMatrix();
+      controls.update();
+    }
+
+    function prepareVrm(vrm, sourceLabel) {
+      const root = vrm.scene;
+
+      VRMUtils.removeUnnecessaryVertices(root);
+      VRMUtils.combineSkeletons(root);
+      VRMUtils.combineMorphs(vrm);
+      VRMUtils.rotateVRM0(vrm);
+
+      root.traverse((obj) => {
+        obj.frustumCulled = false;
+      });
+
+      disposeCurrentModel();
+      currentVrm = vrm;
+      currentRoot = root;
+      scene.add(root);
+      fitCameraToObject(root);
+      setStatus(`読み込み完了: ${sourceLabel}`, 'ok');
+    }
+
+    function handleLoadError(error) {
+      console.error(error);
+      setStatus(`読み込み失敗: ${error?.message ?? error}`, 'error');
+    }
+
+    function loadVrmFromUrl(url) {
+      if (!url) {
+        setStatus('URL/パスを入力してね。', 'error');
+        return;
+      }
+
+      setStatus(`読み込み中: ${url}`);
+      loader.load(
+        url,
+        (gltf) => {
+          const vrm = gltf.userData.vrm;
+          if (!vrm) {
+            setStatus('VRMとして認識できなかったよ。ファイル形式を確認してね。', 'error');
+            return;
+          }
+          prepareVrm(vrm, url);
+        },
+        (progress) => {
+          const total = progress.total || 0;
+          const percent = total > 0 ? ((progress.loaded / total) * 100).toFixed(1) : null;
+          setStatus(percent ? `読み込み中: ${url} (${percent}%)` : `読み込み中: ${url}`);
+        },
+        handleLoadError
+      );
+    }
+
+    function loadVrmFromFile(file) {
+      if (!file) return;
+      if (!file.name.toLowerCase().endsWith('.vrm')) {
+        setStatus('`.vrm` ファイルを選んでね。', 'error');
+        return;
+      }
+
+      if (currentObjectUrl) {
+        URL.revokeObjectURL(currentObjectUrl);
+        currentObjectUrl = null;
+      }
+
+      currentObjectUrl = URL.createObjectURL(file);
+      setStatus(`読み込み中: ${file.name}`);
+
+      loader.load(
+        currentObjectUrl,
+        (gltf) => {
+          const vrm = gltf.userData.vrm;
+          if (!vrm) {
+            setStatus('VRMとして認識できなかったよ。ファイル形式を確認してね。', 'error');
+            return;
+          }
+          prepareVrm(vrm, file.name);
+        },
+        (progress) => {
+          const total = progress.total || 0;
+          const percent = total > 0 ? ((progress.loaded / total) * 100).toFixed(1) : null;
+          setStatus(percent ? `読み込み中: ${file.name} (${percent}%)` : `読み込み中: ${file.name}`);
+        },
+        handleLoadError
+      );
+    }
+
+    function resetView() {
+      if (currentRoot) {
+        fitCameraToObject(currentRoot);
+      } else {
+        camera.position.set(0.0, 1.35, 3.2);
+        controls.target.set(0, 1.2, 0);
+        camera.near = 0.1;
+        camera.far = 100;
+        camera.updateProjectionMatrix();
+        controls.update();
+      }
+      setStatus(currentRoot ? '視点をリセットしたよ。' : '視点を初期位置に戻したよ。', 'ok');
+    }
+
+    loadUrlBtn.addEventListener('click', () => loadVrmFromUrl(urlInput.value.trim()));
+    resetViewBtn.addEventListener('click', resetView);
+    clearBtn.addEventListener('click', () => {
+      disposeCurrentModel();
+      fileInput.value = '';
+      setStatus('モデルを外したよ。');
+    });
+
+    fileInput.addEventListener('change', (event) => {
+      const file = event.target.files?.[0];
+      if (file) loadVrmFromFile(file);
+    });
+
+    urlInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        loadVrmFromUrl(urlInput.value.trim());
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    window.addEventListener('dragenter', (event) => {
+      event.preventDefault();
+      dropOverlay.classList.add('visible');
+    });
+
+    window.addEventListener('dragover', (event) => {
+      event.preventDefault();
+      dropOverlay.classList.add('visible');
+    });
+
+    window.addEventListener('dragleave', (event) => {
+      event.preventDefault();
+      if (event.target === document.documentElement || event.target === document.body) {
+        dropOverlay.classList.remove('visible');
+      }
+    });
+
+    window.addEventListener('drop', (event) => {
+      event.preventDefault();
+      dropOverlay.classList.remove('visible');
+      const file = event.dataTransfer?.files?.[0];
+      if (file) loadVrmFromFile(file);
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+      if (currentVrm) currentVrm.update(delta);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    const params = new URLSearchParams(window.location.search);
+    const initialModel = params.get('model');
+    if (initialModel) {
+      urlInput.value = initialModel;
+      loadVrmFromUrl(initialModel);
+    } else {
+      setStatus('準備できたよ。`./model.vrm` を置くか、パス入力 / ファイル選択で読み込んでね。');
+    }
+  </script>
+</body>
+</html>
