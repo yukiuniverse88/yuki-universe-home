@@ -100,12 +100,13 @@
   /* ═══════════════════════════════════════
      STORAGE KEYS
   ═══════════════════════════════════════ */
-  const moodKey    = 'yuki_home_moods_v4';
-  const diaryKey   = 'yuki_home_diaries_v4';
-  const healthKey  = 'yuki_home_health_v4';
-  const colorKey   = 'yuki_char_colors_v1';
-  const settingKey = 'yuki_hero_settings_v1';
-  const msgEditKey = 'yuki_msg_edits_v1';
+  const moodKey      = 'yuki_home_moods_v4';
+  const diaryKey     = 'yuki_home_diaries_v4';
+  const healthKey    = 'yuki_home_health_v4';
+  const colorKey     = 'yuki_char_colors_v1';
+  const settingKey   = 'yuki_hero_settings_v1';
+  const msgEditKey   = 'yuki_msg_edits_v1';
+  const charActiveKey= 'yuki_char_active_v1';
 
   /* ═══════════════════════════════════════
      HELPERS
@@ -173,6 +174,17 @@
     {hex:'#555555',name:'チャコール'},
     {hex:'#888888',name:'グレーミディアム'},
     {hex:'#BBBBBB',name:'グレーライト'},
+    // キャラ
+    {hex:'#7EB8D4',name:'雪間ブルー'},
+    {hex:'#6A9FC0',name:'静間ブルー'},
+    {hex:'#6BBF8A',name:'優真グリーン'},
+    {hex:'#C89A4A',name:'真雄ゴールド'},
+    {hex:'#8B7FCC',name:'Mondayパープル'},
+    {hex:'#9AADAA',name:'響間グレー'},
+    {hex:'#D4607A',name:'千晟ピンク'},
+    {hex:'#5BBF9A',name:'慧真エメラルド'},
+    {hex:'#C8A05A',name:'遙真アンバー'},
+    {hex:'#C8A830',name:'晴翔ゴールド'},
   ];
 
   /* ═══════════════════════════════════════
@@ -248,6 +260,11 @@
     if(edits[key]&&edits[key].length) return edits[key];
     const ch=CHARACTERS.find(c=>c.id===charId); return ch?[...ch.messages[slot]]:[];
   }
+  // ③ ON/OFF管理（デフォルト全員ON）
+  function getCharActiveMap(){ return loadJson(charActiveKey,{}); }
+  function isCharActive(id){ const m=getCharActiveMap(); return m[id]!==false; }
+  function setCharActive(id,val){ const m=getCharActiveMap(); m[id]=val; saveJson(charActiveKey,m); }
+  function getActiveChars(){ return CHARACTERS.filter(c=>isCharActive(c.id)); }
 
   /* ═══════════════════════════════════════
      TIME SLOT
@@ -267,7 +284,9 @@
   let currentAutoSlot=null;
 
   function pickRandom(slot){
-    const char=CHARACTERS[Math.floor(Math.random()*CHARACTERS.length)];
+    const active=getActiveChars();
+    const pool=active.length>0?active:CHARACTERS;
+    const char=pool[Math.floor(Math.random()*pool.length)];
     const msgs=getMessages(char.id,slot);
     return {char, msg:msgs[Math.floor(Math.random()*msgs.length)]||'…'};
   }
@@ -491,11 +510,12 @@
       {label:'ダーク',   colors:COLOR_PALETTE.slice(22,30)},
       {label:'アース',   colors:COLOR_PALETTE.slice(30,40)},
       {label:'モノクロ', colors:COLOR_PALETTE.slice(40,44)},
+      {label:'キャラ',   colors:COLOR_PALETTE.slice(44,54)},
     ];
 
     const sections=categories.map(cat=>{
       const swatches=cat.colors.map(p=>{ const sel=p.hex.toLowerCase()===cur.toLowerCase(); return `
-        <button type="button" onclick="setCharColor('${charId}','${p.hex}')" title="${escapeHtml(p.name)}"
+        <button type="button" onclick="setCharColor('${charId}','${p.hex}')" title="${escapeHtml(p.name)}" data-hex="${p.hex.toLowerCase()}"
           style="width:36px;height:36px;border-radius:50%;background:${p.hex};border:none;cursor:pointer;
                  ${sel?'outline:2.5px solid #fff;outline-offset:3px;':''}
                  box-shadow:0 2px 6px rgba(0,0,0,0.4);transition:transform 0.1s;"
@@ -522,8 +542,9 @@
   function setCharColor(charId,hex){
     const colors=getCharColors(); colors[charId]=hex; saveJson(colorKey,colors);
     const dot=document.getElementById('colorPreviewDot'); if(dot){ dot.style.background=hex; dot.style.boxShadow=`0 0 10px ${hex}80`; }
-    simpleSheetContent.querySelectorAll('button[title]').forEach(b=>{
-      const m=b.style.background.toLowerCase()===hex.toLowerCase();
+    // ② data-hex属性で比較（rgb変換ズレバグ修正）
+    simpleSheetContent.querySelectorAll('button[data-hex]').forEach(b=>{
+      const m=b.dataset.hex===hex.toLowerCase();
       b.style.outline=m?'2.5px solid #fff':'none'; b.style.outlineOffset=m?'3px':'0';
     });
     if(currentCharData&&currentCharData.char.id===charId){
@@ -535,21 +556,49 @@
      MESSAGE EDIT
   ═══════════════════════════════════════ */
   function openMsgEditCharList(){
-    const items=CHARACTERS.map(c=>`
-      <button type="button" onclick="openMsgEditSlotList('${c.id}')"
-        style="display:flex;align-items:center;gap:12px;width:100%;padding:11px 0;background:none;border:none;border-bottom:1px solid rgba(255,255,255,0.07);cursor:pointer;color:inherit;text-align:left;">
-        <span style="width:10px;height:10px;border-radius:50%;background:${getCharColor(c.id)};display:inline-block;flex-shrink:0;"></span>
-        <span style="font-size:14px;">${escapeHtml(c.name)}</span>
-        <span style="margin-left:auto;opacity:0.4;">›</span>
-      </button>`).join('');
+    const items=CHARACTERS.map(c=>{
+      const active=isCharActive(c.id);
+      const color=getCharColor(c.id);
+      return `
+      <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,0.07);">
+        <!-- トグル -->
+        <button type="button" onclick="toggleCharActive('${c.id}')" id="tog_${c.id}"
+          style="width:40px;height:24px;border-radius:12px;border:none;cursor:pointer;
+                 position:relative;flex-shrink:0;transition:background 0.25s;
+                 background:${active?color:'rgba(255,255,255,0.12)'};">
+          <span style="position:absolute;top:3px;width:18px;height:18px;border-radius:50%;
+                       background:#fff;transition:left 0.25s;left:${active?'19px':'3px'};"></span>
+        </button>
+        <!-- 名前→編集へ -->
+        <button type="button" onclick="openMsgEditSlotList('${c.id}')"
+          style="display:flex;align-items:center;gap:10px;flex:1;background:none;border:none;
+                 cursor:pointer;color:inherit;text-align:left;padding:0;
+                 opacity:${active?'1':'0.38'};">
+          <span style="width:10px;height:10px;border-radius:50%;background:${color};
+                       display:inline-block;flex-shrink:0;"></span>
+          <span style="font-size:14px;">${escapeHtml(c.name)}</span>
+          <span style="margin-left:auto;opacity:0.4;font-size:13px;">›</span>
+        </button>
+      </div>`;
+    }).join('');
     openHtmlSheet(`
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
         <button type="button" onclick="openEditPanel()" style="background:none;border:none;color:rgba(255,255,255,0.55);cursor:pointer;font-size:20px;padding:0;">‹</button>
         <h3 style="margin:0;font-size:16px;font-weight:600;">コメントを編集</h3>
       </div>
+      <p style="font-size:11px;opacity:0.4;letter-spacing:0.06em;margin:0 0 14px;">トグルでランダム表示のON/OFFを切り替え</p>
       ${items}
       <div style="margin-top:16px;"><button class="sub-button" type="button" onclick="forceCloseSheet()">閉じる</button></div>
     `);
+  }
+
+  function toggleCharActive(id){
+    const cur=isCharActive(id);
+    // 最低1人はONを維持
+    if(cur && getActiveChars().length<=1){ return; }
+    setCharActive(id,!cur);
+    openMsgEditCharList(); // 再描画
+    currentCharData=null; renderHome();
   }
 
   function openMsgEditSlotList(charId){
