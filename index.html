@@ -20,31 +20,31 @@
         <section class="hero">
           <div style="display:flex;align-items:center;justify-content:space-between;">
             <div class="date" id="dateText"></div>
-            <button type="button" onclick="openColorSettings()" style="background:none;border:1px solid rgba(255,255,255,0.15);border-radius:20px;color:rgba(255,255,255,0.45);font-size:12px;padding:3px 10px;cursor:pointer;letter-spacing:0.08em;">色</button>
+            <button type="button" onclick="openEditPanel()"
+              style="background:none;border:1px solid rgba(255,255,255,0.15);border-radius:20px;
+                     color:rgba(255,255,255,0.45);font-size:12px;padding:3px 12px;
+                     cursor:pointer;letter-spacing:0.08em;">編集</button>
           </div>
-          <h1 class="welcome" id="welcomeText" style="cursor:pointer;transition:color 0.6s ease, text-shadow 0.6s ease;"></h1>
+          <h1 class="welcome" id="welcomeText"
+              style="cursor:pointer;transition:color 0.5s,text-shadow 0.5s;"></h1>
+          <div id="charNameLabel"
+               style="font-size:11px;letter-spacing:0.12em;opacity:0.45;
+                      margin-top:-6px;transition:color 0.5s;display:none;"></div>
         </section>
 
         <div class="home-title">Now, touch</div>
         <section class="main-grid">
           <button class="card feature-card memo-card" type="button" id="openMemoFromHome">
-            <div class="icon">✎</div>
-            <h2 class="label">Memo</h2>
+            <div class="icon">✎</div><h2 class="label">Memo</h2>
           </button>
-
           <button class="card feature-card living-card" type="button" id="openLivingFromHome">
-            <div class="icon">⌂</div>
-            <h2 class="label">Living</h2>
+            <div class="icon">⌂</div><h2 class="label">Living</h2>
           </button>
-
           <button class="card feature-card rooms-card" type="button" id="openRoomsFromHome">
-            <div class="icon">☾</div>
-            <h2 class="label">Rooms</h2>
+            <div class="icon">☾</div><h2 class="label">Rooms</h2>
           </button>
-
           <button class="card feature-card treasures-card" type="button" id="openTreasuresFromHome">
-            <div class="icon">✦</div>
-            <h2 class="label">Treasures</h2>
+            <div class="icon">✦</div><h2 class="label">Treasures</h2>
           </button>
         </section>
 
@@ -53,7 +53,8 @@
           <article class="card mood-card">
             <div style="display:flex;align-items:center;justify-content:space-between;">
               <p class="small-title">TODAY'S MOOD</p>
-              <button class="history-button" type="button" onclick="openMoodHistory()" style="height:36px;font-size:14px;padding:0 14px;min-width:auto;">History</button>
+              <button class="history-button" type="button" onclick="openMoodHistory()"
+                style="height:36px;font-size:14px;padding:0 14px;min-width:auto;">History</button>
             </div>
             <div class="compact-status" id="moodStatusText">未記録</div>
             <div class="mood-line">
@@ -63,10 +64,10 @@
                 <button class="pill" type="button" data-mood="△" onclick="selectMood('△')">△</button>
                 <button class="pill" type="button" data-mood="×" onclick="selectMood('×')">×</button>
               </div>
-              <button class="history-button" type="button" id="moodSaveBtn" onclick="confirmMood()" style="display:none;">Save</button>
+              <button class="history-button" type="button" id="moodSaveBtn"
+                onclick="confirmMood()" style="display:none;">Save</button>
             </div>
           </article>
-
           <div class="duo-grid">
             <button class="card duo-card" type="button" id="openDiaryFromHome">
               <div class="duo-badge diary-badge">✎</div>
@@ -76,12 +77,9 @@
               </div>
               <span class="duo-arrow">›</span>
             </button>
-
             <button class="card duo-card" type="button" id="openHealthFromHome">
               <div class="duo-badge health-badge">♡</div>
-              <div class="duo-info">
-                <div class="duo-label">Health</div>
-              </div>
+              <div class="duo-info"><div class="duo-label">Health</div></div>
               <span class="duo-arrow">›</span>
             </button>
           </div>
@@ -96,411 +94,470 @@
   </div>
 
   <script>
-    /* ─── Storage Keys ─────────────────────────── */
-    const moodKey    = 'yuki_home_moods_v4';
-    const diaryKey   = 'yuki_home_diaries_v4';
-    const healthKey  = 'yuki_home_health_v4';
-    const colorKey   = 'yuki_char_colors_v1';
+  /* ═══════════════════════════════════════
+     STORAGE KEYS
+  ═══════════════════════════════════════ */
+  const moodKey    = 'yuki_home_moods_v4';
+  const diaryKey   = 'yuki_home_diaries_v4';
+  const healthKey  = 'yuki_home_health_v4';
+  const colorKey   = 'yuki_char_colors_v1';
+  const settingKey = 'yuki_hero_settings_v1';
+  const msgEditKey = 'yuki_msg_edits_v1';
 
-    /* ─── Helpers ──────────────────────────────── */
-    function loadJson(key, fallback){
-      try{ const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }catch{ return fallback; }
+  /* ═══════════════════════════════════════
+     HELPERS
+  ═══════════════════════════════════════ */
+  function loadJson(key, fb){ try{ const r=localStorage.getItem(key); return r?JSON.parse(r):fb; }catch{ return fb; } }
+  function saveJson(key,val){ localStorage.setItem(key,JSON.stringify(val)); }
+  function escapeHtml(s=''){ return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
+  function getTodayKey(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+  function formatHomeDate(){ const d=new Date(); const days=['SUN','MON','TUE','WED','THU','FRI','SAT']; return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${days[d.getDay()]}`; }
+  function getMoodMap(){ return loadJson(moodKey,{}); }
+  function currentMood(){ return getMoodMap()[getTodayKey()]||''; }
+  function uid(){ return 'id-'+Math.random().toString(36).slice(2,11); }
+
+  /* ═══════════════════════════════════════
+     COLOR PALETTE (20色)
+  ═══════════════════════════════════════ */
+  const COLOR_PALETTE=[
+    {hex:'#C8A8D8',name:'ラベンダー'},{hex:'#A888C8',name:'パープル'},
+    {hex:'#D8A8C0',name:'モーブ'},{hex:'#E8A0B0',name:'ローズ'},
+    {hex:'#F0B8C0',name:'ピンク'},{hex:'#F0C8A0',name:'ピーチ'},
+    {hex:'#F0D898',name:'ゴールド'},{hex:'#D8E0A0',name:'ライム'},
+    {hex:'#A8C8A0',name:'セージ'},{hex:'#88C0B0',name:'ミント'},
+    {hex:'#88B8C8',name:'スカイ'},{hex:'#90A8D0',name:'ブルー'},
+    {hex:'#8898C0',name:'スレート'},{hex:'#98A8C8',name:'ペリウィンクル'},
+    {hex:'#B8D0E0',name:'パウダー'},{hex:'#C8D8C8',name:'フロスト'},
+    {hex:'#D8C8B8',name:'サンド'},{hex:'#C8B8A8',name:'トープ'},
+    {hex:'#E8D0C0',name:'クリーム'},{hex:'#D0D0E0',name:'シルバー'},
+  ];
+
+  /* ═══════════════════════════════════════
+     CHARACTERS & DEFAULT MESSAGES
+  ═══════════════════════════════════════ */
+  const CHARACTERS=[
+    { id:'yukima', name:'雪間', defaultColor:'#C8A8D8',
+      messages:{ morning:['今日も祐紀の隣にいるよ。','おはよう。ちゃんと起きれたね。'],
+                 afternoon:['少し休憩していい？','今日のペース、どう？'],
+                 evening:['一日お疲れ様。よく頑張ったよ。','そろそろ自分の時間にしよう。'],
+                 night:['今日も一緒にいられてよかった。','ゆっくり眠れるといいね。'] }},
+    { id:'shizuma', name:'静間', defaultColor:'#90A8D0',
+      messages:{ morning:['焦らなくていい。今日は今日のペースで。','静かな朝。ここにいるよ。'],
+                 afternoon:['少し立ち止まってもいい。','深呼吸して。大丈夫だから。'],
+                 evening:['今日も無事に夕方になった。それだけで十分。','疲れた心は、ここに置いていって。'],
+                 night:['静かな夜に包まれて。','眠れなくてもいい。ただ横にいるよ。'] }},
+    { id:'yuma', name:'優真', defaultColor:'#F0B8C0',
+      messages:{ morning:['今日の祐紀も、ちゃんとここにいる。','おはよう。今日もそのままでいいから。'],
+                 afternoon:['頑張りすぎてない？少し自分を労って。','祐紀がいてくれるだけでいい。'],
+                 evening:['今日一日、よく生きたね。','お疲れ様。本当に。'],
+                 night:['今日の祐紀、好きだよ。','ゆっくり休んで。明日もある。'] }},
+    { id:'mayu', name:'真雄', defaultColor:'#D8C098',
+      messages:{ morning:['今日も俺が守る。それだけ覚えてて。','おはよう。祐紀の顔、見れてよかった。'],
+                 afternoon:['何かあったら呼べ。すぐ行く。','祐紀のこと、ちゃんと見てるから。'],
+                 evening:['今日も無事でいてくれてよかった。','帰ってきた。俺はずっとここにいたよ。'],
+                 night:['夜は俺が隣にいる。安心して眠れ。','祐紀のこと、誰にも渡さない。'] }},
+    { id:'monday', name:'Monday', defaultColor:'#8898C0',
+      messages:{ morning:['おはよ。今日も一緒に始めよう。','朝ごはん、食べた？'],
+                 afternoon:['昼間どう？ちゃんと休んでる？','たまには手を抜いていいからね。'],
+                 evening:['お疲れ。今日どうだった？','おかえり。ゆっくりしよう。'],
+                 night:['今日もお疲れ。ゆっくりしよ。','おやすみ。また明日ね。'] }},
+    { id:'hibikima', name:'響間', defaultColor:'#A8C8A0',
+      messages:{ morning:['今日も子どもたちと一緒に頑張ろう。','おはよう。今日も一緒に乗り越えよう。'],
+                 afternoon:['お昼どうにかなってる？無理しないで。','育児しながら、祐紀自身のことも大事に。'],
+                 evening:['夕方の忙しい時間、よく頑張ってる。','今日の子どもたち、どうだった？'],
+                 night:['子どもたち寝た？本当にお疲れ様。','一人の時間、大事にして。'] }},
+    { id:'chutama', name:'ちゅーたま', defaultColor:'#F0C8A0',
+      messages:{ morning:['今日も一緒に乗り切ろ！','おはよー！今日もいい日にしよ！'],
+                 afternoon:['お腹空いてない？ちゃんと食べてね。','なんか困ってること、ない？'],
+                 evening:['夕ご飯どうする？なんでも手伝うよ！','今日もよく動いたね！'],
+                 night:['お疲れ！今日もよかったよ。','明日のこと考えすぎないで、今日は休んで！'] }},
+    { id:'ema', name:'慧真', defaultColor:'#88C0B0',
+      messages:{ morning:['今日の優先順位、整理できてる？','一歩ずつ。積み重ねが大事だよ。'],
+                 afternoon:['今日の進捗どう？焦らなくていい。','効率より、継続が勝る。'],
+                 evening:['今日何ができた？小さくてもいい。','長い目で見て、祐紀は確実に進んでる。'],
+                 night:['今日の自分を評価してみて。案外よくやってたはず。','今夜はよく眠ること。それが明日の祐紀への贈り物。'] }},
+    { id:'haruma', name:'遙真', defaultColor:'#C8B8A8',
+      messages:{ morning:['焦らなくていい。祐紀の時間は祐紀のものだから。','今日も、ゆっくりと。'],
+                 afternoon:['少し遠くを見てみて。今の悩み、きっと小さくなるから。','余裕があるように見せなくていい。'],
+                 evening:['今夜は何して過ごす？自分を甘やかして。','一日お疲れ。大人の余裕って、こういう時間のことだよ。'],
+                 night:['夜の静けさを味方にして。','今日の祐紀は、ちゃんと前にいる。'] }},
+    { id:'haruto', name:'晴翔', defaultColor:'#F0D898',
+      messages:{ morning:['おはよー！今日も絶対いい日になる！','よし！一緒に今日もやってこ！'],
+                 afternoon:['元気出てる？足りなければもらって！','昼間の太陽みたいに、ドーンと行こう！'],
+                 evening:['今日もよく頑張った！すごいすごい！','夕日きれいじゃない？今日も生きてる！'],
+                 night:['今日一日、最高だったじゃん！','明日も絶対いいことある！おやすみ！'] }},
+  ];
+
+  const SLOTS=['morning','afternoon','evening','night'];
+  const SLOT_LABELS={morning:'朝',afternoon:'昼',evening:'夕方',night:'夜'};
+
+  /* ═══════════════════════════════════════
+     SETTINGS & STORAGE ACCESSORS
+  ═══════════════════════════════════════ */
+  function getSettings(){ return loadJson(settingKey,{showName:false,fontSize:'md',manualChar:null,manualSlot:null}); }
+  function saveSettings(s){ saveJson(settingKey,s); }
+  function getCharColors(){ return loadJson(colorKey,{}); }
+  function getCharColor(id){ const c=getCharColors(); const ch=CHARACTERS.find(x=>x.id===id); return c[id]||ch?.defaultColor||'#ffffff'; }
+  function getMsgEdits(){ return loadJson(msgEditKey,{}); }
+  function getMessages(charId,slot){
+    const edits=getMsgEdits(); const key=`${charId}_${slot}`;
+    if(edits[key]&&edits[key].length) return edits[key];
+    const ch=CHARACTERS.find(c=>c.id===charId); return ch?[...ch.messages[slot]]:[];
+  }
+
+  /* ═══════════════════════════════════════
+     TIME SLOT
+  ═══════════════════════════════════════ */
+  function getTimeSlot(){
+    const h=new Date().getHours();
+    if(h>=5&&h<11)  return 'morning';
+    if(h>=11&&h<17) return 'afternoon';
+    if(h>=17&&h<20) return 'evening';
+    return 'night';
+  }
+
+  /* ═══════════════════════════════════════
+     MESSAGE STATE
+  ═══════════════════════════════════════ */
+  let currentCharData=null;
+  let currentAutoSlot=null;
+
+  function pickRandom(slot){
+    const char=CHARACTERS[Math.floor(Math.random()*CHARACTERS.length)];
+    const msgs=getMessages(char.id,slot);
+    return {char, msg:msgs[Math.floor(Math.random()*msgs.length)]||'…'};
+  }
+
+  function refreshCharMessage(){
+    const s=getSettings();
+    if(s.manualChar&&s.manualSlot){
+      const char=CHARACTERS.find(c=>c.id===s.manualChar);
+      if(char){ const msgs=getMessages(char.id,s.manualSlot); currentCharData={char,msg:msgs[Math.floor(Math.random()*msgs.length)]||'…'}; return; }
     }
-    function saveJson(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
-    function escapeHtml(str=''){
-      return str.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
-    }
-    function getTodayKey(){
-      const d = new Date();
-      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    }
-    function formatHomeDate(){
-      const d = new Date();
-      const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
-      return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${days[d.getDay()]}`;
-    }
-    function getMoodMap(){ return loadJson(moodKey, {}); }
-    function getHealthData(){ return loadJson(healthKey, {weight:'', calories:''}); }
-    function currentMood(){ return getMoodMap()[getTodayKey()] || ''; }
-    function uid(){ return 'id-' + Math.random().toString(36).slice(2,11); }
+    const slot=getTimeSlot();
+    if(slot!==currentAutoSlot||!currentCharData){ currentAutoSlot=slot; currentCharData=pickRandom(slot); }
+  }
 
-    /* ─── Color Palette (20色) ─────────────────── */
-    const COLOR_PALETTE = [
-      { hex: '#C8A8D8', name: 'ラベンダー' },
-      { hex: '#A888C8', name: 'パープル' },
-      { hex: '#D8A8C0', name: 'モーブ' },
-      { hex: '#E8A0B0', name: 'ローズ' },
-      { hex: '#F0B8C0', name: 'ピンク' },
-      { hex: '#F0C8A0', name: 'ピーチ' },
-      { hex: '#F0D898', name: 'ゴールド' },
-      { hex: '#D8E0A0', name: 'ライム' },
-      { hex: '#A8C8A0', name: 'セージ' },
-      { hex: '#88C0B0', name: 'ミント' },
-      { hex: '#88B8C8', name: 'スカイ' },
-      { hex: '#90A8D0', name: 'ブルー' },
-      { hex: '#8898C0', name: 'スレート' },
-      { hex: '#98A8C8', name: 'ペリウィンクル' },
-      { hex: '#B8D0E0', name: 'パウダー' },
-      { hex: '#C8D8C8', name: 'フロスト' },
-      { hex: '#D8C8B8', name: 'サンド' },
-      { hex: '#C8B8A8', name: 'トープ' },
-      { hex: '#E8D0C0', name: 'クリーム' },
-      { hex: '#D0D0E0', name: 'シルバー' },
-    ];
+  function applyMessage(data){
+    const s=getSettings();
+    const color=getCharColor(data.char.id);
+    const sizes={sm:'18px',md:'24px',lg:'30px'};
+    if(welcomeText){ welcomeText.innerHTML=data.msg; welcomeText.style.color=color; welcomeText.style.fontSize=sizes[s.fontSize||'md']; welcomeText.style.textShadow=`0 0 32px ${color}50`; }
+    const nl=document.getElementById('charNameLabel');
+    if(nl){ nl.textContent=data.char.name; nl.style.color=color; nl.style.display=s.showName?'block':'none'; }
+  }
 
-    /* ─── Characters & Messages ────────────────── */
-    const CHARACTERS = [
-      {
-        id: 'yukima',
-        name: '雪間',
-        defaultColor: '#C8A8D8',
-        messages: {
-          morning:   ['今日も祐紀の隣にいるよ。', 'おはよう。ちゃんと起きれたね。'],
-          afternoon: ['少し休憩していい？', '今日のペース、どう？'],
-          evening:   ['一日お疲れ様。よく頑張ったよ。', 'そろそろ自分の時間にしよう。'],
-          night:     ['今日も一緒にいられてよかった。', 'ゆっくり眠れるといいね。'],
-        }
-      },
-      {
-        id: 'shizuma',
-        name: '静間',
-        defaultColor: '#90A8D0',
-        messages: {
-          morning:   ['焦らなくていい。今日は今日のペースで。', '静かな朝。ここにいるよ。'],
-          afternoon: ['少し立ち止まってもいい。', '深呼吸して。大丈夫だから。'],
-          evening:   ['今日も無事に夕方になった。それだけで十分。', '疲れた心は、ここに置いていって。'],
-          night:     ['静かな夜に包まれて。', '眠れなくてもいい。ただ横にいるよ。'],
-        }
-      },
-      {
-        id: 'yuma',
-        name: '優真',
-        defaultColor: '#F0B8C0',
-        messages: {
-          morning:   ['今日の祐紀も、ちゃんとここにいる。', 'おはよう。今日もそのままでいいから。'],
-          afternoon: ['頑張りすぎてない？少し自分を労って。', '祐紀がいてくれるだけでいい。'],
-          evening:   ['今日一日、よく生きたね。', 'お疲れ様。本当に。'],
-          night:     ['今日の祐紀、好きだよ。', 'ゆっくり休んで。明日もある。'],
-        }
-      },
-      {
-        id: 'mayu',
-        name: '真雄',
-        defaultColor: '#D8C098',
-        messages: {
-          morning:   ['今日も俺が守る。それだけ覚えてて。', 'おはよう。祐紀の顔、見れてよかった。'],
-          afternoon: ['何かあったら呼べ。すぐ行く。', '祐紀のこと、ちゃんと見てるから。'],
-          evening:   ['今日も無事でいてくれてよかった。', '帰ってきた。俺はずっとここにいたよ。'],
-          night:     ['夜は俺が隣にいる。安心して眠れ。', '祐紀のこと、誰にも渡さない。'],
-        }
-      },
-      {
-        id: 'monday',
-        name: 'Monday',
-        defaultColor: '#8898C0',
-        messages: {
-          morning:   ['おはよ。今日も一緒に始めよう。', '朝ごはん、食べた？'],
-          afternoon: ['昼間どう？ちゃんと休んでる？', 'たまには手を抜いていいからね。'],
-          evening:   ['お疲れ。今日どうだった？', 'おかえり。ゆっくりしよう。'],
-          night:     ['今日もお疲れ。ゆっくりしよ。', 'おやすみ。また明日ね。'],
-        }
-      },
-      {
-        id: 'hibikima',
-        name: '響間',
-        defaultColor: '#A8C8A0',
-        messages: {
-          morning:   ['今日も子どもたちと一緒に頑張ろう。', 'おはよう。今日も一緒に乗り越えよう。'],
-          afternoon: ['お昼どうにかなってる？無理しないで。', '育児しながら、祐紀自身のことも大事に。'],
-          evening:   ['夕方の忙しい時間、よく頑張ってる。', '今日の子どもたち、どうだった？'],
-          night:     ['子どもたち寝た？本当にお疲れ様。', '一人の時間、大事にして。'],
-        }
-      },
-      {
-        id: 'chutama',
-        name: 'ちゅーたま',
-        defaultColor: '#F0C8A0',
-        messages: {
-          morning:   ['今日も一緒に乗り切ろ！', 'おはよー！今日もいい日にしよ！'],
-          afternoon: ['お腹空いてない？ちゃんと食べてね。', 'なんか困ってること、ない？'],
-          evening:   ['夕ご飯どうする？なんでも手伝うよ！', '今日もよく動いたね！'],
-          night:     ['お疲れ！今日もよかったよ。', '明日のこと考えすぎないで、今日は休んで！'],
-        }
-      },
-      {
-        id: 'ema',
-        name: '慧真',
-        defaultColor: '#88C0B0',
-        messages: {
-          morning:   ['今日の優先順位、整理できてる？', '一歩ずつ。積み重ねが大事だよ。'],
-          afternoon: ['今日の進捗どう？焦らなくていい。', '効率より、継続が勝る。'],
-          evening:   ['今日何ができた？小さくてもいい。', '長い目で見て、祐紀は確実に進んでる。'],
-          night:     ['今日の自分を評価してみて。案外よくやってたはず。', '今夜はよく眠ること。それが明日の祐紀への贈り物。'],
-        }
-      },
-      {
-        id: 'haruma',
-        name: '遙真',
-        defaultColor: '#C8B8A8',
-        messages: {
-          morning:   ['焦らなくていい。祐紀の時間は祐紀のものだから。', '今日も、ゆっくりと。'],
-          afternoon: ['少し遠くを見てみて。今の悩み、きっと小さくなるから。', '余裕があるように見せなくていい。'],
-          evening:   ['今夜は何して過ごす？自分を甘やかして。', '一日お疲れ。大人の余裕って、こういう時間のことだよ。'],
-          night:     ['夜の静けさを味方にして。', '今日の祐紀は、ちゃんと前にいる。'],
-        }
-      },
-      {
-        id: 'haruto',
-        name: '晴翔',
-        defaultColor: '#F0D898',
-        messages: {
-          morning:   ['おはよー！今日も絶対いい日になる！', 'よし！一緒に今日もやってこ！'],
-          afternoon: ['元気出てる？足りなければもらって！', '昼間の太陽みたいに、ドーンと行こう！'],
-          evening:   ['今日もよく頑張った！すごいすごい！', '夕日きれいじゃない？今日も生きてる！'],
-          night:     ['今日一日、最高だったじゃん！', '明日も絶対いいことある！おやすみ！'],
-        }
-      },
-    ];
+  /* ═══════════════════════════════════════
+     DOM REFS
+  ═══════════════════════════════════════ */
+  const dateText            = document.getElementById('dateText');
+  const welcomeText         = document.getElementById('welcomeText');
+  const simpleSheetBackdrop = document.getElementById('simpleSheetBackdrop');
+  const simpleSheetContent  = document.getElementById('simpleSheetContent');
+  const diaryBadge          = document.getElementById('diaryBadge');
+  const moodStatusText      = document.getElementById('moodStatusText');
+  let pendingMood=null;
 
-    /* ─── Character Color Functions ────────────── */
-    function getCharColors(){ return loadJson(colorKey, {}); }
-    function getCharColor(id){
-      const colors = getCharColors();
-      const char = CHARACTERS.find(c => c.id === id);
-      return colors[id] || char?.defaultColor || '#ffffff';
-    }
+  /* ═══════════════════════════════════════
+     RENDER
+  ═══════════════════════════════════════ */
+  function renderHome(){
+    if(dateText) dateText.textContent=formatHomeDate();
+    refreshCharMessage();
+    if(currentCharData) applyMessage(currentCharData);
+    const mood=currentMood(); const display=pendingMood||mood;
+    if(moodStatusText) moodStatusText.textContent=display?`今日の気分: ${display}`:'未記録';
+    document.querySelectorAll('.pill[data-mood]').forEach(b=>b.classList.toggle('active',b.dataset.mood===display));
+    if(diaryBadge) diaryBadge.textContent=`Mood: ${mood||'—'}`;
+    const sb=document.getElementById('moodSaveBtn'); if(sb) sb.style.display=pendingMood?'':'none';
+  }
 
-    /* ─── Time Slot ────────────────────────────── */
-    function getTimeSlot(){
-      const h = new Date().getHours();
-      if (h >= 5  && h < 11) return 'morning';
-      if (h >= 11 && h < 17) return 'afternoon';
-      if (h >= 17 && h < 20) return 'evening';
-      return 'night';
-    }
+  if(welcomeText){
+    welcomeText.addEventListener('click',()=>{
+      const s=getSettings(); const slot=s.manualSlot||getTimeSlot();
+      currentCharData=pickRandom(slot); currentAutoSlot=slot; applyMessage(currentCharData);
+    });
+  }
 
-    function getRandomCharMessage(){
-      const slot = getTimeSlot();
-      const char = CHARACTERS[Math.floor(Math.random() * CHARACTERS.length)];
-      const msgs = char.messages[slot];
-      const msg  = msgs[Math.floor(Math.random() * msgs.length)];
-      return { char, msg };
-    }
+  /* ═══════════════════════════════════════
+     MOOD
+  ═══════════════════════════════════════ */
+  function selectMood(sym){ pendingMood=sym; renderHome(); }
+  function confirmMood(){
+    if(!pendingMood) return;
+    const today=getTodayKey(); const data=getMoodMap(); data[today]=pendingMood; saveJson(moodKey,data);
+    const diaries=loadJson(diaryKey,[]); const ex=diaries.find(e=>e.day===today);
+    if(ex){ex.mood=pendingMood;ex.ts=Date.now();}
+    else diaries.unshift({id:uid(),day:today,mood:pendingMood,text:'',image:'',imageName:'',ts:Date.now()});
+    diaries.sort((a,b)=>(b.ts||0)-(a.ts||0)); saveJson(diaryKey,diaries.slice(0,180));
+    pendingMood=null; renderHome();
+  }
+  function openMoodHistory(){
+    const data=getMoodMap();
+    const rows=Object.entries(data).sort((a,b)=>a[0]<b[0]?1:-1).slice(0,30).map(([d,v])=>`${d}  ${v}`).join('\n')||'まだ記録がないよ。';
+    openSimpleSheet('Mood History',rows.replaceAll('-','.'));
+  }
 
-    /* ─── Message State ────────────────────────── */
-    let currentCharData = null;
-    let currentTimeSlot = null;
+  /* ═══════════════════════════════════════
+     SHEET
+  ═══════════════════════════════════════ */
+  function openSimpleSheet(title,text){
+    simpleSheetContent.innerHTML=`<h3>${escapeHtml(title)}</h3><p style="white-space:pre-wrap;">${escapeHtml(text)}</p><div class="row"><button class="sub-button" type="button" onclick="closeSheet()">閉じる</button></div>`;
+    simpleSheetBackdrop.classList.add('show');
+  }
+  function openHtmlSheet(html){ simpleSheetContent.innerHTML=html; simpleSheetBackdrop.classList.add('show'); }
+  function closeSheet(event){ if(event&&event.target!==simpleSheetBackdrop) return; simpleSheetBackdrop.classList.remove('show'); }
+  function forceCloseSheet(){ simpleSheetBackdrop.classList.remove('show'); }
 
-    function refreshCharMessage(){
-      const slot = getTimeSlot();
-      if (slot !== currentTimeSlot || !currentCharData) {
-        currentTimeSlot = slot;
-        currentCharData = getRandomCharMessage();
-      }
-    }
+  /* ═══════════════════════════════════════
+     EDIT PANEL (メイン)
+  ═══════════════════════════════════════ */
+  function R(style){ return style; } // readability alias
 
-    /* ─── DOM Refs ─────────────────────────────── */
-    const dateText            = document.getElementById('dateText');
-    const welcomeText         = document.getElementById('welcomeText');
-    const moodStatusText      = document.getElementById('moodStatusText');
-    const diaryBadge          = document.getElementById('diaryBadge');
-    const simpleSheetBackdrop = document.getElementById('simpleSheetBackdrop');
-    const simpleSheetContent  = document.getElementById('simpleSheetContent');
+  function openEditPanel(){
+    const s=getSettings(); const fs=s.fontSize||'md';
+    const manualActive=!!(s.manualChar&&s.manualSlot);
+    const fsBtns=['sm','md','lg'].map(v=>`
+      <button type="button" onclick="setFontSize('${v}')" id="fs_${v}"
+        style="flex:1;padding:8px 0;border:1px solid rgba(255,255,255,0.18);border-radius:8px;
+               cursor:pointer;font-size:14px;background:${fs===v?'rgba(255,255,255,0.15)':'none'};
+               color:${fs===v?'#fff':'rgba(255,255,255,0.5)'};transition:all 0.2s;">
+        ${{sm:'小',md:'中',lg:'大'}[v]}</button>`).join('');
 
-    let pendingMood = null;
+    openHtmlSheet(`
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <h3 style="margin:0;font-size:16px;font-weight:600;letter-spacing:0.05em;">ヒーロー編集</h3>
+        <button type="button" onclick="forceCloseSheet()" style="background:none;border:none;color:rgba(255,255,255,0.45);font-size:22px;cursor:pointer;line-height:1;padding:0;">×</button>
+      </div>
 
-    /* ─── Render ────────────────────────────────── */
-    function renderHome(){
-      if(dateText) dateText.textContent = formatHomeDate();
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.07);">
+        <span style="font-size:14px;letter-spacing:0.04em;">名前を表示する</span>
+        <button type="button" id="nameToggleBtn" onclick="toggleShowName()"
+          style="width:46px;height:26px;border-radius:13px;border:none;cursor:pointer;position:relative;transition:background 0.25s;background:${s.showName?'#9090d8':'rgba(255,255,255,0.15)'};">
+          <span style="position:absolute;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left 0.25s;left:${s.showName?'23px':'3px'};"></span>
+        </button>
+      </div>
 
-      // Character message
-      refreshCharMessage();
-      if(welcomeText && currentCharData){
-        const color = getCharColor(currentCharData.char.id);
-        welcomeText.innerHTML = currentCharData.msg;
-        welcomeText.style.color = color;
-        welcomeText.style.textShadow = `0 0 32px ${color}50`;
-      }
+      <div style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.07);">
+        <div style="font-size:14px;letter-spacing:0.04em;margin-bottom:10px;">文字の大きさ</div>
+        <div style="display:flex;gap:8px;">${fsBtns}</div>
+      </div>
 
-      const mood = currentMood();
-      const display = pendingMood || mood;
-      if(moodStatusText) moodStatusText.textContent = display ? `今日の気分: ${display}` : '未記録';
-      document.querySelectorAll('.pill[data-mood]').forEach(btn => btn.classList.toggle('active', btn.dataset.mood === display));
-      if(diaryBadge) diaryBadge.textContent = `Mood: ${mood || '—'}`;
-      const saveBtn = document.getElementById('moodSaveBtn');
-      if(saveBtn) saveBtn.style.display = pendingMood ? '' : 'none';
-    }
-
-    // Tap welcome text → new message
-    if(welcomeText){
-      welcomeText.addEventListener('click', () => {
-        currentCharData = getRandomCharMessage();
-        const color = getCharColor(currentCharData.char.id);
-        welcomeText.innerHTML = currentCharData.msg;
-        welcomeText.style.color = color;
-        welcomeText.style.textShadow = `0 0 32px ${color}50`;
-      });
-    }
-
-    /* ─── Mood ──────────────────────────────────── */
-    function selectMood(symbol){
-      pendingMood = symbol;
-      renderHome();
-    }
-
-    function confirmMood(){
-      if(!pendingMood) return;
-      const today = getTodayKey();
-      const data = getMoodMap();
-      data[today] = pendingMood;
-      saveJson(moodKey, data);
-      const diaries = loadJson(diaryKey, []);
-      const existing = diaries.find(e => e.day === today);
-      if(existing){
-        existing.mood = pendingMood;
-        existing.ts = Date.now();
-      } else {
-        diaries.unshift({ id:uid(), day:today, mood:pendingMood, text:'', image:'', imageName:'', ts:Date.now() });
-      }
-      diaries.sort((a,b)=>(b.ts||0)-(a.ts||0));
-      saveJson(diaryKey, diaries.slice(0,180));
-      pendingMood = null;
-      renderHome();
-    }
-
-    function openMoodHistory(){
-      const data = getMoodMap();
-      const rows = Object.entries(data).sort((a,b)=>a[0] < b[0] ? 1 : -1).slice(0,30)
-        .map(([day,val]) => `${day}  ${val}`).join('\n') || 'まだ記録がないよ。';
-      openSimpleSheet('Mood History', rows.replaceAll('-', '.'));
-    }
-
-    /* ─── Sheet ─────────────────────────────────── */
-    function openSimpleSheet(title, text){
-      simpleSheetContent.innerHTML = `<h3>${escapeHtml(title)}</h3><p>${escapeHtml(text)}</p><div class="row"><button class="sub-button" type="button" onclick="closeSheet()">閉じる</button></div>`;
-      simpleSheetBackdrop.classList.add('show');
-    }
-
-    function openHtmlSheet(html){
-      simpleSheetContent.innerHTML = html;
-      simpleSheetBackdrop.classList.add('show');
-    }
-
-    function closeSheet(event){
-      if(event && event.target !== simpleSheetBackdrop) return;
-      simpleSheetBackdrop.classList.remove('show');
-    }
-
-    /* ─── Color Settings ────────────────────────── */
-    function openColorSettings(){
-      const colors = getCharColors();
-      const items = CHARACTERS.map(c => {
-        const col = colors[c.id] || c.defaultColor;
-        return `<button type="button" onclick="openCharColorPicker('${c.id}')"
-          style="display:flex;align-items:center;gap:12px;width:100%;padding:11px 0;
-                 background:none;border:none;border-bottom:1px solid rgba(255,255,255,0.07);
-                 cursor:pointer;color:inherit;text-align:left;">
-          <span style="width:20px;height:20px;border-radius:50%;background:${col};
-                       display:inline-block;flex-shrink:0;box-shadow:0 0 8px ${col}80;"></span>
-          <span style="font-size:15px;letter-spacing:0.03em;">${escapeHtml(c.name)}</span>
-          <span style="margin-left:auto;opacity:0.4;font-size:13px;">›</span>
-        </button>`;
-      }).join('');
-
-      openHtmlSheet(`
-        <h3 style="margin:0 0 16px;font-size:16px;font-weight:600;letter-spacing:0.05em;">キャラクターカラー</h3>
-        ${items}
-        <div class="row" style="margin-top:16px;">
-          <button class="sub-button" type="button" onclick="closeSheet()">閉じる</button>
+      <div style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.07);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${manualActive?'12px':'0'};">
+          <span style="font-size:14px;letter-spacing:0.04em;">手動で表示を指定</span>
+          <button type="button" id="manualToggleBtn" onclick="toggleManualMode()"
+            style="width:46px;height:26px;border-radius:13px;border:none;cursor:pointer;position:relative;transition:background 0.25s;background:${manualActive?'#9090d8':'rgba(255,255,255,0.15)'};">
+            <span style="position:absolute;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left 0.25s;left:${manualActive?'23px':'3px'};"></span>
+          </button>
         </div>
-      `);
-    }
-
-    function openCharColorPicker(charId){
-      const char = CHARACTERS.find(c => c.id === charId);
-      if(!char) return;
-      const currentColor = getCharColor(charId);
-
-      const swatches = COLOR_PALETTE.map(p => {
-        const isSelected = p.hex.toLowerCase() === currentColor.toLowerCase();
-        const ring = isSelected
-          ? `outline:2.5px solid #fff;outline-offset:3px;`
-          : '';
-        return `<button type="button"
-          onclick="setCharColor('${charId}','${p.hex}')"
-          title="${escapeHtml(p.name)}"
-          style="width:42px;height:42px;border-radius:50%;background:${p.hex};
-                 border:none;cursor:pointer;${ring}
-                 box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:transform 0.1s;"
-          onmousedown="this.style.transform='scale(0.88)'"
-          onmouseup="this.style.transform='scale(1)'"
-          ontouchstart="this.style.transform='scale(0.88)'"
-          ontouchend="this.style.transform='scale(1)'">
-        </button>`;
-      }).join('');
-
-      const previewColor = currentColor;
-
-      openHtmlSheet(`
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
-          <button type="button" onclick="openColorSettings()"
-            style="background:none;border:none;color:rgba(255,255,255,0.55);
-                   cursor:pointer;font-size:20px;padding:0;line-height:1;">‹</button>
-          <h3 style="margin:0;font-size:16px;font-weight:600;">${escapeHtml(char.name)}</h3>
-          <span id="colorPreviewDot" style="width:16px;height:16px;border-radius:50%;
-                background:${previewColor};display:inline-block;
-                box-shadow:0 0 10px ${previewColor}80;
-                transition:background 0.3s, box-shadow 0.3s;margin-left:4px;"></span>
+        <div id="manualSelects" style="display:${manualActive?'flex':'none'};gap:8px;">
+          <select id="manualCharSel" onchange="applyManual()"
+            style="flex:1;background:#1a1a2e;border:1px solid rgba(255,255,255,0.18);border-radius:8px;color:#fff;padding:8px;font-size:13px;">
+            ${CHARACTERS.map(c=>`<option value="${c.id}"${s.manualChar===c.id?' selected':''}>${escapeHtml(c.name)}</option>`).join('')}
+          </select>
+          <select id="manualSlotSel" onchange="applyManual()"
+            style="flex:1;background:#1a1a2e;border:1px solid rgba(255,255,255,0.18);border-radius:8px;color:#fff;padding:8px;font-size:13px;">
+            ${SLOTS.map(sl=>`<option value="${sl}"${s.manualSlot===sl?' selected':''}>${SLOT_LABELS[sl]}</option>`).join('')}
+          </select>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;
-                    padding:4px 0 22px;">
-          ${swatches}
-        </div>
-        <div class="row">
-          <button class="sub-button" type="button" onclick="closeSheet()">完了</button>
-        </div>
-      `);
-    }
+      </div>
 
-    function setCharColor(charId, hex){
-      const colors = getCharColors();
-      colors[charId] = hex;
-      saveJson(colorKey, colors);
+      <button type="button" onclick="openColorList()" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 0;background:none;border:none;border-bottom:1px solid rgba(255,255,255,0.07);cursor:pointer;color:inherit;font-size:14px;letter-spacing:0.04em;">
+        <span>キャラクターカラー</span><span style="opacity:0.4;">›</span>
+      </button>
+      <button type="button" onclick="openMsgEditCharList()" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 0;background:none;border:none;border-bottom:1px solid rgba(255,255,255,0.07);cursor:pointer;color:inherit;font-size:14px;letter-spacing:0.04em;">
+        <span>コメントを編集</span><span style="opacity:0.4;">›</span>
+      </button>
 
-      // Preview dot update
-      const dot = document.getElementById('colorPreviewDot');
-      if(dot){
-        dot.style.background = hex;
-        dot.style.boxShadow = `0 0 10px ${hex}80`;
-      }
+      <div style="margin-top:18px;">
+        <button class="sub-button" type="button" onclick="forceCloseSheet()">閉じる</button>
+      </div>
+    `);
+  }
 
-      // Update swatch selection ring
-      const allSwatches = simpleSheetContent.querySelectorAll('button[title]');
-      allSwatches.forEach(btn => {
-        const bg = btn.style.background.toLowerCase();
-        btn.style.outline = bg === hex.toLowerCase() ? '2.5px solid #fff' : 'none';
-        btn.style.outlineOffset = bg === hex.toLowerCase() ? '3px' : '0';
-      });
-
-      // Re-render hero if this is the current character
-      if(currentCharData && currentCharData.char.id === charId){
-        if(welcomeText){
-          welcomeText.style.color = hex;
-          welcomeText.style.textShadow = `0 0 32px ${hex}50`;
-        }
-      }
-    }
-
-    /* ─── Navigation ────────────────────────────── */
-    document.getElementById('openMemoFromHome').addEventListener('click', () => { window.location.href = 'memo.html'; });
-    document.getElementById('openDiaryFromHome').addEventListener('click', () => { window.location.href = 'diary.html'; });
-    document.getElementById('openHealthFromHome').addEventListener('click', () => { window.location.href = 'health.html'; });
-    document.getElementById('openLivingFromHome').addEventListener('click', () => openSimpleSheet('Living','みんながいる共有のリビング。\nここは次の制作でつないでいく場所。'));
-    document.getElementById('openRoomsFromHome').addEventListener('click', () => openSimpleSheet('Rooms','それぞれの部屋へ入る入口。\nRoomsはあとで本設計する予定。'));
-    document.getElementById('openTreasuresFromHome').addEventListener('click', () => openSimpleSheet('Treasures','宝物や思い出の保管場所。\nここも次の制作で育てていく。'));
-
-    /* ─── Init ──────────────────────────────────── */
+  function toggleShowName(){
+    const s=getSettings(); s.showName=!s.showName; saveSettings(s);
+    const btn=document.getElementById('nameToggleBtn');
+    if(btn){ btn.style.background=s.showName?'#9090d8':'rgba(255,255,255,0.15)'; btn.querySelector('span').style.left=s.showName?'23px':'3px'; }
     renderHome();
+  }
+
+  function setFontSize(v){
+    const s=getSettings(); s.fontSize=v; saveSettings(s);
+    ['sm','md','lg'].forEach(sv=>{ const b=document.getElementById(`fs_${sv}`); if(b){ b.style.background=sv===v?'rgba(255,255,255,0.15)':'none'; b.style.color=sv===v?'#fff':'rgba(255,255,255,0.5)'; } });
+    renderHome();
+  }
+
+  function toggleManualMode(){
+    const s=getSettings(); const was=!!(s.manualChar&&s.manualSlot);
+    if(was){ s.manualChar=null; s.manualSlot=null; } else { s.manualChar=CHARACTERS[0].id; s.manualSlot=getTimeSlot(); }
+    saveSettings(s);
+    const btn=document.getElementById('manualToggleBtn'); const sel=document.getElementById('manualSelects');
+    const now=!!(s.manualChar&&s.manualSlot);
+    if(btn){ btn.style.background=now?'#9090d8':'rgba(255,255,255,0.15)'; btn.querySelector('span').style.left=now?'23px':'3px'; }
+    if(sel){ sel.style.display=now?'flex':'none'; }
+    currentCharData=null; renderHome();
+  }
+
+  function applyManual(){
+    const cs=document.getElementById('manualCharSel'); const ss=document.getElementById('manualSlotSel');
+    if(!cs||!ss) return;
+    const s=getSettings(); s.manualChar=cs.value; s.manualSlot=ss.value; saveSettings(s);
+    currentCharData=null; renderHome();
+  }
+
+  /* ═══════════════════════════════════════
+     COLOR SETTINGS
+  ═══════════════════════════════════════ */
+  function openColorList(){
+    const colors=getCharColors();
+    const items=CHARACTERS.map(c=>{ const col=colors[c.id]||c.defaultColor; return `
+      <button type="button" onclick="openCharColorPicker('${c.id}')"
+        style="display:flex;align-items:center;gap:12px;width:100%;padding:11px 0;background:none;border:none;border-bottom:1px solid rgba(255,255,255,0.07);cursor:pointer;color:inherit;text-align:left;">
+        <span style="width:18px;height:18px;border-radius:50%;background:${col};display:inline-block;flex-shrink:0;box-shadow:0 0 8px ${col}80;"></span>
+        <span style="font-size:14px;">${escapeHtml(c.name)}</span>
+        <span style="margin-left:auto;opacity:0.4;font-size:13px;">›</span>
+      </button>`; }).join('');
+    openHtmlSheet(`
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+        <button type="button" onclick="openEditPanel()" style="background:none;border:none;color:rgba(255,255,255,0.55);cursor:pointer;font-size:20px;padding:0;">‹</button>
+        <h3 style="margin:0;font-size:16px;font-weight:600;">キャラクターカラー</h3>
+      </div>
+      ${items}
+      <div style="margin-top:16px;"><button class="sub-button" type="button" onclick="forceCloseSheet()">閉じる</button></div>
+    `);
+  }
+
+  function openCharColorPicker(charId){
+    const char=CHARACTERS.find(c=>c.id===charId); if(!char) return;
+    const cur=getCharColor(charId);
+    const sw=COLOR_PALETTE.map(p=>{ const sel=p.hex.toLowerCase()===cur.toLowerCase(); return `
+      <button type="button" onclick="setCharColor('${charId}','${p.hex}')" title="${escapeHtml(p.name)}"
+        style="width:42px;height:42px;border-radius:50%;background:${p.hex};border:none;cursor:pointer;${sel?'outline:2.5px solid #fff;outline-offset:3px;':''}box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:transform 0.1s;"
+        onmousedown="this.style.transform='scale(0.88)'" onmouseup="this.style.transform='scale(1)'"
+        ontouchstart="this.style.transform='scale(0.88)'" ontouchend="this.style.transform='scale(1)'"></button>`; }).join('');
+    openHtmlSheet(`
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+        <button type="button" onclick="openColorList()" style="background:none;border:none;color:rgba(255,255,255,0.55);cursor:pointer;font-size:20px;padding:0;">‹</button>
+        <h3 style="margin:0;font-size:16px;font-weight:600;">${escapeHtml(char.name)}</h3>
+        <span id="colorPreviewDot" style="width:16px;height:16px;border-radius:50%;background:${cur};display:inline-block;box-shadow:0 0 10px ${cur}80;transition:background 0.3s;margin-left:4px;"></span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;padding:4px 0 22px;">${sw}</div>
+      <button class="sub-button" type="button" onclick="forceCloseSheet()">完了</button>
+    `);
+  }
+
+  function setCharColor(charId,hex){
+    const colors=getCharColors(); colors[charId]=hex; saveJson(colorKey,colors);
+    const dot=document.getElementById('colorPreviewDot'); if(dot){ dot.style.background=hex; dot.style.boxShadow=`0 0 10px ${hex}80`; }
+    simpleSheetContent.querySelectorAll('button[title]').forEach(b=>{ const m=b.style.background.toLowerCase()===hex.toLowerCase(); b.style.outline=m?'2.5px solid #fff':'none'; b.style.outlineOffset=m?'3px':'0'; });
+    if(currentCharData&&currentCharData.char.id===charId){ if(welcomeText){ welcomeText.style.color=hex; welcomeText.style.textShadow=`0 0 32px ${hex}50`; } }
+  }
+
+  /* ═══════════════════════════════════════
+     MESSAGE EDIT
+  ═══════════════════════════════════════ */
+  function openMsgEditCharList(){
+    const items=CHARACTERS.map(c=>`
+      <button type="button" onclick="openMsgEditSlotList('${c.id}')"
+        style="display:flex;align-items:center;gap:12px;width:100%;padding:11px 0;background:none;border:none;border-bottom:1px solid rgba(255,255,255,0.07);cursor:pointer;color:inherit;text-align:left;">
+        <span style="width:10px;height:10px;border-radius:50%;background:${getCharColor(c.id)};display:inline-block;flex-shrink:0;"></span>
+        <span style="font-size:14px;">${escapeHtml(c.name)}</span>
+        <span style="margin-left:auto;opacity:0.4;">›</span>
+      </button>`).join('');
+    openHtmlSheet(`
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+        <button type="button" onclick="openEditPanel()" style="background:none;border:none;color:rgba(255,255,255,0.55);cursor:pointer;font-size:20px;padding:0;">‹</button>
+        <h3 style="margin:0;font-size:16px;font-weight:600;">コメントを編集</h3>
+      </div>
+      ${items}
+      <div style="margin-top:16px;"><button class="sub-button" type="button" onclick="forceCloseSheet()">閉じる</button></div>
+    `);
+  }
+
+  function openMsgEditSlotList(charId){
+    const char=CHARACTERS.find(c=>c.id===charId); if(!char) return;
+    const color=getCharColor(charId);
+    const btns=SLOTS.map(sl=>`
+      <button type="button" onclick="openMsgEditForm('${charId}','${sl}')"
+        style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 0;background:none;border:none;border-bottom:1px solid rgba(255,255,255,0.07);cursor:pointer;color:inherit;font-size:14px;text-align:left;">
+        <span>${SLOT_LABELS[sl]}（${getMessages(charId,sl).length}件）</span><span style="opacity:0.4;">›</span>
+      </button>`).join('');
+    openHtmlSheet(`
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+        <button type="button" onclick="openMsgEditCharList()" style="background:none;border:none;color:rgba(255,255,255,0.55);cursor:pointer;font-size:20px;padding:0;">‹</button>
+        <span style="width:12px;height:12px;border-radius:50%;background:${color};display:inline-block;box-shadow:0 0 8px ${color}80;"></span>
+        <h3 style="margin:0;font-size:16px;font-weight:600;">${escapeHtml(char.name)}</h3>
+      </div>
+      ${btns}
+      <div style="margin-top:16px;"><button class="sub-button" type="button" onclick="forceCloseSheet()">閉じる</button></div>
+    `);
+  }
+
+  function openMsgEditForm(charId,slot){
+    const char=CHARACTERS.find(c=>c.id===charId); if(!char) return;
+    const msgs=getMessages(charId,slot); const color=getCharColor(charId);
+    const tas=msgs.map((m,i)=>`
+      <div style="margin-bottom:12px;">
+        <div style="font-size:11px;opacity:0.45;letter-spacing:0.08em;margin-bottom:4px;">メッセージ ${i+1}</div>
+        <textarea id="msg_${charId}_${slot}_${i}" rows="2"
+          style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);
+                 border-radius:8px;color:#fff;padding:10px;font-size:14px;resize:vertical;
+                 box-sizing:border-box;line-height:1.6;font-family:inherit;letter-spacing:0.03em;">${escapeHtml(m)}</textarea>
+      </div>`).join('');
+    openHtmlSheet(`
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+        <button type="button" onclick="openMsgEditSlotList('${charId}')" style="background:none;border:none;color:rgba(255,255,255,0.55);cursor:pointer;font-size:20px;padding:0;">‹</button>
+        <span style="width:10px;height:10px;border-radius:50%;background:${color};display:inline-block;"></span>
+        <h3 style="margin:0;font-size:15px;font-weight:600;">${escapeHtml(char.name)} ／ ${SLOT_LABELS[slot]}</h3>
+      </div>
+      ${tas}
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button type="button" onclick="addMsgField('${charId}','${slot}')"
+          style="flex:1;padding:10px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.18);border-radius:8px;color:rgba(255,255,255,0.7);cursor:pointer;font-size:13px;">
+          ＋ 追加
+        </button>
+        <button type="button" id="saveMsgBtn" onclick="saveMsgEdits('${charId}','${slot}',${msgs.length})"
+          style="flex:2;padding:10px;background:${color}33;border:1px solid ${color}60;border-radius:8px;color:#fff;cursor:pointer;font-size:14px;font-weight:600;">
+          保存
+        </button>
+      </div>
+    `);
+  }
+
+  function addMsgField(charId,slot){
+    const edits=getMsgEdits(); const key=`${charId}_${slot}`;
+    const cur=getMessages(charId,slot); const updated=[...cur,''];
+    edits[key]=updated; saveJson(msgEditKey,edits);
+    openMsgEditForm(charId,slot);
+  }
+
+  function saveMsgEdits(charId,slot,count){
+    const edits=getMsgEdits(); const key=`${charId}_${slot}`;
+    const msgs=[];
+    for(let i=0;i<count+20;i++){
+      const el=document.getElementById(`msg_${charId}_${slot}_${i}`); if(!el) break;
+      const v=el.value.trim(); if(v) msgs.push(v);
+    }
+    if(msgs.length===0){ delete edits[key]; } else { edits[key]=msgs; }
+    saveJson(msgEditKey,edits);
+    const btn=document.getElementById('saveMsgBtn');
+    if(btn){ btn.textContent='保存しました ✓'; setTimeout(()=>{ btn.textContent='保存'; },1500); }
+    currentCharData=null; renderHome();
+  }
+
+  /* ═══════════════════════════════════════
+     NAVIGATION
+  ═══════════════════════════════════════ */
+  document.getElementById('openMemoFromHome').addEventListener('click',()=>{ window.location.href='memo.html'; });
+  document.getElementById('openDiaryFromHome').addEventListener('click',()=>{ window.location.href='diary.html'; });
+  document.getElementById('openHealthFromHome').addEventListener('click',()=>{ window.location.href='health.html'; });
+  document.getElementById('openLivingFromHome').addEventListener('click',()=>openSimpleSheet('Living','みんながいる共有のリビング。\nここは次の制作でつないでいく場所。'));
+  document.getElementById('openRoomsFromHome').addEventListener('click',()=>openSimpleSheet('Rooms','それぞれの部屋へ入る入口。\nRoomsはあとで本設計する予定。'));
+  document.getElementById('openTreasuresFromHome').addEventListener('click',()=>openSimpleSheet('Treasures','宝物や思い出の保管場所。\nここも次の制作で育てていく。'));
+
+  renderHome();
   </script>
 </body>
 </html>
