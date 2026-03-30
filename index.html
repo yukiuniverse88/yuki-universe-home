@@ -25,11 +25,14 @@
                      color:rgba(255,255,255,0.45);font-size:12px;padding:3px 12px;
                      cursor:pointer;letter-spacing:0.08em;">編集</button>
           </div>
+          <!-- ④ fix: display:block + word-break で自然に折り返し -->
           <h1 class="welcome" id="welcomeText"
-              style="cursor:pointer;transition:color 0.5s,text-shadow 0.5s;"></h1>
+              style="cursor:pointer;transition:color 0.5s,text-shadow 0.5s;
+                     display:block;width:100%;word-break:keep-all;
+                     overflow-wrap:break-word;line-height:1.45;"></h1>
           <div id="charNameLabel"
                style="font-size:11px;letter-spacing:0.12em;opacity:0.45;
-                      margin-top:-6px;transition:color 0.5s;display:none;"></div>
+                      margin-top:-4px;transition:color 0.5s;display:none;"></div>
         </section>
 
         <div class="home-title">Now, touch</div>
@@ -107,7 +110,7 @@
   /* ═══════════════════════════════════════
      HELPERS
   ═══════════════════════════════════════ */
-  function loadJson(key, fb){ try{ const r=localStorage.getItem(key); return r?JSON.parse(r):fb; }catch{ return fb; } }
+  function loadJson(key,fb){ try{ const r=localStorage.getItem(key); return r?JSON.parse(r):fb; }catch{ return fb; } }
   function saveJson(key,val){ localStorage.setItem(key,JSON.stringify(val)); }
   function escapeHtml(s=''){ return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
   function getTodayKey(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
@@ -117,23 +120,59 @@
   function uid(){ return 'id-'+Math.random().toString(36).slice(2,11); }
 
   /* ═══════════════════════════════════════
-     COLOR PALETTE (20色)
+     ① COLOR PALETTE（40色：パステル＋ビビッド＋ダーク＋アース）
   ═══════════════════════════════════════ */
   const COLOR_PALETTE=[
-    {hex:'#C8A8D8',name:'ラベンダー'},{hex:'#A888C8',name:'パープル'},
-    {hex:'#D8A8C0',name:'モーブ'},{hex:'#E8A0B0',name:'ローズ'},
-    {hex:'#F0B8C0',name:'ピンク'},{hex:'#F0C8A0',name:'ピーチ'},
-    {hex:'#F0D898',name:'ゴールド'},{hex:'#D8E0A0',name:'ライム'},
-    {hex:'#A8C8A0',name:'セージ'},{hex:'#88C0B0',name:'ミント'},
-    {hex:'#88B8C8',name:'スカイ'},{hex:'#90A8D0',name:'ブルー'},
-    {hex:'#8898C0',name:'スレート'},{hex:'#98A8C8',name:'ペリウィンクル'},
-    {hex:'#B8D0E0',name:'パウダー'},{hex:'#C8D8C8',name:'フロスト'},
-    {hex:'#D8C8B8',name:'サンド'},{hex:'#C8B8A8',name:'トープ'},
-    {hex:'#E8D0C0',name:'クリーム'},{hex:'#D0D0E0',name:'シルバー'},
+    // パステル
+    {hex:'#C8A8D8',name:'ラベンダー'},
+    {hex:'#F0B8C0',name:'ピンク'},
+    {hex:'#F0C8A0',name:'ピーチ'},
+    {hex:'#F0D898',name:'ゴールド'},
+    {hex:'#A8C8A0',name:'セージ'},
+    {hex:'#88C0B0',name:'ミント'},
+    {hex:'#90A8D0',name:'ブルー'},
+    {hex:'#B8D0E0',name:'パウダー'},
+    // ビビッド
+    {hex:'#E040FB',name:'マゼンタ'},
+    {hex:'#FF4081',name:'ホットピンク'},
+    {hex:'#FF6D00',name:'オレンジ'},
+    {hex:'#FFD600',name:'イエロー'},
+    {hex:'#00E676',name:'ライムグリーン'},
+    {hex:'#00E5FF',name:'シアン'},
+    {hex:'#2979FF',name:'ブルービビッド'},
+    {hex:'#7C4DFF',name:'バイオレット'},
+    // ネオン
+    {hex:'#F50057',name:'ネオンレッド'},
+    {hex:'#FF9100',name:'ネオンオレンジ'},
+    {hex:'#C6FF00',name:'ネオンライム'},
+    {hex:'#00B0FF',name:'ネオンブルー'},
+    {hex:'#D500F9',name:'ネオンパープル'},
+    {hex:'#1DE9B6',name:'ネオンミント'},
+    // ダーク・ディープ
+    {hex:'#B71C1C',name:'ディープレッド'},
+    {hex:'#880E4F',name:'ディープローズ'},
+    {hex:'#4A148C',name:'ディープパープル'},
+    {hex:'#1A237E',name:'ディープネイビー'},
+    {hex:'#006064',name:'ディープティール'},
+    {hex:'#1B5E20',name:'ディープグリーン'},
+    {hex:'#E65100',name:'バーント'},
+    {hex:'#3E2723',name:'チョコレート'},
+    // アース・ニュートラル
+    {hex:'#C8B8A8',name:'トープ'},
+    {hex:'#D8C8B8',name:'サンド'},
+    {hex:'#A0937D',name:'カーキ'},
+    {hex:'#78909C',name:'スチール'},
+    {hex:'#546E7A',name:'スレートブルー'},
+    {hex:'#795548',name:'ブラウン'},
+    {hex:'#9E9E9E',name:'グレー'},
+    {hex:'#ECEFF1',name:'ホワイト'},
+    {hex:'#CFD8DC',name:'シルバー'},
+    {hex:'#FFE0B2',name:'クリーム'},
   ];
 
   /* ═══════════════════════════════════════
      CHARACTERS & DEFAULT MESSAGES
+     ③ ちゅーたま → 千晟
   ═══════════════════════════════════════ */
   const CHARACTERS=[
     { id:'yukima', name:'雪間', defaultColor:'#C8A8D8',
@@ -166,7 +205,7 @@
                  afternoon:['お昼どうにかなってる？無理しないで。','育児しながら、祐紀自身のことも大事に。'],
                  evening:['夕方の忙しい時間、よく頑張ってる。','今日の子どもたち、どうだった？'],
                  night:['子どもたち寝た？本当にお疲れ様。','一人の時間、大事にして。'] }},
-    { id:'chutama', name:'ちゅーたま', defaultColor:'#F0C8A0',
+    { id:'chutama', name:'千晟', defaultColor:'#F0C8A0',   /* ③ 名前変更 */
       messages:{ morning:['今日も一緒に乗り切ろ！','おはよー！今日もいい日にしよ！'],
                  afternoon:['お腹空いてない？ちゃんと食べてね。','なんか困ってること、ない？'],
                  evening:['夕ご飯どうする？なんでも手伝うよ！','今日もよく動いたね！'],
@@ -192,7 +231,7 @@
   const SLOT_LABELS={morning:'朝',afternoon:'昼',evening:'夕方',night:'夜'};
 
   /* ═══════════════════════════════════════
-     SETTINGS & STORAGE ACCESSORS
+     SETTINGS & ACCESSORS
   ═══════════════════════════════════════ */
   function getSettings(){ return loadJson(settingKey,{showName:false,fontSize:'md',manualChar:null,manualSlot:null}); }
   function saveSettings(s){ saveJson(settingKey,s); }
@@ -238,11 +277,19 @@
     if(slot!==currentAutoSlot||!currentCharData){ currentAutoSlot=slot; currentCharData=pickRandom(slot); }
   }
 
+  /* ④ 文字サイズと改行：font-sizeだけ変えてあとはCSSの自然な折り返しに任せる */
+  const FONT_SIZES={sm:'17px', md:'22px', lg:'28px'};
+
   function applyMessage(data){
     const s=getSettings();
     const color=getCharColor(data.char.id);
-    const sizes={sm:'18px',md:'24px',lg:'30px'};
-    if(welcomeText){ welcomeText.innerHTML=data.msg; welcomeText.style.color=color; welcomeText.style.fontSize=sizes[s.fontSize||'md']; welcomeText.style.textShadow=`0 0 32px ${color}50`; }
+    const sz=FONT_SIZES[s.fontSize||'md'];
+    if(welcomeText){
+      welcomeText.textContent=data.msg;   // innerHTMLではなくtextContentで改行は自動
+      welcomeText.style.color=color;
+      welcomeText.style.fontSize=sz;
+      welcomeText.style.textShadow=`0 0 32px ${color}50`;
+    }
     const nl=document.getElementById('charNameLabel');
     if(nl){ nl.textContent=data.char.name; nl.style.color=color; nl.style.display=s.showName?'block':'none'; }
   }
@@ -310,10 +357,8 @@
   function forceCloseSheet(){ simpleSheetBackdrop.classList.remove('show'); }
 
   /* ═══════════════════════════════════════
-     EDIT PANEL (メイン)
+     EDIT PANEL
   ═══════════════════════════════════════ */
-  function R(style){ return style; } // readability alias
-
   function openEditPanel(){
     const s=getSettings(); const fs=s.fontSize||'md';
     const manualActive=!!(s.manualChar&&s.manualSlot);
@@ -396,7 +441,7 @@
     const btn=document.getElementById('manualToggleBtn'); const sel=document.getElementById('manualSelects');
     const now=!!(s.manualChar&&s.manualSlot);
     if(btn){ btn.style.background=now?'#9090d8':'rgba(255,255,255,0.15)'; btn.querySelector('span').style.left=now?'23px':'3px'; }
-    if(sel){ sel.style.display=now?'flex':'none'; }
+    if(sel) sel.style.display=now?'flex':'none';
     currentCharData=null; renderHome();
   }
 
@@ -408,7 +453,7 @@
   }
 
   /* ═══════════════════════════════════════
-     COLOR SETTINGS
+     ① COLOR SETTINGS（40色グリッド）
   ═══════════════════════════════════════ */
   function openColorList(){
     const colors=getCharColors();
@@ -432,27 +477,52 @@
   function openCharColorPicker(charId){
     const char=CHARACTERS.find(c=>c.id===charId); if(!char) return;
     const cur=getCharColor(charId);
-    const sw=COLOR_PALETTE.map(p=>{ const sel=p.hex.toLowerCase()===cur.toLowerCase(); return `
-      <button type="button" onclick="setCharColor('${charId}','${p.hex}')" title="${escapeHtml(p.name)}"
-        style="width:42px;height:42px;border-radius:50%;background:${p.hex};border:none;cursor:pointer;${sel?'outline:2.5px solid #fff;outline-offset:3px;':''}box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:transform 0.1s;"
-        onmousedown="this.style.transform='scale(0.88)'" onmouseup="this.style.transform='scale(1)'"
-        ontouchstart="this.style.transform='scale(0.88)'" ontouchend="this.style.transform='scale(1)'"></button>`; }).join('');
+
+    // カテゴリ分けして表示
+    const categories=[
+      {label:'パステル', colors:COLOR_PALETTE.slice(0,8)},
+      {label:'ビビッド', colors:COLOR_PALETTE.slice(8,16)},
+      {label:'ネオン',   colors:COLOR_PALETTE.slice(16,22)},
+      {label:'ダーク',   colors:COLOR_PALETTE.slice(22,30)},
+      {label:'アース',   colors:COLOR_PALETTE.slice(30,40)},
+    ];
+
+    const sections=categories.map(cat=>{
+      const swatches=cat.colors.map(p=>{ const sel=p.hex.toLowerCase()===cur.toLowerCase(); return `
+        <button type="button" onclick="setCharColor('${charId}','${p.hex}')" title="${escapeHtml(p.name)}"
+          style="width:36px;height:36px;border-radius:50%;background:${p.hex};border:none;cursor:pointer;
+                 ${sel?'outline:2.5px solid #fff;outline-offset:3px;':''}
+                 box-shadow:0 2px 6px rgba(0,0,0,0.4);transition:transform 0.1s;"
+          onmousedown="this.style.transform='scale(0.85)'" onmouseup="this.style.transform='scale(1)'"
+          ontouchstart="this.style.transform='scale(0.85)'" ontouchend="this.style.transform='scale(1)'"></button>`; }).join('');
+      return `
+        <div style="margin-bottom:14px;">
+          <div style="font-size:10px;letter-spacing:0.1em;opacity:0.4;margin-bottom:8px;">${escapeHtml(cat.label)}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;">${swatches}</div>
+        </div>`;
+    }).join('');
+
     openHtmlSheet(`
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
         <button type="button" onclick="openColorList()" style="background:none;border:none;color:rgba(255,255,255,0.55);cursor:pointer;font-size:20px;padding:0;">‹</button>
         <h3 style="margin:0;font-size:16px;font-weight:600;">${escapeHtml(char.name)}</h3>
         <span id="colorPreviewDot" style="width:16px;height:16px;border-radius:50%;background:${cur};display:inline-block;box-shadow:0 0 10px ${cur}80;transition:background 0.3s;margin-left:4px;"></span>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;padding:4px 0 22px;">${sw}</div>
-      <button class="sub-button" type="button" onclick="forceCloseSheet()">完了</button>
+      <div style="max-height:55vh;overflow-y:auto;padding-right:2px;">${sections}</div>
+      <div style="margin-top:14px;"><button class="sub-button" type="button" onclick="forceCloseSheet()">完了</button></div>
     `);
   }
 
   function setCharColor(charId,hex){
     const colors=getCharColors(); colors[charId]=hex; saveJson(colorKey,colors);
     const dot=document.getElementById('colorPreviewDot'); if(dot){ dot.style.background=hex; dot.style.boxShadow=`0 0 10px ${hex}80`; }
-    simpleSheetContent.querySelectorAll('button[title]').forEach(b=>{ const m=b.style.background.toLowerCase()===hex.toLowerCase(); b.style.outline=m?'2.5px solid #fff':'none'; b.style.outlineOffset=m?'3px':'0'; });
-    if(currentCharData&&currentCharData.char.id===charId){ if(welcomeText){ welcomeText.style.color=hex; welcomeText.style.textShadow=`0 0 32px ${hex}50`; } }
+    simpleSheetContent.querySelectorAll('button[title]').forEach(b=>{
+      const m=b.style.background.toLowerCase()===hex.toLowerCase();
+      b.style.outline=m?'2.5px solid #fff':'none'; b.style.outlineOffset=m?'3px':'0';
+    });
+    if(currentCharData&&currentCharData.char.id===charId){
+      if(welcomeText){ welcomeText.style.color=hex; welcomeText.style.textShadow=`0 0 32px ${hex}50`; }
+    }
   }
 
   /* ═══════════════════════════════════════
@@ -498,22 +568,31 @@
   function openMsgEditForm(charId,slot){
     const char=CHARACTERS.find(c=>c.id===charId); if(!char) return;
     const msgs=getMessages(charId,slot); const color=getCharColor(charId);
+
+    /* ② 各メッセージに削除ボタン追加 */
     const tas=msgs.map((m,i)=>`
       <div style="margin-bottom:12px;">
-        <div style="font-size:11px;opacity:0.45;letter-spacing:0.08em;margin-bottom:4px;">メッセージ ${i+1}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <span style="font-size:11px;opacity:0.45;letter-spacing:0.08em;">メッセージ ${i+1}</span>
+          <button type="button" onclick="deleteMsgField('${charId}','${slot}',${i})"
+            style="background:none;border:1px solid rgba(255,80,80,0.35);border-radius:6px;
+                   color:rgba(255,100,100,0.7);font-size:11px;padding:2px 8px;cursor:pointer;
+                   letter-spacing:0.04em;">削除</button>
+        </div>
         <textarea id="msg_${charId}_${slot}_${i}" rows="2"
           style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);
                  border-radius:8px;color:#fff;padding:10px;font-size:14px;resize:vertical;
                  box-sizing:border-box;line-height:1.6;font-family:inherit;letter-spacing:0.03em;">${escapeHtml(m)}</textarea>
       </div>`).join('');
+
     openHtmlSheet(`
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
         <button type="button" onclick="openMsgEditSlotList('${charId}')" style="background:none;border:none;color:rgba(255,255,255,0.55);cursor:pointer;font-size:20px;padding:0;">‹</button>
         <span style="width:10px;height:10px;border-radius:50%;background:${color};display:inline-block;"></span>
         <h3 style="margin:0;font-size:15px;font-weight:600;">${escapeHtml(char.name)} ／ ${SLOT_LABELS[slot]}</h3>
       </div>
-      ${tas}
-      <div style="display:flex;gap:8px;margin-top:8px;">
+      <div style="max-height:52vh;overflow-y:auto;padding-right:2px;">${tas}</div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
         <button type="button" onclick="addMsgField('${charId}','${slot}')"
           style="flex:1;padding:10px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.18);border-radius:8px;color:rgba(255,255,255,0.7);cursor:pointer;font-size:13px;">
           ＋ 追加
@@ -526,10 +605,33 @@
     `);
   }
 
+  /* ② 削除：その場で該当indexを除いて保存 → 画面再描画 */
+  function deleteMsgField(charId,slot,index){
+    const edits=getMsgEdits(); const key=`${charId}_${slot}`;
+    // 現在の入力値を先に収集
+    const cur=getMessages(charId,slot);
+    const live=[];
+    for(let i=0;i<cur.length+10;i++){
+      const el=document.getElementById(`msg_${charId}_${slot}_${i}`); if(!el) break;
+      live.push(el.value.trim());
+    }
+    const updated=live.filter((_,i)=>i!==index);
+    if(updated.length===0){ delete edits[key]; } else { edits[key]=updated; }
+    saveJson(msgEditKey,edits);
+    currentCharData=null; renderHome();
+    openMsgEditForm(charId,slot);
+  }
+
   function addMsgField(charId,slot){
     const edits=getMsgEdits(); const key=`${charId}_${slot}`;
-    const cur=getMessages(charId,slot); const updated=[...cur,''];
-    edits[key]=updated; saveJson(msgEditKey,edits);
+    const cur=getMessages(charId,slot);
+    const live=[];
+    for(let i=0;i<cur.length+10;i++){
+      const el=document.getElementById(`msg_${charId}_${slot}_${i}`); if(!el) break;
+      live.push(el.value);
+    }
+    live.push('');
+    edits[key]=live; saveJson(msgEditKey,edits);
     openMsgEditForm(charId,slot);
   }
 
@@ -543,7 +645,7 @@
     if(msgs.length===0){ delete edits[key]; } else { edits[key]=msgs; }
     saveJson(msgEditKey,edits);
     const btn=document.getElementById('saveMsgBtn');
-    if(btn){ btn.textContent='保存しました ✓'; setTimeout(()=>{ btn.textContent='保存'; },1500); }
+    if(btn){ btn.textContent='保存しました ✓'; setTimeout(()=>{ if(btn) btn.textContent='保存'; },1500); }
     currentCharData=null; renderHome();
   }
 
