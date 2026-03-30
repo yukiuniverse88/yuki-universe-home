@@ -250,7 +250,7 @@
   /* ═══════════════════════════════════════
      SETTINGS & ACCESSORS
   ═══════════════════════════════════════ */
-  function getSettings(){ return loadJson(settingKey,{showName:false,fontSize:'md',effect:'slideUp'}); }
+  function getSettings(){ return loadJson(settingKey,{showName:false,fontSize:'md',effect:'glow',speed:'md'}); }
   function saveSettings(s){ saveJson(settingKey,s); }
   function getCharColors(){ return loadJson(colorKey,{}); }
   function getCharColor(id){ const c=getCharColors(); const ch=CHARACTERS.find(x=>x.id===id); return c[id]||ch?.defaultColor||'#ffffff'; }
@@ -298,14 +298,16 @@
 
   /* ④ 文字サイズと改行：font-sizeだけ変えてあとはCSSの自然な折り返しに任せる */
   const FONT_SIZES={sm:'17px', md:'22px', lg:'28px'};
+  const SPEED_MS={fast:160, md:340, slow:620};
 
   // エフェクト定義
   const EFFECTS={
-    fade:      { out:{opacity:'0', transform:'none'},           in:{opacity:'1', transform:'none'} },
-    slideUp:   { out:{opacity:'0', transform:'translateY(6px)'},in:{opacity:'1', transform:'translateY(0)'} },
-    slideDown: { out:{opacity:'0', transform:'translateY(-8px)'},in:{opacity:'1', transform:'translateY(0)'} },
-    zoom:      { out:{opacity:'0', transform:'scale(0.92)'},    in:{opacity:'1', transform:'scale(1)'} },
-    blur:      { out:{opacity:'0', filter:'blur(6px)'},         in:{opacity:'1', filter:'blur(0px)'} },
+    glow:      null, // 特殊処理
+    fade:      { out:{opacity:'0', transform:'none', filter:'none'},           in:{opacity:'1', transform:'none', filter:'none'} },
+    slideUp:   { out:{opacity:'0', transform:'translateY(10px)', filter:'none'}, in:{opacity:'1', transform:'translateY(0)', filter:'none'} },
+    slideDown: { out:{opacity:'0', transform:'translateY(-10px)', filter:'none'},in:{opacity:'1', transform:'translateY(0)', filter:'none'} },
+    zoom:      { out:{opacity:'0', transform:'scale(0.90)', filter:'none'},    in:{opacity:'1', transform:'scale(1)', filter:'none'} },
+    blur:      { out:{opacity:'0', transform:'none', filter:'blur(8px)'},      in:{opacity:'1', transform:'none', filter:'blur(0px)'} },
   };
 
   function applyMessage(data, animate=false){
@@ -313,29 +315,54 @@
     const color=getCharColor(data.char.id);
     const sz=FONT_SIZES[s.fontSize||'md'];
     const nl=document.getElementById('charNameLabel');
+    const dur=SPEED_MS[s.speed||'md'];
 
     function setContent(){
       if(welcomeText){
         welcomeText.textContent=data.msg;
-        welcomeText.style.color=color;
         welcomeText.style.fontSize=sz;
-        welcomeText.style.textShadow=`0 0 32px ${color}50`;
       }
-      if(nl){ nl.textContent=data.char.name; nl.style.color=color; nl.style.display=s.showName?'block':'none'; }
+      if(nl){ nl.textContent=data.char.name; nl.style.display=s.showName?'block':'none'; }
+    }
+
+    function setColor(){
+      if(welcomeText){
+        welcomeText.style.color=color;
+        welcomeText.style.textShadow=`0 0 40px ${color}60, 0 0 80px ${color}28`;
+      }
+      if(nl) nl.style.color=color;
     }
 
     if(animate && welcomeText){
-      const eff=EFFECTS[s.effect||'slideUp']||EFFECTS.slideUp;
-      welcomeText.style.transition='opacity 0.22s ease, transform 0.22s ease, filter 0.22s ease';
-      Object.assign(welcomeText.style, eff.out);
-      if(nl){ nl.style.transition='opacity 0.22s ease'; nl.style.opacity='0'; }
-      setTimeout(()=>{
-        setContent();
-        Object.assign(welcomeText.style, eff.in);
-        if(nl) nl.style.opacity='1';
-      }, 240);
+      const effKey=s.effect||'glow';
+
+      if(effKey==='glow'){
+        // グロウ：テキストはフェード、色はじんわり推移
+        welcomeText.style.transition=`opacity ${dur*0.7}ms ease`;
+        welcomeText.style.opacity='0';
+        if(nl){ nl.style.transition=`opacity ${dur*0.7}ms ease`; nl.style.opacity='0'; }
+        setTimeout(()=>{
+          setContent();
+          // 色とグロウは先に設定してゆっくりtransition
+          welcomeText.style.transition=`opacity ${dur*0.8}ms ease, color ${dur*1.4}ms ease, text-shadow ${dur*1.4}ms ease`;
+          setColor();
+          welcomeText.style.opacity='1';
+          if(nl){ nl.style.transition=`opacity ${dur*0.8}ms ease, color ${dur*1.4}ms ease`; nl.style.opacity='1'; }
+        }, dur*0.7);
+      } else {
+        const eff=EFFECTS[effKey]||EFFECTS.fade;
+        welcomeText.style.transition=`opacity ${dur*0.7}ms ease, transform ${dur*0.7}ms ease, filter ${dur*0.7}ms ease`;
+        Object.assign(welcomeText.style, eff.out);
+        if(nl){ nl.style.transition=`opacity ${dur*0.7}ms ease`; nl.style.opacity='0'; }
+        setTimeout(()=>{
+          setContent(); setColor();
+          welcomeText.style.transition=`opacity ${dur*0.8}ms ease, transform ${dur*0.8}ms ease, filter ${dur*0.8}ms ease`;
+          Object.assign(welcomeText.style, eff.in);
+          if(nl){ nl.style.transition=`opacity ${dur*0.8}ms ease`; nl.style.opacity='1'; }
+        }, dur*0.75);
+      }
     } else {
-      setContent();
+      setContent(); setColor();
     }
   }
 
@@ -405,34 +432,16 @@
      EDIT PANEL
   ═══════════════════════════════════════ */
   function openEditPanel(){
-    const s=getSettings(); const fs=s.fontSize||'md'; const ef=s.effect||'slideUp';
-    const fsBtns=['sm','md','lg'].map(v=>`
-      <button type="button" onclick="setFontSize('${v}')" id="fs_${v}"
-        style="flex:1;padding:8px 0;border:1px solid rgba(255,255,255,0.18);border-radius:8px;
-               cursor:pointer;font-size:14px;background:${fs===v?'rgba(255,255,255,0.15)':'none'};
-               color:${fs===v?'#fff':'rgba(255,255,255,0.5)'};transition:all 0.2s;">
-        ${{sm:'小',md:'中',lg:'大'}[v]}</button>`).join('');
-
-    const effectList=[
-      {v:'fade',     l:'フェード'},
-      {v:'slideUp',  l:'スライドアップ'},
-      {v:'slideDown',l:'スライドダウン'},
-      {v:'zoom',     l:'ズーム'},
-      {v:'blur',     l:'ブラー'},
-    ];
-    const efBtns=effectList.map(e=>`
-      <button type="button" onclick="setEffect('${e.v}')" id="ef_${e.v}"
-        style="flex:1 1 calc(50% - 4px);padding:8px 4px;border:1px solid rgba(255,255,255,0.18);
-               border-radius:8px;cursor:pointer;font-size:13px;white-space:nowrap;
-               background:${ef===e.v?'rgba(255,255,255,0.15)':'none'};
-               color:${ef===e.v?'#fff':'rgba(255,255,255,0.5)'};transition:all 0.2s;">
-        ${e.l}</button>`).join('');
-
+    const s=getSettings();
     openHtmlSheet(`
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-        <h3 style="margin:0;font-size:16px;font-weight:600;letter-spacing:0.05em;">ヒーロー編集</h3>
+        <h3 style="margin:0;font-size:16px;font-weight:600;letter-spacing:0.05em;">編集</h3>
         <button type="button" onclick="forceCloseSheet()" style="background:none;border:none;color:rgba(255,255,255,0.45);font-size:22px;cursor:pointer;line-height:1;padding:0;">×</button>
       </div>
+
+      <button type="button" onclick="openMsgEditCharList()" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 0;background:none;border:none;border-bottom:1px solid rgba(255,255,255,0.07);cursor:pointer;color:inherit;font-size:14px;letter-spacing:0.04em;">
+        <span>コメントを編集</span><span style="opacity:0.4;">›</span>
+      </button>
 
       <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.07);">
         <span style="font-size:14px;letter-spacing:0.04em;">名前を表示する</span>
@@ -442,21 +451,12 @@
         </button>
       </div>
 
-      <div style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.07);">
-        <div style="font-size:14px;letter-spacing:0.04em;margin-bottom:10px;">文字の大きさ</div>
-        <div style="display:flex;gap:8px;">${fsBtns}</div>
-      </div>
-
-      <div style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.07);">
-        <div style="font-size:14px;letter-spacing:0.04em;margin-bottom:10px;">切り替えエフェクト</div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;">${efBtns}</div>
-      </div>
-
       <button type="button" onclick="openColorList()" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 0;background:none;border:none;border-bottom:1px solid rgba(255,255,255,0.07);cursor:pointer;color:inherit;font-size:14px;letter-spacing:0.04em;">
         <span>キャラクターカラー</span><span style="opacity:0.4;">›</span>
       </button>
-      <button type="button" onclick="openMsgEditCharList()" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 0;background:none;border:none;border-bottom:1px solid rgba(255,255,255,0.07);cursor:pointer;color:inherit;font-size:14px;letter-spacing:0.04em;">
-        <span>コメントを編集</span><span style="opacity:0.4;">›</span>
+
+      <button type="button" onclick="openDisplaySettings()" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 0;background:none;border:none;border-bottom:1px solid rgba(255,255,255,0.07);cursor:pointer;color:inherit;font-size:14px;letter-spacing:0.04em;">
+        <span>表示設定</span><span style="opacity:0.4;">›</span>
       </button>
 
       <div style="margin-top:18px;">
@@ -472,6 +472,53 @@
     renderHome();
   }
 
+  /* ── 表示設定 ── */
+  function openDisplaySettings(){
+    const s=getSettings(); const fs=s.fontSize||'md'; const ef=s.effect||'glow'; const sp=s.speed||'md';
+
+    function selBtn(val,cur){ return val===cur?'rgba(255,255,255,0.15)':'none'; }
+    function selCol(val,cur){ return val===cur?'#fff':'rgba(255,255,255,0.5)'; }
+    const btnStyle=(val,cur)=>`flex:1 1 calc(33% - 6px);padding:8px 4px;border:1px solid rgba(255,255,255,0.18);border-radius:8px;cursor:pointer;font-size:13px;background:${selBtn(val,cur)};color:${selCol(val,cur)};transition:all 0.2s;`;
+
+    const fsBtns=['sm','md','lg'].map(v=>`<button type="button" onclick="setFontSize('${v}')" id="fs_${v}" style="${btnStyle(v,fs)}">${{sm:'小',md:'中',lg:'大'}[v]}</button>`).join('');
+
+    const effectList=[
+      {v:'glow',l:'グロウ'},{v:'fade',l:'フェード'},
+      {v:'slideUp',l:'↑スライド'},{v:'slideDown',l:'↓スライド'},
+      {v:'zoom',l:'ズーム'},{v:'blur',l:'ブラー'},
+    ];
+    const efBtns=effectList.map(e=>`<button type="button" onclick="setEffect('${e.v}')" id="ef_${e.v}" style="${btnStyle(e.v,ef)}">${e.l}</button>`).join('');
+
+    const speedList=[{v:'fast',l:'はやい'},{v:'md',l:'ふつう'},{v:'slow',l:'ゆっくり'}];
+    const spBtns=speedList.map(e=>`<button type="button" onclick="setSpeed('${e.v}')" id="sp_${e.v}" style="${btnStyle(e.v,sp)}">${e.l}</button>`).join('');
+
+    openHtmlSheet(`
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+        <button type="button" onclick="openEditPanel()" style="background:none;border:none;color:rgba(255,255,255,0.55);cursor:pointer;font-size:20px;padding:0;">‹</button>
+        <h3 style="margin:0;font-size:16px;font-weight:600;">表示設定</h3>
+      </div>
+
+      <div style="padding:0 0 14px;border-bottom:1px solid rgba(255,255,255,0.07);margin-bottom:14px;">
+        <div style="font-size:12px;letter-spacing:0.1em;opacity:0.45;margin-bottom:10px;">文字の大きさ</div>
+        <div style="display:flex;gap:8px;">${fsBtns}</div>
+      </div>
+
+      <div style="padding:0 0 14px;border-bottom:1px solid rgba(255,255,255,0.07);margin-bottom:14px;">
+        <div style="font-size:12px;letter-spacing:0.1em;opacity:0.45;margin-bottom:10px;">切り替えエフェクト</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">${efBtns}</div>
+      </div>
+
+      <div style="padding:0 0 14px;margin-bottom:4px;">
+        <div style="font-size:12px;letter-spacing:0.1em;opacity:0.45;margin-bottom:10px;">切り替え時間</div>
+        <div style="display:flex;gap:8px;">${spBtns}</div>
+      </div>
+
+      <div style="margin-top:18px;">
+        <button class="sub-button" type="button" onclick="forceCloseSheet()">閉じる</button>
+      </div>
+    `);
+  }
+
   function setFontSize(v){
     const s=getSettings(); s.fontSize=v; saveSettings(s);
     ['sm','md','lg'].forEach(sv=>{ const b=document.getElementById(`fs_${sv}`); if(b){ b.style.background=sv===v?'rgba(255,255,255,0.15)':'none'; b.style.color=sv===v?'#fff':'rgba(255,255,255,0.5)'; } });
@@ -480,11 +527,19 @@
 
   function setEffect(v){
     const s=getSettings(); s.effect=v; saveSettings(s);
-    ['fade','slideUp','slideDown','zoom','blur'].forEach(ev=>{
+    ['glow','fade','slideUp','slideDown','zoom','blur'].forEach(ev=>{
       const b=document.getElementById(`ef_${ev}`);
       if(b){ b.style.background=ev===v?'rgba(255,255,255,0.15)':'none'; b.style.color=ev===v?'#fff':'rgba(255,255,255,0.5)'; }
     });
-    // プレビュー
+    if(currentCharData) applyMessage(currentCharData, true);
+  }
+
+  function setSpeed(v){
+    const s=getSettings(); s.speed=v; saveSettings(s);
+    ['fast','md','slow'].forEach(sv=>{
+      const b=document.getElementById(`sp_${sv}`);
+      if(b){ b.style.background=sv===v?'rgba(255,255,255,0.15)':'none'; b.style.color=sv===v?'#fff':'rgba(255,255,255,0.5)'; }
+    });
     if(currentCharData) applyMessage(currentCharData, true);
   }
 
