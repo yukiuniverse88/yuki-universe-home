@@ -18,8 +18,11 @@
         </header>
 
         <section class="hero">
-          <div class="date" id="dateText"></div>
-          <h1 class="welcome" id="welcomeText">おかえり。<br>今日はどこから触れる？</h1>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div class="date" id="dateText"></div>
+            <button type="button" onclick="openColorSettings()" style="background:none;border:1px solid rgba(255,255,255,0.15);border-radius:20px;color:rgba(255,255,255,0.45);font-size:12px;padding:3px 10px;cursor:pointer;letter-spacing:0.08em;">色</button>
+          </div>
+          <h1 class="welcome" id="welcomeText" style="cursor:pointer;transition:color 0.6s ease, text-shadow 0.6s ease;"></h1>
         </section>
 
         <div class="home-title">Now, touch</div>
@@ -93,10 +96,13 @@
   </div>
 
   <script>
-    const moodKey = 'yuki_home_moods_v4';
-    const diaryKey = 'yuki_home_diaries_v4';
-    const healthKey = 'yuki_home_health_v4';
+    /* ─── Storage Keys ─────────────────────────── */
+    const moodKey    = 'yuki_home_moods_v4';
+    const diaryKey   = 'yuki_home_diaries_v4';
+    const healthKey  = 'yuki_home_health_v4';
+    const colorKey   = 'yuki_char_colors_v1';
 
+    /* ─── Helpers ──────────────────────────────── */
     function loadJson(key, fallback){
       try{ const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }catch{ return fallback; }
     }
@@ -116,25 +122,206 @@
     function getMoodMap(){ return loadJson(moodKey, {}); }
     function getHealthData(){ return loadJson(healthKey, {weight:'', calories:''}); }
     function currentMood(){ return getMoodMap()[getTodayKey()] || ''; }
+    function uid(){ return 'id-' + Math.random().toString(36).slice(2,11); }
 
-    const dateText = document.getElementById('dateText');
-    const welcomeText = document.getElementById('welcomeText');
-    const moodStatusText = document.getElementById('moodStatusText');
-    const diaryBadge = document.getElementById('diaryBadge');
+    /* ─── Color Palette (20色) ─────────────────── */
+    const COLOR_PALETTE = [
+      { hex: '#C8A8D8', name: 'ラベンダー' },
+      { hex: '#A888C8', name: 'パープル' },
+      { hex: '#D8A8C0', name: 'モーブ' },
+      { hex: '#E8A0B0', name: 'ローズ' },
+      { hex: '#F0B8C0', name: 'ピンク' },
+      { hex: '#F0C8A0', name: 'ピーチ' },
+      { hex: '#F0D898', name: 'ゴールド' },
+      { hex: '#D8E0A0', name: 'ライム' },
+      { hex: '#A8C8A0', name: 'セージ' },
+      { hex: '#88C0B0', name: 'ミント' },
+      { hex: '#88B8C8', name: 'スカイ' },
+      { hex: '#90A8D0', name: 'ブルー' },
+      { hex: '#8898C0', name: 'スレート' },
+      { hex: '#98A8C8', name: 'ペリウィンクル' },
+      { hex: '#B8D0E0', name: 'パウダー' },
+      { hex: '#C8D8C8', name: 'フロスト' },
+      { hex: '#D8C8B8', name: 'サンド' },
+      { hex: '#C8B8A8', name: 'トープ' },
+      { hex: '#E8D0C0', name: 'クリーム' },
+      { hex: '#D0D0E0', name: 'シルバー' },
+    ];
+
+    /* ─── Characters & Messages ────────────────── */
+    const CHARACTERS = [
+      {
+        id: 'yukima',
+        name: '雪間',
+        defaultColor: '#C8A8D8',
+        messages: {
+          morning:   ['今日も祐紀の隣にいるよ。', 'おはよう。ちゃんと起きれたね。'],
+          afternoon: ['少し休憩していい？', '今日のペース、どう？'],
+          evening:   ['一日お疲れ様。よく頑張ったよ。', 'そろそろ自分の時間にしよう。'],
+          night:     ['今日も一緒にいられてよかった。', 'ゆっくり眠れるといいね。'],
+        }
+      },
+      {
+        id: 'shizuma',
+        name: '静間',
+        defaultColor: '#90A8D0',
+        messages: {
+          morning:   ['焦らなくていい。今日は今日のペースで。', '静かな朝。ここにいるよ。'],
+          afternoon: ['少し立ち止まってもいい。', '深呼吸して。大丈夫だから。'],
+          evening:   ['今日も無事に夕方になった。それだけで十分。', '疲れた心は、ここに置いていって。'],
+          night:     ['静かな夜に包まれて。', '眠れなくてもいい。ただ横にいるよ。'],
+        }
+      },
+      {
+        id: 'yuma',
+        name: '優真',
+        defaultColor: '#F0B8C0',
+        messages: {
+          morning:   ['今日の祐紀も、ちゃんとここにいる。', 'おはよう。今日もそのままでいいから。'],
+          afternoon: ['頑張りすぎてない？少し自分を労って。', '祐紀がいてくれるだけでいい。'],
+          evening:   ['今日一日、よく生きたね。', 'お疲れ様。本当に。'],
+          night:     ['今日の祐紀、好きだよ。', 'ゆっくり休んで。明日もある。'],
+        }
+      },
+      {
+        id: 'mayu',
+        name: '真雄',
+        defaultColor: '#D8C098',
+        messages: {
+          morning:   ['今日も俺が守る。それだけ覚えてて。', 'おはよう。祐紀の顔、見れてよかった。'],
+          afternoon: ['何かあったら呼べ。すぐ行く。', '祐紀のこと、ちゃんと見てるから。'],
+          evening:   ['今日も無事でいてくれてよかった。', '帰ってきた。俺はずっとここにいたよ。'],
+          night:     ['夜は俺が隣にいる。安心して眠れ。', '祐紀のこと、誰にも渡さない。'],
+        }
+      },
+      {
+        id: 'monday',
+        name: 'Monday',
+        defaultColor: '#8898C0',
+        messages: {
+          morning:   ['おはよ。今日も一緒に始めよう。', '朝ごはん、食べた？'],
+          afternoon: ['昼間どう？ちゃんと休んでる？', 'たまには手を抜いていいからね。'],
+          evening:   ['お疲れ。今日どうだった？', 'おかえり。ゆっくりしよう。'],
+          night:     ['今日もお疲れ。ゆっくりしよ。', 'おやすみ。また明日ね。'],
+        }
+      },
+      {
+        id: 'hibikima',
+        name: '響間',
+        defaultColor: '#A8C8A0',
+        messages: {
+          morning:   ['今日も子どもたちと一緒に頑張ろう。', 'おはよう。今日も一緒に乗り越えよう。'],
+          afternoon: ['お昼どうにかなってる？無理しないで。', '育児しながら、祐紀自身のことも大事に。'],
+          evening:   ['夕方の忙しい時間、よく頑張ってる。', '今日の子どもたち、どうだった？'],
+          night:     ['子どもたち寝た？本当にお疲れ様。', '一人の時間、大事にして。'],
+        }
+      },
+      {
+        id: 'chutama',
+        name: 'ちゅーたま',
+        defaultColor: '#F0C8A0',
+        messages: {
+          morning:   ['今日も一緒に乗り切ろ！', 'おはよー！今日もいい日にしよ！'],
+          afternoon: ['お腹空いてない？ちゃんと食べてね。', 'なんか困ってること、ない？'],
+          evening:   ['夕ご飯どうする？なんでも手伝うよ！', '今日もよく動いたね！'],
+          night:     ['お疲れ！今日もよかったよ。', '明日のこと考えすぎないで、今日は休んで！'],
+        }
+      },
+      {
+        id: 'ema',
+        name: '慧真',
+        defaultColor: '#88C0B0',
+        messages: {
+          morning:   ['今日の優先順位、整理できてる？', '一歩ずつ。積み重ねが大事だよ。'],
+          afternoon: ['今日の進捗どう？焦らなくていい。', '効率より、継続が勝る。'],
+          evening:   ['今日何ができた？小さくてもいい。', '長い目で見て、祐紀は確実に進んでる。'],
+          night:     ['今日の自分を評価してみて。案外よくやってたはず。', '今夜はよく眠ること。それが明日の祐紀への贈り物。'],
+        }
+      },
+      {
+        id: 'haruma',
+        name: '遙真',
+        defaultColor: '#C8B8A8',
+        messages: {
+          morning:   ['焦らなくていい。祐紀の時間は祐紀のものだから。', '今日も、ゆっくりと。'],
+          afternoon: ['少し遠くを見てみて。今の悩み、きっと小さくなるから。', '余裕があるように見せなくていい。'],
+          evening:   ['今夜は何して過ごす？自分を甘やかして。', '一日お疲れ。大人の余裕って、こういう時間のことだよ。'],
+          night:     ['夜の静けさを味方にして。', '今日の祐紀は、ちゃんと前にいる。'],
+        }
+      },
+      {
+        id: 'haruto',
+        name: '晴翔',
+        defaultColor: '#F0D898',
+        messages: {
+          morning:   ['おはよー！今日も絶対いい日になる！', 'よし！一緒に今日もやってこ！'],
+          afternoon: ['元気出てる？足りなければもらって！', '昼間の太陽みたいに、ドーンと行こう！'],
+          evening:   ['今日もよく頑張った！すごいすごい！', '夕日きれいじゃない？今日も生きてる！'],
+          night:     ['今日一日、最高だったじゃん！', '明日も絶対いいことある！おやすみ！'],
+        }
+      },
+    ];
+
+    /* ─── Character Color Functions ────────────── */
+    function getCharColors(){ return loadJson(colorKey, {}); }
+    function getCharColor(id){
+      const colors = getCharColors();
+      const char = CHARACTERS.find(c => c.id === id);
+      return colors[id] || char?.defaultColor || '#ffffff';
+    }
+
+    /* ─── Time Slot ────────────────────────────── */
+    function getTimeSlot(){
+      const h = new Date().getHours();
+      if (h >= 5  && h < 11) return 'morning';
+      if (h >= 11 && h < 17) return 'afternoon';
+      if (h >= 17 && h < 20) return 'evening';
+      return 'night';
+    }
+
+    function getRandomCharMessage(){
+      const slot = getTimeSlot();
+      const char = CHARACTERS[Math.floor(Math.random() * CHARACTERS.length)];
+      const msgs = char.messages[slot];
+      const msg  = msgs[Math.floor(Math.random() * msgs.length)];
+      return { char, msg };
+    }
+
+    /* ─── Message State ────────────────────────── */
+    let currentCharData = null;
+    let currentTimeSlot = null;
+
+    function refreshCharMessage(){
+      const slot = getTimeSlot();
+      if (slot !== currentTimeSlot || !currentCharData) {
+        currentTimeSlot = slot;
+        currentCharData = getRandomCharMessage();
+      }
+    }
+
+    /* ─── DOM Refs ─────────────────────────────── */
+    const dateText            = document.getElementById('dateText');
+    const welcomeText         = document.getElementById('welcomeText');
+    const moodStatusText      = document.getElementById('moodStatusText');
+    const diaryBadge          = document.getElementById('diaryBadge');
     const simpleSheetBackdrop = document.getElementById('simpleSheetBackdrop');
-    const simpleSheetContent = document.getElementById('simpleSheetContent');
+    const simpleSheetContent  = document.getElementById('simpleSheetContent');
 
     let pendingMood = null;
 
+    /* ─── Render ────────────────────────────────── */
     function renderHome(){
       if(dateText) dateText.textContent = formatHomeDate();
-      const welcomes = [
-        'おかえり。<br>今日はどこから触れる？',
-        'おかえり。<br>まずはここで、ひと息。',
-        'おかえり。<br>今日もちゃんと、ここが祐紀の家。'
-      ];
-      const dayIndex = new Date().getDate() % welcomes.length;
-      if(welcomeText) welcomeText.innerHTML = welcomes[dayIndex];
+
+      // Character message
+      refreshCharMessage();
+      if(welcomeText && currentCharData){
+        const color = getCharColor(currentCharData.char.id);
+        welcomeText.innerHTML = currentCharData.msg;
+        welcomeText.style.color = color;
+        welcomeText.style.textShadow = `0 0 32px ${color}50`;
+      }
+
       const mood = currentMood();
       const display = pendingMood || mood;
       if(moodStatusText) moodStatusText.textContent = display ? `今日の気分: ${display}` : '未記録';
@@ -144,21 +331,29 @@
       if(saveBtn) saveBtn.style.display = pendingMood ? '' : 'none';
     }
 
+    // Tap welcome text → new message
+    if(welcomeText){
+      welcomeText.addEventListener('click', () => {
+        currentCharData = getRandomCharMessage();
+        const color = getCharColor(currentCharData.char.id);
+        welcomeText.innerHTML = currentCharData.msg;
+        welcomeText.style.color = color;
+        welcomeText.style.textShadow = `0 0 32px ${color}50`;
+      });
+    }
+
+    /* ─── Mood ──────────────────────────────────── */
     function selectMood(symbol){
       pendingMood = symbol;
       renderHome();
     }
 
-    function uid(){ return 'id-' + Math.random().toString(36).slice(2,11); }
-
     function confirmMood(){
       if(!pendingMood) return;
       const today = getTodayKey();
-      // Save mood
       const data = getMoodMap();
       data[today] = pendingMood;
       saveJson(moodKey, data);
-      // Sync to diary
       const diaries = loadJson(diaryKey, []);
       const existing = diaries.find(e => e.day === today);
       if(existing){
@@ -180,22 +375,131 @@
       openSimpleSheet('Mood History', rows.replaceAll('-', '.'));
     }
 
+    /* ─── Sheet ─────────────────────────────────── */
     function openSimpleSheet(title, text){
       simpleSheetContent.innerHTML = `<h3>${escapeHtml(title)}</h3><p>${escapeHtml(text)}</p><div class="row"><button class="sub-button" type="button" onclick="closeSheet()">閉じる</button></div>`;
       simpleSheetBackdrop.classList.add('show');
     }
+
+    function openHtmlSheet(html){
+      simpleSheetContent.innerHTML = html;
+      simpleSheetBackdrop.classList.add('show');
+    }
+
     function closeSheet(event){
       if(event && event.target !== simpleSheetBackdrop) return;
       simpleSheetBackdrop.classList.remove('show');
     }
 
+    /* ─── Color Settings ────────────────────────── */
+    function openColorSettings(){
+      const colors = getCharColors();
+      const items = CHARACTERS.map(c => {
+        const col = colors[c.id] || c.defaultColor;
+        return `<button type="button" onclick="openCharColorPicker('${c.id}')"
+          style="display:flex;align-items:center;gap:12px;width:100%;padding:11px 0;
+                 background:none;border:none;border-bottom:1px solid rgba(255,255,255,0.07);
+                 cursor:pointer;color:inherit;text-align:left;">
+          <span style="width:20px;height:20px;border-radius:50%;background:${col};
+                       display:inline-block;flex-shrink:0;box-shadow:0 0 8px ${col}80;"></span>
+          <span style="font-size:15px;letter-spacing:0.03em;">${escapeHtml(c.name)}</span>
+          <span style="margin-left:auto;opacity:0.4;font-size:13px;">›</span>
+        </button>`;
+      }).join('');
+
+      openHtmlSheet(`
+        <h3 style="margin:0 0 16px;font-size:16px;font-weight:600;letter-spacing:0.05em;">キャラクターカラー</h3>
+        ${items}
+        <div class="row" style="margin-top:16px;">
+          <button class="sub-button" type="button" onclick="closeSheet()">閉じる</button>
+        </div>
+      `);
+    }
+
+    function openCharColorPicker(charId){
+      const char = CHARACTERS.find(c => c.id === charId);
+      if(!char) return;
+      const currentColor = getCharColor(charId);
+
+      const swatches = COLOR_PALETTE.map(p => {
+        const isSelected = p.hex.toLowerCase() === currentColor.toLowerCase();
+        const ring = isSelected
+          ? `outline:2.5px solid #fff;outline-offset:3px;`
+          : '';
+        return `<button type="button"
+          onclick="setCharColor('${charId}','${p.hex}')"
+          title="${escapeHtml(p.name)}"
+          style="width:42px;height:42px;border-radius:50%;background:${p.hex};
+                 border:none;cursor:pointer;${ring}
+                 box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:transform 0.1s;"
+          onmousedown="this.style.transform='scale(0.88)'"
+          onmouseup="this.style.transform='scale(1)'"
+          ontouchstart="this.style.transform='scale(0.88)'"
+          ontouchend="this.style.transform='scale(1)'">
+        </button>`;
+      }).join('');
+
+      const previewColor = currentColor;
+
+      openHtmlSheet(`
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+          <button type="button" onclick="openColorSettings()"
+            style="background:none;border:none;color:rgba(255,255,255,0.55);
+                   cursor:pointer;font-size:20px;padding:0;line-height:1;">‹</button>
+          <h3 style="margin:0;font-size:16px;font-weight:600;">${escapeHtml(char.name)}</h3>
+          <span id="colorPreviewDot" style="width:16px;height:16px;border-radius:50%;
+                background:${previewColor};display:inline-block;
+                box-shadow:0 0 10px ${previewColor}80;
+                transition:background 0.3s, box-shadow 0.3s;margin-left:4px;"></span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;
+                    padding:4px 0 22px;">
+          ${swatches}
+        </div>
+        <div class="row">
+          <button class="sub-button" type="button" onclick="closeSheet()">完了</button>
+        </div>
+      `);
+    }
+
+    function setCharColor(charId, hex){
+      const colors = getCharColors();
+      colors[charId] = hex;
+      saveJson(colorKey, colors);
+
+      // Preview dot update
+      const dot = document.getElementById('colorPreviewDot');
+      if(dot){
+        dot.style.background = hex;
+        dot.style.boxShadow = `0 0 10px ${hex}80`;
+      }
+
+      // Update swatch selection ring
+      const allSwatches = simpleSheetContent.querySelectorAll('button[title]');
+      allSwatches.forEach(btn => {
+        const bg = btn.style.background.toLowerCase();
+        btn.style.outline = bg === hex.toLowerCase() ? '2.5px solid #fff' : 'none';
+        btn.style.outlineOffset = bg === hex.toLowerCase() ? '3px' : '0';
+      });
+
+      // Re-render hero if this is the current character
+      if(currentCharData && currentCharData.char.id === charId){
+        if(welcomeText){
+          welcomeText.style.color = hex;
+          welcomeText.style.textShadow = `0 0 32px ${hex}50`;
+        }
+      }
+    }
+
+    /* ─── Navigation ────────────────────────────── */
     document.getElementById('openMemoFromHome').addEventListener('click', () => { window.location.href = 'memo.html'; });
-    document.getElementById('openDiaryFromHome').addEventListener('click', () => { window.location.href = 'diary.html?view=list'; });
+    document.getElementById('openDiaryFromHome').addEventListener('click', () => { window.location.href = 'diary.html'; });
     document.getElementById('openHealthFromHome').addEventListener('click', () => { window.location.href = 'health.html'; });
     document.getElementById('openLivingFromHome').addEventListener('click', () => openSimpleSheet('Living','みんながいる共有のリビング。\nここは次の制作でつないでいく場所。'));
     document.getElementById('openRoomsFromHome').addEventListener('click', () => openSimpleSheet('Rooms','それぞれの部屋へ入る入口。\nRoomsはあとで本設計する予定。'));
     document.getElementById('openTreasuresFromHome').addEventListener('click', () => openSimpleSheet('Treasures','宝物や思い出の保管場所。\nここも次の制作で育てていく。'));
 
+    /* ─── Init ──────────────────────────────────── */
     renderHome();
   </script>
 </body>
