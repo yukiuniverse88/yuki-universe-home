@@ -250,7 +250,7 @@
   /* ═══════════════════════════════════════
      SETTINGS & ACCESSORS
   ═══════════════════════════════════════ */
-  function getSettings(){ return loadJson(settingKey,{showName:false,fontSize:'md'}); }
+  function getSettings(){ return loadJson(settingKey,{showName:false,fontSize:'md',effect:'slideUp'}); }
   function saveSettings(s){ saveJson(settingKey,s); }
   function getCharColors(){ return loadJson(colorKey,{}); }
   function getCharColor(id){ const c=getCharColors(); const ch=CHARACTERS.find(x=>x.id===id); return c[id]||ch?.defaultColor||'#ffffff'; }
@@ -299,18 +299,44 @@
   /* ④ 文字サイズと改行：font-sizeだけ変えてあとはCSSの自然な折り返しに任せる */
   const FONT_SIZES={sm:'17px', md:'22px', lg:'28px'};
 
-  function applyMessage(data){
+  // エフェクト定義
+  const EFFECTS={
+    fade:      { out:{opacity:'0', transform:'none'},           in:{opacity:'1', transform:'none'} },
+    slideUp:   { out:{opacity:'0', transform:'translateY(6px)'},in:{opacity:'1', transform:'translateY(0)'} },
+    slideDown: { out:{opacity:'0', transform:'translateY(-8px)'},in:{opacity:'1', transform:'translateY(0)'} },
+    zoom:      { out:{opacity:'0', transform:'scale(0.92)'},    in:{opacity:'1', transform:'scale(1)'} },
+    blur:      { out:{opacity:'0', filter:'blur(6px)'},         in:{opacity:'1', filter:'blur(0px)'} },
+  };
+
+  function applyMessage(data, animate=false){
     const s=getSettings();
     const color=getCharColor(data.char.id);
     const sz=FONT_SIZES[s.fontSize||'md'];
-    if(welcomeText){
-      welcomeText.textContent=data.msg;   // innerHTMLではなくtextContentで改行は自動
-      welcomeText.style.color=color;
-      welcomeText.style.fontSize=sz;
-      welcomeText.style.textShadow=`0 0 32px ${color}50`;
-    }
     const nl=document.getElementById('charNameLabel');
-    if(nl){ nl.textContent=data.char.name; nl.style.color=color; nl.style.display=s.showName?'block':'none'; }
+
+    function setContent(){
+      if(welcomeText){
+        welcomeText.textContent=data.msg;
+        welcomeText.style.color=color;
+        welcomeText.style.fontSize=sz;
+        welcomeText.style.textShadow=`0 0 32px ${color}50`;
+      }
+      if(nl){ nl.textContent=data.char.name; nl.style.color=color; nl.style.display=s.showName?'block':'none'; }
+    }
+
+    if(animate && welcomeText){
+      const eff=EFFECTS[s.effect||'slideUp']||EFFECTS.slideUp;
+      welcomeText.style.transition='opacity 0.22s ease, transform 0.22s ease, filter 0.22s ease';
+      Object.assign(welcomeText.style, eff.out);
+      if(nl){ nl.style.transition='opacity 0.22s ease'; nl.style.opacity='0'; }
+      setTimeout(()=>{
+        setContent();
+        Object.assign(welcomeText.style, eff.in);
+        if(nl) nl.style.opacity='1';
+      }, 240);
+    } else {
+      setContent();
+    }
   }
 
   /* ═══════════════════════════════════════
@@ -341,7 +367,7 @@
   if(welcomeText){
     welcomeText.addEventListener('click',()=>{
       const slot=getTimeSlot();
-      currentCharData=pickRandom(slot); currentAutoSlot=slot; applyMessage(currentCharData);
+      currentCharData=pickRandom(slot); currentAutoSlot=slot; applyMessage(currentCharData, true);
     });
   }
 
@@ -379,13 +405,28 @@
      EDIT PANEL
   ═══════════════════════════════════════ */
   function openEditPanel(){
-    const s=getSettings(); const fs=s.fontSize||'md';
+    const s=getSettings(); const fs=s.fontSize||'md'; const ef=s.effect||'slideUp';
     const fsBtns=['sm','md','lg'].map(v=>`
       <button type="button" onclick="setFontSize('${v}')" id="fs_${v}"
         style="flex:1;padding:8px 0;border:1px solid rgba(255,255,255,0.18);border-radius:8px;
                cursor:pointer;font-size:14px;background:${fs===v?'rgba(255,255,255,0.15)':'none'};
                color:${fs===v?'#fff':'rgba(255,255,255,0.5)'};transition:all 0.2s;">
         ${{sm:'小',md:'中',lg:'大'}[v]}</button>`).join('');
+
+    const effectList=[
+      {v:'fade',     l:'フェード'},
+      {v:'slideUp',  l:'スライドアップ'},
+      {v:'slideDown',l:'スライドダウン'},
+      {v:'zoom',     l:'ズーム'},
+      {v:'blur',     l:'ブラー'},
+    ];
+    const efBtns=effectList.map(e=>`
+      <button type="button" onclick="setEffect('${e.v}')" id="ef_${e.v}"
+        style="flex:1 1 calc(50% - 4px);padding:8px 4px;border:1px solid rgba(255,255,255,0.18);
+               border-radius:8px;cursor:pointer;font-size:13px;white-space:nowrap;
+               background:${ef===e.v?'rgba(255,255,255,0.15)':'none'};
+               color:${ef===e.v?'#fff':'rgba(255,255,255,0.5)'};transition:all 0.2s;">
+        ${e.l}</button>`).join('');
 
     openHtmlSheet(`
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
@@ -404,6 +445,11 @@
       <div style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.07);">
         <div style="font-size:14px;letter-spacing:0.04em;margin-bottom:10px;">文字の大きさ</div>
         <div style="display:flex;gap:8px;">${fsBtns}</div>
+      </div>
+
+      <div style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.07);">
+        <div style="font-size:14px;letter-spacing:0.04em;margin-bottom:10px;">切り替えエフェクト</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">${efBtns}</div>
       </div>
 
       <button type="button" onclick="openColorList()" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 0;background:none;border:none;border-bottom:1px solid rgba(255,255,255,0.07);cursor:pointer;color:inherit;font-size:14px;letter-spacing:0.04em;">
@@ -430,6 +476,16 @@
     const s=getSettings(); s.fontSize=v; saveSettings(s);
     ['sm','md','lg'].forEach(sv=>{ const b=document.getElementById(`fs_${sv}`); if(b){ b.style.background=sv===v?'rgba(255,255,255,0.15)':'none'; b.style.color=sv===v?'#fff':'rgba(255,255,255,0.5)'; } });
     renderHome();
+  }
+
+  function setEffect(v){
+    const s=getSettings(); s.effect=v; saveSettings(s);
+    ['fade','slideUp','slideDown','zoom','blur'].forEach(ev=>{
+      const b=document.getElementById(`ef_${ev}`);
+      if(b){ b.style.background=ev===v?'rgba(255,255,255,0.15)':'none'; b.style.color=ev===v?'#fff':'rgba(255,255,255,0.5)'; }
+    });
+    // プレビュー
+    if(currentCharData) applyMessage(currentCharData, true);
   }
 
   /* ═══════════════════════════════════════
