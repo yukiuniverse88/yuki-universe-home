@@ -299,6 +299,8 @@ button.card{width:100%;text-align:left;color:inherit;cursor:pointer;border:none;
 .diary-textarea{min-height:240px;resize:vertical;}
 .diary-mood-picker{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;}
 .diary-mood-picker .pill{width:42px;height:42px;font-size:20px;}
+.diary-date-tap{border-bottom:1.5px dashed rgba(255,255,255,0.2);display:inline-block;padding-bottom:2px;transition:border-color 0.2s;}
+.diary-date-tap:active{border-color:rgba(255,255,255,0.5);}
 .diary-photo-strip{margin-top:14px;display:flex;align-items:stretch;gap:10px;}
 .diary-photo-thumb{width:92px;height:92px;border:none;border-radius:18px;overflow:hidden;flex:0 0 auto;border:1px solid var(--line);background:rgba(255,255,255,.03);padding:0;cursor:pointer;box-shadow:var(--shadow);}
 .diary-photo-thumb img{display:block;width:100%;height:100%;object-fit:cover;background:#0d0a0b;}

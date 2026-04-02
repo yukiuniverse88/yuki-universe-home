@@ -53,30 +53,11 @@
 
         <div class="home-title">Today</div>
         <section class="today-stack">
-          <article class="card mood-card">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <p class="small-title">TODAY'S MOOD</p>
-              <button class="history-button" type="button" onclick="openMoodHistory()"
-                style="height:36px;font-size:14px;padding:0 14px;min-width:auto;">History</button>
-            </div>
-            <div class="compact-status" id="moodStatusText">未記録</div>
-            <div class="mood-line">
-              <div class="mood-symbols">
-                <button class="pill" type="button" data-mood="◎" onclick="selectMood('◎')">◎</button>
-                <button class="pill" type="button" data-mood="○" onclick="selectMood('○')">○</button>
-                <button class="pill" type="button" data-mood="△" onclick="selectMood('△')">△</button>
-                <button class="pill" type="button" data-mood="×" onclick="selectMood('×')">×</button>
-              </div>
-              <button class="history-button" type="button" id="moodSaveBtn"
-                onclick="confirmMood()" style="display:none;">Save</button>
-            </div>
-          </article>
           <div class="duo-grid">
             <button class="card duo-card" type="button" id="openDiaryFromHome">
               <div class="duo-badge diary-badge">✎</div>
               <div class="duo-info">
                 <div class="duo-label">Diary</div>
-                <div class="duo-sub" id="diaryBadge">Mood: —</div>
               </div>
               <span class="duo-arrow">›</span>
             </button>
@@ -373,9 +354,6 @@
   const welcomeText         = document.getElementById('welcomeText');
   const simpleSheetBackdrop = document.getElementById('simpleSheetBackdrop');
   const simpleSheetContent  = document.getElementById('simpleSheetContent');
-  const diaryBadge          = document.getElementById('diaryBadge');
-  const moodStatusText      = document.getElementById('moodStatusText');
-  let pendingMood=null;
 
   /* ═══════════════════════════════════════
      RENDER
@@ -384,11 +362,6 @@
     if(dateText) dateText.textContent=formatHomeDate();
     refreshCharMessage();
     if(currentCharData) applyMessage(currentCharData);
-    const mood=currentMood(); const display=pendingMood||mood;
-    if(moodStatusText) moodStatusText.textContent=display?`今日の気分: ${display}`:'未記録';
-    document.querySelectorAll('.pill[data-mood]').forEach(b=>b.classList.toggle('active',b.dataset.mood===display));
-    if(diaryBadge) diaryBadge.textContent=`Mood: ${mood||'—'}`;
-    const sb=document.getElementById('moodSaveBtn'); if(sb) sb.style.display=pendingMood?'':'none';
   }
 
   if(welcomeText){
@@ -396,25 +369,6 @@
       const slot=getTimeSlot();
       currentCharData=pickRandom(slot); currentAutoSlot=slot; applyMessage(currentCharData, true);
     });
-  }
-
-  /* ═══════════════════════════════════════
-     MOOD
-  ═══════════════════════════════════════ */
-  function selectMood(sym){ pendingMood=sym; renderHome(); }
-  function confirmMood(){
-    if(!pendingMood) return;
-    const today=getTodayKey(); const data=getMoodMap(); data[today]=pendingMood; saveJson(moodKey,data);
-    const diaries=loadJson(diaryKey,[]); const ex=diaries.find(e=>e.day===today);
-    if(ex){ex.mood=pendingMood;ex.ts=Date.now();}
-    else diaries.unshift({id:uid(),day:today,mood:pendingMood,text:'',image:'',imageName:'',ts:Date.now()});
-    diaries.sort((a,b)=>(b.ts||0)-(a.ts||0)); saveJson(diaryKey,diaries.slice(0,180));
-    pendingMood=null; renderHome();
-  }
-  function openMoodHistory(){
-    const data=getMoodMap();
-    const rows=Object.entries(data).sort((a,b)=>a[0]<b[0]?1:-1).slice(0,30).map(([d,v])=>`${d}  ${v}`).join('\n')||'まだ記録がないよ。';
-    openSimpleSheet('Mood History',rows.replaceAll('-','.'));
   }
 
   /* ═══════════════════════════════════════
@@ -775,7 +729,7 @@
      NAVIGATION
   ═══════════════════════════════════════ */
   document.getElementById('openMemoFromHome').addEventListener('click',()=>{ window.location.href='memo.html'; });
-  document.getElementById('openDiaryFromHome').addEventListener('click',()=>{ window.location.href='diary.html'; });
+  document.getElementById('openDiaryFromHome').addEventListener('click',()=>{ window.location.href='diary.html?view=list'; });
   document.getElementById('openHealthFromHome').addEventListener('click',()=>{ window.location.href='health.html'; });
   document.getElementById('openLivingFromHome').addEventListener('click',()=>openSimpleSheet('Living','みんながいる共有のリビング。\nここは次の制作でつないでいく場所。'));
   document.getElementById('openRoomsFromHome').addEventListener('click',()=>openSimpleSheet('Rooms','それぞれの部屋へ入る入口。\nRoomsはあとで本設計する予定。'));

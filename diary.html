@@ -16,7 +16,7 @@
     <section id="view-write" class="view active">
       <div class="nav">
         <div class="nav-row">
-          <button class="icon-btn" id="backHome" aria-label="ホームへ戻る">‹</button>
+          <button class="icon-btn" id="backToList" aria-label="一覧へ戻る">‹</button>
           <div>
             <div class="nav-title">Diary</div>
             <div class="nav-sub" id="writeNavSub">Today</div>
@@ -27,16 +27,17 @@
         </div>
       </div>
       <div class="screen-head">
-        <h1 class="screen-title" id="writeDateTitle"></h1>
+        <h1 class="screen-title diary-date-tap" id="writeDateTitle" style="cursor:pointer;"></h1>
+        <input type="date" id="diaryDatePicker" style="position:absolute;opacity:0;width:1px;height:1px;overflow:hidden;" />
       </div>
       <div class="editor-shell" style="min-height:auto;">
         <div class="diary-mood-picker" id="writeMoodPicker"></div>
-        <textarea id="diaryInput" class="editor-body diary-textarea" placeholder="気が向いた日に、ひとことでも。"></textarea>
-        <div id="writeImageSection"></div>
-        <div style="display:flex;gap:10px;margin-top:8px;">
+        <div style="display:flex;gap:10px;margin-top:4px;margin-bottom:10px;">
           <button class="sub-button" type="button" onclick="saveDiary()" style="flex:1;">保存</button>
           <button class="sub-button danger" type="button" id="deleteEntryBtn" style="flex:0 0 auto;display:none;">削除</button>
         </div>
+        <textarea id="diaryInput" class="editor-body diary-textarea" placeholder="気が向いた日に、ひとことでも。"></textarea>
+        <div id="writeImageSection"></div>
       </div>
     </section>
 
@@ -44,7 +45,7 @@
     <section id="view-list" class="view">
       <div class="nav">
         <div class="nav-row">
-          <button class="icon-btn" id="backToWrite" aria-label="戻る">‹</button>
+          <button class="icon-btn" id="backHome" aria-label="ホームへ戻る">‹</button>
           <div class="nav-title">Diary List</div>
           <div class="nav-actions">
             <button class="icon-btn" id="newEntryBtn" aria-label="新規日記">＋</button>
@@ -185,6 +186,7 @@
     const diaryRestoreInput = document.getElementById('diaryRestoreInput');
     const diaryLightbox = document.getElementById('diaryLightbox');
     const diaryLightboxImage = document.getElementById('diaryLightboxImage');
+    const diaryDatePicker = document.getElementById('diaryDatePicker');
 
     let currentView = 'write';
     let draft = null;
@@ -350,7 +352,7 @@
       const mood = draft.mood || '';
       const image = draft.image || '';
       if(!text && !mood && !image){
-        window.location.href = 'index.html';
+        renderList(); showView('list');
         return;
       }
       const diaries = getDiaryList().filter(e => e.id !== draft.id && e.day !== draft.day);
@@ -384,7 +386,7 @@
       if(!confirm(`${label} の日記を削除する？`)) return;
       const diaries = getDiaryList().filter(e => e.id !== draft.id && e.day !== draft.day);
       if(!persistDiaryList(diaries)) return;
-      initWriteView(); // reset to today
+      renderList(); showView('list');
     }
 
     deleteEntryBtn.addEventListener('click', deleteCurrentEntry);
@@ -511,18 +513,24 @@
     }
 
     /* === Event Listeners === */
-    document.getElementById('backHome').addEventListener('click', () => { window.location.href = 'index.html'; });
+    document.getElementById('backToList').addEventListener('click', () => { renderList(); showView('list'); });
     document.getElementById('openListBtn').addEventListener('click', () => { renderList(); showView('list'); });
-    document.getElementById('backToWrite').addEventListener('click', () => {
-      if(getViewParam() === 'list') {
-        window.location.href = 'index.html';
-        return;
-      }
-      initWriteView();
-    });
+    document.getElementById('backHome').addEventListener('click', () => { window.location.href = 'index.html'; });
     document.getElementById('newEntryBtn').addEventListener('click', () => { initWriteView(); });
     document.getElementById('listMenuBtn').addEventListener('click', openListMenu);
     document.getElementById('closeMenuBackdrop').addEventListener('click', closeMenu);
+
+    /* === Date Picker === */
+    writeDateTitle.addEventListener('click', () => {
+      diaryDatePicker.value = draft?.day || getTodayKey();
+      try { diaryDatePicker.showPicker(); } catch(e) { diaryDatePicker.click(); }
+    });
+    diaryDatePicker.addEventListener('change', () => {
+      const picked = diaryDatePicker.value;
+      if(!picked) return;
+      syncDraftFromInput();
+      initWriteViewForDay(picked);
+    });
 
     /* === Init === */
     if(getViewParam() === 'list'){
