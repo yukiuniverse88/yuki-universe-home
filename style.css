@@ -270,6 +270,7 @@ button.card{width:100%;text-align:left;color:inherit;cursor:pointer;border:none;
 .duo-badge{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;font-size:24px;flex:0 0 auto;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.035);}
 .diary-badge{color:#8fc8ff;border-color:rgba(143,200,255,.22);}
 .health-badge{color:#ffcc7a;border-color:rgba(255,204,122,.22);}
+.memory-badge{color:#a8d0e8;border-color:rgba(168,208,232,.22);}
 .duo-info{flex:1;min-width:0;}
 .duo-label{font-size:17px;font-weight:700;line-height:1.2;}
 .duo-sub{font-size:13px;color:var(--sub);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
